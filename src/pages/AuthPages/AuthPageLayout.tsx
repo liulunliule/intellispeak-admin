@@ -2,7 +2,7 @@ import React from "react";
 import GridShape from "../../components/common/GridShape";
 import { Link } from "react-router";
 import ThemeTogglerTwo from "../../components/common/ThemeTogglerTwo";
-import { logo, squarelogo } from "../../../public/images";
+import { logo, squarelogo } from "../../assets";
 
 
 export default function AuthLayout({

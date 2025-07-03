@@ -19,7 +19,7 @@ import {
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
-import { logo, squarelogo } from "../../public/images";
+import { logo, squarelogo } from "../assets";
 
 
 type NavItem = {
