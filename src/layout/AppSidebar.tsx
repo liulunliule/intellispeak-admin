@@ -5,7 +5,7 @@ import { Link, useLocation } from "react-router";
 import {
   AISettingsIcon,
   BoxCubeIcon,
-  CalenderIcon,
+  // CalenderIcon,
   ChevronDownIcon,
   FeedbackIcon,
   GridIcon,
@@ -14,7 +14,7 @@ import {
   PageIcon,
   PieChartIcon,
   PlugInIcon,
-  TableIcon,
+  // TableIcon,
   UserCircleIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";

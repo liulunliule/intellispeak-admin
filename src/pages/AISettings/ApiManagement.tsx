@@ -3,7 +3,7 @@ import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
 import { ReactComponent as KeyIcon } from '../../icons/key.svg?react';
 import { ReactComponent as CopyIcon } from '../../icons/copy.svg?react';
-import { ReactComponent as RefreshIcon } from '../../icons/refresh.svg?react';
+// import { ReactComponent as RefreshIcon } from '../../icons/refresh.svg?react';
 import Button from '../../components/ui/button/Button';
 import Label from '../../components/form/Label';
 import Input from '../../components/form/input/InputField';
@@ -201,7 +201,6 @@ export default function ApiManagement() {
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    color="error"
                                                 >
                                                     Revoke
                                                 </Button>

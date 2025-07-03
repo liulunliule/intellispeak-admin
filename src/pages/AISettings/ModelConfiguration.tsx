@@ -126,7 +126,6 @@ export default function ModelConfiguration() {
                                 onChange={handleChange}
                                 min="0"
                                 max="1"
-                                step="0.1"
                             />
                         </div>
 
@@ -139,7 +138,6 @@ export default function ModelConfiguration() {
                                 onChange={handleChange}
                                 min="0"
                                 max="2"
-                                step="0.1"
                             />
                         </div>
 
@@ -152,7 +150,6 @@ export default function ModelConfiguration() {
                                 onChange={handleChange}
                                 min="0"
                                 max="2"
-                                step="0.1"
                             />
                         </div>
 

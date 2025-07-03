@@ -43,7 +43,7 @@ export default function QuestionSetForm({
                 <Input
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    required
+
                 />
             </div>
 
@@ -52,7 +52,7 @@ export default function QuestionSetForm({
                 <Input
                     value={formData.topic}
                     onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                    required
+
                 />
             </div>
 
@@ -82,10 +82,10 @@ export default function QuestionSetForm({
             </div>
 
             <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={onCancel}>
+                <Button variant="outline" onClick={onCancel}>
                     Cancel
                 </Button>
-                <Button type="submit">
+                <Button >
                     {initialData ? "Update" : "Create"} Question Set
                 </Button>
             </div>

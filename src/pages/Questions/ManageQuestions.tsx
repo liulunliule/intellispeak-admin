@@ -266,7 +266,6 @@ export default function ManageQuestions() {
                                             name="title"
                                             value={formData.title}
                                             onChange={handleFormChange}
-                                            required
                                         />
                                     </div>
 
@@ -276,7 +275,6 @@ export default function ManageQuestions() {
                                             name="topic"
                                             value={formData.topic}
                                             onChange={handleFormChange}
-                                            required
                                         />
                                     </div>
 
@@ -355,7 +353,6 @@ export default function ManageQuestions() {
                                             <Button
                                                 size="sm"
                                                 variant="outline"
-                                                color="error"
                                                 onClick={() => requestDelete(set.id)}
                                             >
                                                 Delete
@@ -386,7 +383,7 @@ export default function ManageQuestions() {
                         <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
                             Cancel
                         </Button>
-                        <Button color="error" onClick={confirmDelete}>
+                        <Button onClick={confirmDelete}>
                             Delete
                         </Button>
                     </div>

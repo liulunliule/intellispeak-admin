@@ -51,7 +51,7 @@ export default function QuestionSetCard({
                     <Button size="sm" variant="outline" onClick={() => onEdit(questionSet.id)}>
                         Edit
                     </Button>
-                    <Button size="sm" variant="outline" color="error" onClick={() => onDelete(questionSet.id)}>
+                    <Button size="sm" variant="outline" onClick={() => onDelete(questionSet.id)}>
                         Delete
                     </Button>
                 </div>
