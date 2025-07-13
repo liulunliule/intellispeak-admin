@@ -17,41 +17,41 @@ interface QuestionSet {
 }
 
 export default function ManageQuestions() {
-    // State for question sets
+    // State cho các bộ câu hỏi
     const [questionSets, setQuestionSets] = useState<QuestionSet[]>([
         {
             id: 1,
-            title: "React Fundamentals",
+            title: "Kiến thức cơ bản về React",
             topic: "React",
             difficulty: "Easy",
-            sampleAnswer: "React is a JavaScript library for building user interfaces.",
+            sampleAnswer: "React là một thư viện JavaScript để xây dựng giao diện người dùng.",
             questionsCount: 10
         },
         {
             id: 2,
-            title: "Advanced State Management",
+            title: "Quản lý trạng thái nâng cao",
             topic: "React",
             difficulty: "Hard",
-            sampleAnswer: "Redux provides a centralized store for state management in complex applications.",
+            sampleAnswer: "Redux cung cấp một kho lưu trữ tập trung để quản lý trạng thái trong các ứng dụng phức tạp.",
             questionsCount: 8
         },
         {
             id: 3,
-            title: "CSS Styling Techniques",
+            title: "Kỹ thuật tạo kiểu CSS",
             topic: "CSS",
             difficulty: "Medium",
-            sampleAnswer: "CSS Grid and Flexbox are modern layout techniques for responsive designs.",
+            sampleAnswer: "CSS Grid và Flexbox là các kỹ thuật bố cục hiện đại cho thiết kế đáp ứng.",
             questionsCount: 12
         }
     ]);
 
-    // Filter and sort state
+    // Trạng thái lọc và sắp xếp
     const [filteredSets, setFilteredSets] = useState(questionSets);
     const [currentTopic, setCurrentTopic] = useState("");
     const [currentDifficulty, setCurrentDifficulty] = useState("");
     const [currentSort, setCurrentSort] = useState("title");
 
-    // Form state
+    // Trạng thái biểu mẫu
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [formData, setFormData] = useState<Omit<QuestionSet, 'id' | 'questionsCount'>>({
@@ -61,29 +61,29 @@ export default function ManageQuestions() {
         sampleAnswer: ""
     });
 
-    // Confirmation dialogs state
+    // Trạng thái hộp thoại xác nhận
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
-    // Get unique topics for filter dropdown
+    // Lấy các chủ đề duy nhất cho dropdown bộ lọc
     const topics = Array.from(new Set(questionSets.map(set => set.topic)));
 
-    // Apply filters and sorting
+    // Áp dụng bộ lọc và sắp xếp
     const applyFiltersAndSort = () => {
         let filtered = [...questionSets];
 
-        // Apply topic filter
+        // Áp dụng bộ lọc chủ đề
         if (currentTopic) {
             filtered = filtered.filter(set => set.topic === currentTopic);
         }
 
-        // Apply difficulty filter
+        // Áp dụng bộ lọc độ khó
         if (currentDifficulty) {
             filtered = filtered.filter(set => set.difficulty === currentDifficulty);
         }
 
-        // Apply sorting
+        // Áp dụng sắp xếp
         filtered.sort((a, b) => {
             switch (currentSort) {
                 case "title":
@@ -104,7 +104,7 @@ export default function ManageQuestions() {
         setFilteredSets(filtered);
     };
 
-    // Handle filter changes
+    // Xử lý thay đổi bộ lọc
     const handleTopicChange = (topic: string) => {
         setCurrentTopic(topic);
         applyFiltersAndSort();
@@ -120,7 +120,7 @@ export default function ManageQuestions() {
         applyFiltersAndSort();
     };
 
-    // Form handlers
+    // Xử lý biểu mẫu
     const openAddForm = () => {
         setFormData({
             title: "",
@@ -150,19 +150,19 @@ export default function ManageQuestions() {
         }));
     };
 
-    // Submit handlers
+    // Xử lý gửi biểu mẫu
     const handleSubmitClick = () => {
         setShowSaveConfirm(true);
     };
 
     const confirmSubmit = () => {
         if (editingId) {
-            // Update existing
+            // Cập nhật bộ câu hỏi hiện có
             setQuestionSets(questionSets.map(set =>
                 set.id === editingId ? { ...set, ...formData } : set
             ));
         } else {
-            // Add new
+            // Thêm bộ câu hỏi mới
             const newSet = {
                 ...formData,
                 id: Math.max(0, ...questionSets.map(set => set.id)) + 1,
@@ -175,7 +175,7 @@ export default function ManageQuestions() {
         applyFiltersAndSort();
     };
 
-    // Delete handlers
+    // Xử lý xóa
     const requestDelete = (id: number) => {
         setDeleteId(id);
         setShowDeleteConfirm(true);
@@ -192,23 +192,23 @@ export default function ManageQuestions() {
     return (
         <>
             <PageMeta
-                title="React.js Manage Questions"
-                description="This is React.js Manage Questions page"
+                title="React.js Quản lý Câu hỏi"
+                description="Đây là trang Quản lý Câu hỏi React.js"
             />
-            <PageBreadcrumb pageTitle="Questions" />
+            <PageBreadcrumb pageTitle="Câu hỏi" />
 
             <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                            Manage Questions
+                            Quản lý Câu hỏi
                         </h3>
                         <Button onClick={openAddForm}>
-                            Add New Question Set
+                            Thêm bộ câu hỏi mới
                         </Button>
                     </div>
 
-                    {/* Filter and Sort Controls */}
+                    {/* Điều khiển lọc và sắp xếp */}
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex flex-wrap gap-2">
                             <select
@@ -216,7 +216,7 @@ export default function ManageQuestions() {
                                 value={currentTopic}
                                 onChange={(e) => handleTopicChange(e.target.value)}
                             >
-                                <option value="">All Topics</option>
+                                <option value="">Tất cả chủ đề</option>
                                 {topics.map((topic) => (
                                     <option key={topic} value={topic}>
                                         {topic}
@@ -229,39 +229,39 @@ export default function ManageQuestions() {
                                 value={currentDifficulty}
                                 onChange={(e) => handleDifficultyChange(e.target.value)}
                             >
-                                <option value="">All Difficulties</option>
-                                <option value="Easy">Easy</option>
-                                <option value="Medium">Medium</option>
-                                <option value="Hard">Hard</option>
+                                <option value="">Tất cả độ khó</option>
+                                <option value="Easy">Dễ</option>
+                                <option value="Medium">Trung bình</option>
+                                <option value="Hard">Khó</option>
                             </select>
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500 dark:text-gray-400">Sort by:</span>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">Sắp xếp theo:</span>
                             <select
                                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                 value={currentSort}
                                 onChange={(e) => handleSortChange(e.target.value)}
                             >
-                                <option value="title">Title (A-Z)</option>
-                                <option value="title-desc">Title (Z-A)</option>
-                                <option value="difficulty">Difficulty (Easy to Hard)</option>
-                                <option value="difficulty-desc">Difficulty (Hard to Easy)</option>
+                                <option value="title">Tiêu đề (A-Z)</option>
+                                <option value="title-desc">Tiêu đề (Z-A)</option>
+                                <option value="difficulty">Độ khó (Dễ đến Khó)</option>
+                                <option value="difficulty-desc">Độ khó (Khó đến Dễ)</option>
                             </select>
                         </div>
                     </div>
 
-                    {/* Question Set Form Modal */}
+                    {/* Modal Form Bộ câu hỏi */}
                     <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} className="max-w-2xl">
                         <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900">
                             <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
-                                {editingId ? "Edit Question Set" : "Create New Question Set"}
+                                {editingId ? "Chỉnh sửa Bộ câu hỏi" : "Tạo Bộ câu hỏi Mới"}
                             </h3>
 
                             <form className="space-y-4">
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
-                                        <Label>Title</Label>
+                                        <Label>Tiêu đề</Label>
                                         <Input
                                             name="title"
                                             value={formData.title}
@@ -270,7 +270,7 @@ export default function ManageQuestions() {
                                     </div>
 
                                     <div>
-                                        <Label>Topic</Label>
+                                        <Label>Chủ đề</Label>
                                         <Input
                                             name="topic"
                                             value={formData.topic}
@@ -279,7 +279,7 @@ export default function ManageQuestions() {
                                     </div>
 
                                     <div>
-                                        <Label>Difficulty</Label>
+                                        <Label>Độ khó</Label>
                                         <select
                                             name="difficulty"
                                             className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
@@ -287,15 +287,15 @@ export default function ManageQuestions() {
                                             onChange={handleFormChange}
                                             required
                                         >
-                                            <option value="Easy">Easy</option>
-                                            <option value="Medium">Medium</option>
-                                            <option value="Hard">Hard</option>
+                                            <option value="Easy">Dễ</option>
+                                            <option value="Medium">Trung bình</option>
+                                            <option value="Hard">Khó</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <Label>Sample Answer</Label>
+                                    <Label>Câu trả lời mẫu</Label>
                                     <textarea
                                         name="sampleAnswer"
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
@@ -308,17 +308,17 @@ export default function ManageQuestions() {
 
                                 <div className="flex justify-end gap-3 pt-4">
                                     <Button variant="outline" onClick={() => setIsFormOpen(false)}>
-                                        Cancel
+                                        Hủy
                                     </Button>
                                     <Button onClick={handleSubmitClick}>
-                                        {editingId ? "Update" : "Create"}
+                                        {editingId ? "Cập nhật" : "Tạo"}
                                     </Button>
                                 </div>
                             </form>
                         </div>
                     </Modal>
 
-                    {/* Question Sets List */}
+                    {/* Danh sách Bộ câu hỏi */}
                     <div className="space-y-4">
                         {filteredSets.length > 0 ? (
                             filteredSets.map((set) => (
@@ -339,23 +339,23 @@ export default function ManageQuestions() {
                                                                 : "error"
                                                     }
                                                 >
-                                                    {set.difficulty}
+                                                    {set.difficulty === "Easy" ? "Dễ" : set.difficulty === "Medium" ? "Trung bình" : "Khó"}
                                                 </Badge>
                                                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                    {set.questionsCount} questions
+                                                    {set.questionsCount} câu hỏi
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
                                             <Button size="sm" variant="outline" onClick={() => openEditForm(set.id)}>
-                                                Edit
+                                                Chỉnh sửa
                                             </Button>
                                             <Button
                                                 size="sm"
                                                 variant="outline"
                                                 onClick={() => requestDelete(set.id)}
                                             >
-                                                Delete
+                                                Xóa
                                             </Button>
                                         </div>
                                     </div>
@@ -363,50 +363,50 @@ export default function ManageQuestions() {
                             ))
                         ) : (
                             <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                                No question sets found matching your criteria.
+                                Không tìm thấy bộ câu hỏi nào phù hợp với tiêu chí của bạn.
                             </div>
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Delete Confirmation Dialog */}
+            {/* Hộp thoại Xác nhận Xóa */}
             <Modal isOpen={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)} className="max-w-md">
                 <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
                     <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
-                        Delete Question Set
+                        Xóa Bộ câu hỏi
                     </h3>
                     <p className="mb-6 text-gray-600 dark:text-gray-400">
-                        Are you sure you want to delete this question set? This action cannot be undone.
+                        Bạn có chắc chắn muốn xóa bộ câu hỏi này không? Hành động này không thể hoàn tác.
                     </p>
                     <div className="flex justify-end gap-3">
                         <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-                            Cancel
+                            Hủy
                         </Button>
                         <Button onClick={confirmDelete}>
-                            Delete
+                            Xóa
                         </Button>
                     </div>
                 </div>
             </Modal>
 
-            {/* Save Confirmation Dialog */}
+            {/* Hộp thoại Xác nhận Lưu */}
             <Modal isOpen={showSaveConfirm} onClose={() => setShowSaveConfirm(false)} className="max-w-md">
                 <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
                     <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
-                        {editingId ? "Update Question Set" : "Create New Question Set"}
+                        {editingId ? "Cập nhật Bộ câu hỏi" : "Tạo Bộ câu hỏi Mới"}
                     </h3>
                     <p className="mb-6 text-gray-600 dark:text-gray-400">
                         {editingId
-                            ? "Are you sure you want to update this question set?"
-                            : "Are you sure you want to create this new question set?"}
+                            ? "Bạn có chắc chắn muốn cập nhật bộ câu hỏi này không?"
+                            : "Bạn có chắc chắn muốn tạo bộ câu hỏi mới này không?"}
                     </p>
                     <div className="flex justify-end gap-3">
                         <Button variant="outline" onClick={() => setShowSaveConfirm(false)}>
-                            Cancel
+                            Hủy
                         </Button>
                         <Button onClick={confirmSubmit}>
-                            Confirm
+                            Xác nhận
                         </Button>
                     </div>
                 </div>

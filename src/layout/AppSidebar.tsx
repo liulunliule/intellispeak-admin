@@ -32,61 +32,61 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: "Dashboard",
+    name: "Bảng điều khiển",
     path: "/",
-    // subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+    // subItems: [{ name: "Thương mại điện tử", path: "/", pro: false }],
   },
   // {
   //   icon: <CalenderIcon />,
-  //   name: "Calendar",
+  //   name: "Lịch",
   //   path: "/calendar",
   // },
   {
     icon: <UserCircleIcon />,
-    name: "User Profile",
+    name: "Hồ sơ người dùng",
     subItems: [
-      { name: "Profile", path: "/profile", pro: false },
-      { name: "Manage user", path: "/manage_user", pro: false },
+      { name: "Hồ sơ", path: "/profile", pro: false },
+      { name: "Quản lý người dùng", path: "/manage_user", pro: false },
     ],
   },
   // {
-  //   name: "Forms",
+  //   name: "Biểu mẫu",
   //   icon: <ListIcon />,
-  //   subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+  //   subItems: [{ name: "Phần tử biểu mẫu", path: "/form-elements", pro: false }],
   // },
   {
-    name: "Manage Questions",
+    name: "Quản lý câu hỏi",
     icon: <ListIcon />,
     path: "/questions",
   },
   {
-    name: "Feedback",
-    icon: <FeedbackIcon />, // You'll need to import this icon
+    name: "Phản hồi",
+    icon: <FeedbackIcon />,
     subItems: [
-      { name: "User Feedback", path: "/feedback", pro: false },
-      { name: "System Reports", path: "/reports", pro: false, new: true },
+      { name: "Phản hồi người dùng", path: "/feedback", pro: false },
+      { name: "Báo cáo hệ thống", path: "/reports", pro: false, new: true },
     ],
   },
   {
-    name: "AI Settings",
-    icon: <AISettingsIcon />, // You'll need to import this icon
+    name: "Cài đặt AI",
+    icon: <AISettingsIcon />,
     subItems: [
-      { name: "Model Configuration", path: "/ai/config", pro: false },
-      { name: "API Management", path: "/ai/api", pro: false },
-      { name: "Performance Metrics", path: "/ai/metrics", pro: false },
+      { name: "Cấu hình mô hình", path: "/ai/config", pro: false },
+      { name: "Quản lý API", path: "/ai/api", pro: false },
+      { name: "Chỉ số hiệu suất", path: "/ai/metrics", pro: false },
     ],
   },
   // {
-  //   name: "Tables",
+  //   name: "Bảng",
   //   icon: <TableIcon />,
-  //   subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
+  //   subItems: [{ name: "Bảng cơ bản", path: "/basic-tables", pro: false }],
   // },
   {
-    name: "Pages",
+    name: "Trang",
     icon: <PageIcon />,
     subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
+      { name: "Trang trống", path: "/blank", pro: false },
+      { name: "Lỗi 404", path: "/error-404", pro: false },
     ],
   },
 ];
@@ -94,30 +94,30 @@ const navItems: NavItem[] = [
 const othersItems: NavItem[] = [
   {
     icon: <PieChartIcon />,
-    name: "Charts",
+    name: "Biểu đồ",
     subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
+      { name: "Biểu đồ đường", path: "/line-chart", pro: false },
+      { name: "Biểu đồ cột", path: "/bar-chart", pro: false },
     ],
   },
   {
     icon: <BoxCubeIcon />,
-    name: "UI Elements",
+    name: "Thành phần UI",
     subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
-      { name: "Avatar", path: "/avatars", pro: false },
-      { name: "Badge", path: "/badge", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
-      { name: "Images", path: "/images", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
+      { name: "Cảnh báo", path: "/alerts", pro: false },
+      { name: "Ảnh đại diện", path: "/avatars", pro: false },
+      { name: "Huy hiệu", path: "/badge", pro: false },
+      { name: "Nút bấm", path: "/buttons", pro: false },
+      { name: "Hình ảnh", path: "/images", pro: false },
+      { name: "Video", path: "/videos", pro: false },
     ],
   },
   {
     icon: <PlugInIcon />,
-    name: "Authentication",
+    name: "Xác thực",
     subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
+      { name: "Đăng nhập", path: "/signin", pro: false },
+      { name: "Đăng ký", path: "/signup", pro: false },
     ],
   },
 ];
@@ -135,7 +135,6 @@ const AppSidebar: React.FC = () => {
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // const isActive = (path: string) => location.pathname === path;
   const isActive = useCallback(
     (path: string) => location.pathname === path,
     [location.pathname]
@@ -279,7 +278,7 @@ const AppSidebar: React.FC = () => {
                               : "menu-dropdown-badge-inactive"
                               } menu-dropdown-badge`}
                           >
-                            new
+                            mới
                           </span>
                         )}
                         {subItem.pro && (
@@ -376,7 +375,7 @@ const AppSidebar: React.FC = () => {
                   }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
+                  "Khác"
                 ) : (
                   <HorizontaLDots />
                 )}
@@ -385,7 +384,6 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
-        {/* {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null} */}
       </div>
     </aside>
   );

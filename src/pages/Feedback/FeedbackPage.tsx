@@ -27,37 +27,37 @@ export default function FeedbackPage() {
         {
             id: 1,
             user: {
-                name: 'John Doe',
+                name: 'Nguyễn Văn A',
                 email: 'john@example.com',
                 avatar: '/images/user/user-01.jpg'
             },
-            message: 'The AI response time is slower than expected when handling complex queries.',
+            message: 'Thời gian phản hồi của AI chậm hơn dự kiến khi xử lý các truy vấn phức tạp.',
             rating: 3,
-            date: '2023-05-15',
+            date: '15-05-2023',
             status: 'New'
         },
         {
             id: 2,
             user: {
-                name: 'Jane Smith',
+                name: 'Trần Thị B',
                 email: 'jane@example.com',
                 avatar: '/images/user/user-02.jpg'
             },
-            message: 'Great improvement in the accuracy of responses in the last update!',
+            message: 'Cải thiện tuyệt vời về độ chính xác của các phản hồi trong bản cập nhật gần đây!',
             rating: 5,
-            date: '2023-05-10',
+            date: '10-05-2023',
             status: 'Resolved'
         },
         {
             id: 3,
             user: {
-                name: 'Robert Johnson',
+                name: 'Lê Văn C',
                 email: 'robert@example.com',
                 avatar: '/images/user/user-03.jpg'
             },
-            message: 'The system sometimes provides inconsistent answers to similar questions.',
+            message: 'Hệ thống đôi khi cung cấp các câu trả lời không nhất quán cho các câu hỏi tương tự.',
             rating: 2,
-            date: '2023-05-05',
+            date: '05-05-2023',
             status: 'In Progress'
         }
     ]);
@@ -82,14 +82,14 @@ export default function FeedbackPage() {
 
     return (
         <>
-            <PageMeta title="User Feedback" description="User feedback management page" />
-            <PageBreadcrumb pageTitle="User Feedback" />
+            <PageMeta title="Phản hồi người dùng" description="Trang quản lý phản hồi của người dùng" />
+            <PageBreadcrumb pageTitle="Phản hồi người dùng" />
 
             <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                            User Feedback
+                            Phản hồi người dùng
                         </h3>
                         <div className="flex gap-3">
                             <Button
@@ -98,19 +98,19 @@ export default function FeedbackPage() {
                                 className="flex items-center gap-2"
                             >
                                 <FilterIcon className="w-4 h-4" />
-                                Filter
+                                Lọc
                             </Button>
                             <Button
                                 variant="outline"
                                 className="flex items-center gap-2"
                             >
                                 <ExportIcon className="w-4 h-4" />
-                                Export
+                                Xuất
                             </Button>
                         </div>
                     </div>
 
-                    {/* Feedback List */}
+                    {/* Danh sách Phản hồi */}
                     <div className="space-y-4">
                         {filteredFeedback.length > 0 ? (
                             filteredFeedback.map((feedback) => (
@@ -156,7 +156,7 @@ export default function FeedbackPage() {
                                                                 : 'success'
                                                     }
                                                 >
-                                                    {feedback.status}
+                                                    {feedback.status === 'New' ? 'Mới' : feedback.status === 'In Progress' ? 'Đang xử lý' : 'Đã giải quyết'}
                                                 </Badge>
                                             </div>
                                         </div>
@@ -176,7 +176,7 @@ export default function FeedbackPage() {
                                                     onClick={() => handleStatusChange(feedback.id, 'In Progress')}
                                                     disabled={feedback.status !== 'New'}
                                                 >
-                                                    Start Progress
+                                                    Bắt đầu xử lý
                                                 </Button>
                                                 <Button
                                                     size="sm"
@@ -184,7 +184,7 @@ export default function FeedbackPage() {
                                                     onClick={() => handleStatusChange(feedback.id, 'Resolved')}
                                                     disabled={feedback.status === 'Resolved'}
                                                 >
-                                                    Mark Resolved
+                                                    Đánh dấu đã giải quyết
                                                 </Button>
                                             </div>
                                         </div>
@@ -193,56 +193,56 @@ export default function FeedbackPage() {
                             ))
                         ) : (
                             <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                                No feedback found matching your criteria.
+                                Không tìm thấy phản hồi nào phù hợp với tiêu chí của bạn.
                             </div>
                         )}
                     </div>
                 </div>
             </div>
 
-            {/* Filter Modal */}
+            {/* Modal Lọc */}
             <Modal isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} className="max-w-md">
                 <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
                     <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
-                        Filter Feedback
+                        Lọc phản hồi
                     </h3>
 
                     <div className="space-y-4">
                         <div>
-                            <Label>Status</Label>
+                            <Label>Trạng thái</Label>
                             <select
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                 value={currentStatusFilter}
                                 onChange={(e) => setCurrentStatusFilter(e.target.value)}
                             >
-                                <option value="All">All Statuses</option>
-                                <option value="New">New</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Resolved">Resolved</option>
+                                <option value="All">Tất cả trạng thái</option>
+                                <option value="New">Mới</option>
+                                <option value="In Progress">Đang xử lý</option>
+                                <option value="Resolved">Đã giải quyết</option>
                             </select>
                         </div>
 
                         <div>
-                            <Label>Rating</Label>
+                            <Label>Đánh giá</Label>
                             <select
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                 value={currentRatingFilter}
                                 onChange={(e) => setCurrentRatingFilter(e.target.value)}
                             >
-                                <option value="All">All Ratings</option>
-                                <option value="Positive">Positive (4-5 stars)</option>
-                                <option value="Neutral">Neutral (3 stars)</option>
-                                <option value="Negative">Negative (1-2 stars)</option>
+                                <option value="All">Tất cả đánh giá</option>
+                                <option value="Positive">Tích cực (4-5 sao)</option>
+                                <option value="Neutral">Trung lập (3 sao)</option>
+                                <option value="Negative">Tiêu cực (1-2 sao)</option>
                             </select>
                         </div>
                     </div>
 
                     <div className="flex justify-end gap-3 mt-6">
                         <Button variant="outline" onClick={() => setIsFilterOpen(false)}>
-                            Cancel
+                            Hủy
                         </Button>
                         <Button onClick={() => setIsFilterOpen(false)}>
-                            Apply Filters
+                            Áp dụng bộ lọc
                         </Button>
                     </div>
                 </div>

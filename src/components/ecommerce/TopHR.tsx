@@ -7,69 +7,69 @@ import {
 } from "../ui/table";
 import Badge from "../ui/badge/Badge";
 
-// Define the TypeScript interface for the table rows
+// Định nghĩa interface cho dữ liệu bảng
 interface HRUser {
-    id: number; // Unique identifier for each HR
-    name: string; // HR name
-    department: string; // Department of the HR
-    questionsCreated: number; // Total questions created
-    questionsSelected: number; // Number of times questions were selected by users
-    selectionRate: string; // Percentage of questions selected
-    avatar: string; // URL or path to the HR's avatar
-    status: "Active" | "Inactive" | "On Leave"; // Status of the HR
+    id: number;
+    name: string;
+    department: string;
+    questionsCreated: number;
+    questionsSelected: number;
+    selectionRate: string;
+    avatar: string;
+    status: "Hoạt động" | "Ngừng hoạt động" | "Nghỉ phép";
 }
 
-// Define the table data using the interface
+// Dữ liệu nhân sự
 const hrData: HRUser[] = [
     {
         id: 1,
-        name: "Sarah Johnson",
-        department: "Recruitment",
+        name: "Nguyễn Thị Hương",
+        department: "AI",
         questionsCreated: 42,
         questionsSelected: 38,
         selectionRate: "90.5%",
         avatar: "/images/user/user-17.jpg",
-        status: "Active",
+        status: "Hoạt động",
     },
     {
         id: 2,
-        name: "Michael Chen",
-        department: "Talent Development",
+        name: "Trần Văn Nam",
+        department: "Frontend",
         questionsCreated: 35,
         questionsSelected: 31,
         selectionRate: "88.6%",
         avatar: "/images/user/user-22.jpg",
-        status: "Active",
+        status: "Hoạt động",
     },
     {
         id: 3,
-        name: "Emma Rodriguez",
-        department: "Employee Relations",
+        name: "Lê Thị Mai",
+        department: "Backend",
         questionsCreated: 28,
         questionsSelected: 24,
         selectionRate: "85.7%",
         avatar: "/images/user/user-23.jpg",
-        status: "On Leave",
+        status: "Nghỉ phép",
     },
     {
         id: 4,
-        name: "David Kim",
-        department: "Compensation",
+        name: "Phạm Đức Anh",
+        department: "Animation",
         questionsCreated: 31,
         questionsSelected: 25,
         selectionRate: "80.6%",
         avatar: "/images/user/user-24.jpg",
-        status: "Active",
+        status: "Hoạt động",
     },
     {
         id: 5,
-        name: "Lisa Wong",
-        department: "Training",
+        name: "Vũ Minh Khôi",
+        department: "Finance",
         questionsCreated: 19,
         questionsSelected: 15,
         selectionRate: "78.9%",
         avatar: "/images/user/user-18.jpg",
-        status: "Inactive",
+        status: "Ngừng hoạt động",
     },
 ];
 
@@ -79,10 +79,10 @@ export default function TopHRQuestions() {
             <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                        Top HRs by Question Selection
+                        Nhân sự có câu hỏi được chọn nhiều nhất
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                        HR professionals with most selected questions by users
+                        Nhân sự có câu hỏi được người dùng lựa chọn nhiều nhất
                     </p>
                 </div>
 
@@ -123,58 +123,58 @@ export default function TopHRQuestions() {
                                 strokeWidth="1.5"
                             />
                         </svg>
-                        Filter
+                        Lọc
                     </button>
                     <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-                        See all
+                        Xem tất cả
                     </button>
                 </div>
             </div>
             <div className="max-w-full overflow-x-auto">
                 <Table>
-                    {/* Table Header */}
+                    {/* Tiêu đề bảng */}
                     <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
                         <TableRow>
                             <TableCell
                                 isHeader
                                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                HR Professional
+                                Nhân sự
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Department
+                                Chuyên ngành
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Questions Created
+                                Câu hỏi
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Selected
+                                Được chọn
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Selection Rate
+                                Tỷ lệ chọn
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Status
+                                Trạng thái
                             </TableCell>
                         </TableRow>
                     </TableHeader>
 
-                    {/* Table Body */}
+                    {/* Nội dung bảng */}
                     <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {hrData.map((hr) => (
                             <TableRow key={hr.id} className="">
@@ -222,9 +222,9 @@ export default function TopHRQuestions() {
                                     <Badge
                                         size="sm"
                                         color={
-                                            hr.status === "Active"
+                                            hr.status === "Hoạt động"
                                                 ? "success"
-                                                : hr.status === "On Leave"
+                                                : hr.status === "Nghỉ phép"
                                                     ? "warning"
                                                     : "error"
                                         }

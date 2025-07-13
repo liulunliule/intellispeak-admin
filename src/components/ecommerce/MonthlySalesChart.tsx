@@ -34,18 +34,18 @@ export default function MonthlySalesChart() {
     },
     xaxis: {
       categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
+        "Thg 1",
+        "Thg 2",
+        "Thg 3",
+        "Thg 4",
+        "Thg 5",
+        "Thg 6",
+        "Thg 7",
+        "Thg 8",
+        "Thg 9",
+        "Thg 10",
+        "Thg 11",
+        "Thg 12",
       ],
       axisBorder: {
         show: false,
@@ -75,7 +75,6 @@ export default function MonthlySalesChart() {
     fill: {
       opacity: 1,
     },
-
     tooltip: {
       x: {
         show: false,
@@ -85,12 +84,14 @@ export default function MonthlySalesChart() {
       },
     },
   };
+
   const series = [
     {
-      name: "Sales",
+      name: "Doanh số",
       data: [168, 385, 201, 298, 187, 195, 291, 110, 215, 390, 280, 112],
     },
   ];
+
   const [isOpen, setIsOpen] = useState(false);
 
   function toggleDropdown() {
@@ -100,11 +101,12 @@ export default function MonthlySalesChart() {
   function closeDropdown() {
     setIsOpen(false);
   }
+
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Monthly Sales
+          Doanh thu hàng tháng
         </h3>
         <div className="relative inline-block">
           <button className="dropdown-toggle" onClick={toggleDropdown}>
@@ -119,13 +121,13 @@ export default function MonthlySalesChart() {
               onItemClick={closeDropdown}
               className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
-              View More
+              Xem thêm
             </DropdownItem>
             <DropdownItem
               onItemClick={closeDropdown}
               className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
-              Delete
+              Xóa
             </DropdownItem>
           </Dropdown>
         </div>
