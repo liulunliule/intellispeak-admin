@@ -11,7 +11,7 @@ import Badge from "../ui/badge/Badge";
 interface HRUser {
     id: number;
     name: string;
-    department: string;
+    major: string;
     questionsCreated: number;
     questionsSelected: number;
     selectionRate: string;
@@ -24,7 +24,7 @@ const hrData: HRUser[] = [
     {
         id: 1,
         name: "Nguyễn Thị Hương",
-        department: "AI",
+        major: "AI",
         questionsCreated: 42,
         questionsSelected: 38,
         selectionRate: "90.5%",
@@ -34,7 +34,7 @@ const hrData: HRUser[] = [
     {
         id: 2,
         name: "Trần Văn Nam",
-        department: "Frontend",
+        major: "Frontend",
         questionsCreated: 35,
         questionsSelected: 31,
         selectionRate: "88.6%",
@@ -44,7 +44,7 @@ const hrData: HRUser[] = [
     {
         id: 3,
         name: "Lê Thị Mai",
-        department: "Backend",
+        major: "Backend",
         questionsCreated: 28,
         questionsSelected: 24,
         selectionRate: "85.7%",
@@ -54,7 +54,7 @@ const hrData: HRUser[] = [
     {
         id: 4,
         name: "Phạm Đức Anh",
-        department: "Animation",
+        major: "Animation",
         questionsCreated: 31,
         questionsSelected: 25,
         selectionRate: "80.6%",
@@ -64,7 +64,7 @@ const hrData: HRUser[] = [
     {
         id: 5,
         name: "Vũ Minh Khôi",
-        department: "Finance",
+        major: "Finance",
         questionsCreated: 19,
         questionsSelected: 15,
         selectionRate: "78.9%",
@@ -195,7 +195,7 @@ export default function TopHRQuestions() {
                                     </div>
                                 </TableCell>
                                 <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                                    {hr.department}
+                                    {hr.major}
                                 </TableCell>
                                 <TableCell className="py-3 text-gray-800 text-theme-sm dark:text-white/90">
                                     {hr.questionsCreated}

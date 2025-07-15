@@ -9,7 +9,7 @@ export default function Buttons() {
     <div>
       <PageMeta
         title="React.js Buttons Dashboard | TailAdmin - React.js Admin Dashboard Template"
-        description="This is React.js Buttons Dashboard page - React.js Tailwind CSS Admin Dashboard Template"
+        description="This is React.js Buttons Dashboard page "
       />
       <PageBreadcrumb pageTitle="Buttons" />
       <div className="space-y-5 sm:space-y-6">

@@ -8,7 +8,7 @@ export default function BasicTables() {
     <>
       <PageMeta
         title="React.js Basic Tables Dashboard"
-        description="This is React.js Basic Tables Dashboard page - React.js Tailwind CSS Admin Dashboard Template"
+        description="This is React.js Basic Tables Dashboard page "
       />
       <PageBreadcrumb pageTitle="Basic Tables" />
       <div className="space-y-6">
