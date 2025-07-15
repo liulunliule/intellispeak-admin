@@ -212,7 +212,7 @@ export default function ManageQuestions() {
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex flex-wrap gap-2">
                             <select
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-white"
                                 value={currentTopic}
                                 onChange={(e) => handleTopicChange(e.target.value)}
                             >
@@ -225,7 +225,7 @@ export default function ManageQuestions() {
                             </select>
 
                             <select
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-white"
                                 value={currentDifficulty}
                                 onChange={(e) => handleDifficultyChange(e.target.value)}
                             >
@@ -239,7 +239,7 @@ export default function ManageQuestions() {
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-500 dark:text-gray-400">Sắp xếp theo:</span>
                             <select
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-white"
                                 value={currentSort}
                                 onChange={(e) => handleSortChange(e.target.value)}
                             >
