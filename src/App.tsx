@@ -25,6 +25,9 @@ import ReportsPage from "./pages/Feedback/ReportsPage";
 import ModelConfiguration from "./pages/AISettings/ModelConfiguration";
 import ApiManagement from "./pages/AISettings/ApiManagement";
 import PerformanceMetrics from "./pages/AISettings/PerformanceMetrics";
+import ManageForum from "./pages/Forum/ManageForum";
+import ManageTags from "./pages/Questions/ManageTags";
+import ManageInterviewSessions from "./pages/Forum/ManageInterviewSessions";
 
 export default function App() {
   return (
@@ -39,8 +42,11 @@ export default function App() {
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/manage_user" element={<ManageUsers />} />
+            <Route path="/manage-forum" element={<ManageForum />} />
 
             <Route path="/questions" element={<ManageQuestions />} />
+            <Route path="/manage-tags" element={<ManageTags />} />
+            <Route path="/manage-interview-sessions" element={<ManageInterviewSessions />} />
 
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />

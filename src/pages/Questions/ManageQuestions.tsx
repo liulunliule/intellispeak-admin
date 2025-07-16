@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import Button from "../../components/ui/button/Button";
@@ -66,8 +66,172 @@ export default function ManageQuestions() {
     const [deleteId, setDeleteId] = useState<number | null>(null);
     const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
+    // Multi-step creation state
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [createStep, setCreateStep] = useState(1);
+    const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+    const [selectedTag, setSelectedTag] = useState<string | null>(null);
+    const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
+    // Add API-based state
+    const [topics, setTopics] = useState([]);
+    const [tags, setTags] = useState([]);
+    const [questions, setQuestions] = useState([]);
+    const [loadingTopics, setLoadingTopics] = useState(false);
+    const [loadingTags, setLoadingTags] = useState(false);
+    const [loadingQuestions, setLoadingQuestions] = useState(false);
+    const [errorTopics, setErrorTopics] = useState("");
+    const [errorTags, setErrorTags] = useState("");
+    const [errorQuestions, setErrorQuestions] = useState("");
+    const [newTopicDesc, setNewTopicDesc] = useState("");
+    const [newTagDesc, setNewTagDesc] = useState("");
+    const [questionContent, setQuestionContent] = useState("");
+    const [questionDifficulty, setQuestionDifficulty] = useState("");
+    const [suitableAnswer1, setSuitableAnswer1] = useState("");
+    const [suitableAnswer2, setSuitableAnswer2] = useState("");
+
+    // Fetch topics when modal opens
+    useEffect(() => {
+        if (isCreateModalOpen) {
+            setLoadingTopics(true);
+            fetch('https://endlessly-enabling-husky.ngrok-free.app/topic')
+                .then(res => res.json())
+                .then(data => {
+                    setTopics(data);
+                    setLoadingTopics(false);
+                })
+                .catch(() => {
+                    setErrorTopics('Lỗi tải chủ đề');
+                    setLoadingTopics(false);
+                });
+        }
+    }, [isCreateModalOpen]);
+
+    // Fetch tags when topic is selected
+    useEffect(() => {
+        if (selectedTopic) {
+            setLoadingTags(true);
+            fetch('https://endlessly-enabling-husky.ngrok-free.app/tag')
+                .then(res => res.json())
+                .then(data => {
+                    setTags(data.data || []);
+                    setLoadingTags(false);
+                })
+                .catch(() => {
+                    setErrorTags('Lỗi tải tag');
+                    setLoadingTags(false);
+                });
+        }
+    }, [selectedTopic]);
+
+    // Fetch questions when tag is selected
+    useEffect(() => {
+        if (selectedTag) {
+            setLoadingQuestions(true);
+            fetch('https://endlessly-enabling-husky.ngrok-free.app/question')
+                .then(res => res.json())
+                .then(data => {
+                    setQuestions(data);
+                    setLoadingQuestions(false);
+                })
+                .catch(() => {
+                    setErrorQuestions('Lỗi tải câu hỏi');
+                    setLoadingQuestions(false);
+                });
+        }
+    }, [selectedTag]);
+
+    const resetCreateFlow = () => {
+        setCreateStep(1);
+        setSelectedTopic(null);
+        setSelectedTag(null);
+        setSelectedQuestion(null);
+        setNewTopicDesc("");
+        setNewTagDesc("");
+        setQuestionContent("");
+        setQuestionDifficulty("");
+        setSuitableAnswer1("");
+        setSuitableAnswer2("");
+    };
+
+    useEffect(() => {
+        if (!isCreateModalOpen) resetCreateFlow();
+    }, [isCreateModalOpen]);
+
+    const handleAddTopic = () => {
+        fetch('https://endlessly-enabling-husky.ngrok-free.app/topic', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: newTopic, description: newTopicDesc })
+        })
+            .then(res => res.json())
+            .then(() => {
+                // Refresh topics
+                return fetch('https://endlessly-enabling-husky.ngrok-free.app/topic');
+            })
+            .then(res => res.json())
+            .then(data => {
+                setTopics(data);
+                setNewTopic('');
+                setNewTopicDesc('');
+                setCreateStep(2);
+            });
+    };
+    const handleAddTag = () => {
+        fetch('https://endlessly-enabling-husky.ngrok-free.app/tag', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: 0,
+                title: newTag,
+                description: newTagDesc,
+                createAt: new Date().toISOString(),
+                updateAt: new Date().toISOString(),
+                isDeleted: false
+            })
+        })
+            .then(res => res.json())
+            .then(() => {
+                // Refresh tags
+                return fetch('https://endlessly-enabling-husky.ngrok-free.app/tag');
+            })
+            .then(res => res.json())
+            .then(data => {
+                setTags(data.data || []);
+                setNewTag('');
+                setNewTagDesc('');
+                setCreateStep(3);
+            });
+    };
+    const handleAddQuestion = () => {
+        // Find selected tag object
+        const tagObj = tags.find(t => t.title === selectedTag);
+        fetch('https://endlessly-enabling-husky.ngrok-free.app/question', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                questionId: 0,
+                title: newQuestion,
+                content: questionContent,
+                difficulty: questionDifficulty,
+                suitableAnswer1,
+                suitableAnswer2,
+                tags: tagObj ? [tagObj] : [],
+                is_deleted: false
+            })
+        })
+            .then(res => res.json())
+            .then(() => {
+                setNewQuestion('');
+                setQuestionContent('');
+                setQuestionDifficulty('');
+                setSuitableAnswer1('');
+                setSuitableAnswer2('');
+                setIsCreateModalOpen(false);
+            });
+    };
+
     // Lấy các chủ đề duy nhất cho dropdown bộ lọc
-    const topics = Array.from(new Set(questionSets.map(set => set.topic)));
+    const filterTopics = Array.from(new Set(questionSets.map(set => set.topic)));
 
     // Áp dụng bộ lọc và sắp xếp
     const applyFiltersAndSort = () => {
@@ -135,7 +299,7 @@ export default function ManageQuestions() {
     const openEditForm = (id: number) => {
         const setToEdit = questionSets.find(set => set.id === id);
         if (setToEdit) {
-            const { id: _, questionsCount: __, ...rest } = setToEdit;
+            const { id, ...rest } = setToEdit;
             setFormData(rest);
             setEditingId(id);
             setIsFormOpen(true);
@@ -217,7 +381,7 @@ export default function ManageQuestions() {
                                 onChange={(e) => handleTopicChange(e.target.value)}
                             >
                                 <option value="">Tất cả chủ đề</option>
-                                {topics.map((topic) => (
+                                {filterTopics.map((topic) => (
                                     <option key={topic} value={topic}>
                                         {topic}
                                     </option>
@@ -411,6 +575,122 @@ export default function ManageQuestions() {
                     </div>
                 </div>
             </Modal>
+
+            <Button onClick={() => setIsCreateModalOpen(true)} className="mb-4">Tạo câu hỏi mới</Button>
+            {isCreateModalOpen && (
+                <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
+                    <div className="p-4 w-[350px]">
+                        <h2 className="text-lg font-semibold mb-4">Tạo câu hỏi mới</h2>
+                        {createStep === 1 && (
+                            <>
+                                <div className="mb-2">1. Chọn hoặc tạo chủ đề</div>
+                                <select
+                                    className="border px-2 py-1 rounded w-full mb-2"
+                                    value={selectedTopic || ""}
+                                    onChange={e => {
+                                        setSelectedTopic(e.target.value);
+                                        setCreateStep(2);
+                                    }}
+                                >
+                                    <option value="">-- Chọn chủ đề --</option>
+                                    {topics.map(topic => (
+                                        <option key={topic.id} value={topic.title}>{topic.title}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="text"
+                                    className="border px-2 py-1 rounded w-full mb-2"
+                                    placeholder="Hoặc nhập chủ đề mới"
+                                    value={newTopicDesc}
+                                    onChange={e => setNewTopicDesc(e.target.value)}
+                                />
+                                <Button onClick={handleAddTopic} disabled={!newTopicDesc}>Tạo chủ đề</Button>
+                                {loadingTopics && <p>Đang tải chủ đề...</p>}
+                                {errorTopics && <p style={{ color: 'red' }}>{errorTopics}</p>}
+                            </>
+                        )}
+                        {createStep === 2 && selectedTopic && (
+                            <>
+                                <div className="mb-2">2. Chọn hoặc tạo tag (danh mục)</div>
+                                <select
+                                    className="border px-2 py-1 rounded w-full mb-2"
+                                    value={selectedTag || ""}
+                                    onChange={e => {
+                                        setSelectedTag(e.target.value);
+                                        setCreateStep(3);
+                                    }}
+                                >
+                                    <option value="">-- Chọn tag --</option>
+                                    {tags.map(tag => (
+                                        <option key={tag.id} value={tag.title}>{tag.title}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="text"
+                                    className="border px-2 py-1 rounded w-full mb-2"
+                                    placeholder="Hoặc nhập tag mới"
+                                    value={newTagDesc}
+                                    onChange={e => setNewTagDesc(e.target.value)}
+                                />
+                                <Button onClick={handleAddTag} disabled={!newTagDesc}>Tạo tag</Button>
+                                <Button onClick={() => setCreateStep(1)} variant="outline" className="ml-2">Quay lại</Button>
+                                {loadingTags && <p>Đang tải tag...</p>}
+                                {errorTags && <p style={{ color: 'red' }}>{errorTags}</p>}
+                            </>
+                        )}
+                        {createStep === 3 && selectedTag && (
+                            <>
+                                <div className="mb-2">3. Chọn hoặc tạo câu hỏi</div>
+                                <select
+                                    className="border px-2 py-1 rounded w-full mb-2"
+                                    value={selectedQuestion || ""}
+                                    onChange={e => setSelectedQuestion(e.target.value)}
+                                >
+                                    <option value="">-- Chọn câu hỏi --</option>
+                                    {questions.map(q => (
+                                        <option key={q.id} value={q.title}>{q.title}</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="text"
+                                    className="border px-2 py-1 rounded w-full mb-2"
+                                    placeholder="Hoặc nhập câu hỏi mới"
+                                    value={questionContent}
+                                    onChange={e => setQuestionContent(e.target.value)}
+                                />
+                                <select
+                                    className="border px-2 py-1 rounded w-full mb-2"
+                                    value={questionDifficulty}
+                                    onChange={e => setQuestionDifficulty(e.target.value)}
+                                >
+                                    <option value="">-- Chọn độ khó --</option>
+                                    <option value="Easy">Dễ</option>
+                                    <option value="Medium">Trung bình</option>
+                                    <option value="Hard">Khó</option>
+                                </select>
+                                <input
+                                    type="text"
+                                    className="border px-2 py-1 rounded w-full mb-2"
+                                    placeholder="Câu trả lời phù hợp 1"
+                                    value={suitableAnswer1}
+                                    onChange={e => setSuitableAnswer1(e.target.value)}
+                                />
+                                <input
+                                    type="text"
+                                    className="border px-2 py-1 rounded w-full mb-2"
+                                    placeholder="Câu trả lời phù hợp 2"
+                                    value={suitableAnswer2}
+                                    onChange={e => setSuitableAnswer2(e.target.value)}
+                                />
+                                <Button onClick={handleAddQuestion} disabled={!questionContent || !questionDifficulty || !suitableAnswer1}>Tạo câu hỏi</Button>
+                                <Button onClick={() => setCreateStep(2)} variant="outline" className="ml-2">Quay lại</Button>
+                                {loadingQuestions && <p>Đang tải câu hỏi...</p>}
+                                {errorQuestions && <p style={{ color: 'red' }}>{errorQuestions}</p>}
+                            </>
+                        )}
+                    </div>
+                </Modal>
+            )}
         </>
     );
 }

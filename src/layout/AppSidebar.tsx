@@ -16,6 +16,8 @@ import {
   PlugInIcon,
   // TableIcon,
   UserCircleIcon,
+  ForumIcon,
+  InterviewIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 // import SidebarWidget from "./SidebarWidget";
@@ -55,9 +57,18 @@ const navItems: NavItem[] = [
   //   subItems: [{ name: "Phần tử biểu mẫu", path: "/form-elements", pro: false }],
   // },
   {
-    name: "Quản lý câu hỏi",
-    icon: <ListIcon />,
-    path: "/questions",
+    name: "Phỏng vấn",
+    icon: <InterviewIcon />,
+    subItems: [
+      { name: "Quản lí câu hỏi", path: "/questions", pro: false },
+      { name: "Quản lí tag", path: "/manage-tags", pro: false },
+      { name: "Quản lí phỏng vấn session", path: "/manage-interview-sessions", pro: false },
+    ],
+  },
+  {
+    name: "Quản lý diễn đàn",
+    icon: <ForumIcon />,
+    path: "/manage-forum",
   },
   {
     name: "Phản hồi",

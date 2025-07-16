@@ -8,7 +8,7 @@ export default function Badges() {
   return (
     <div>
       <PageMeta
-        title="React.js Badges Dashboard | TailAdmin - React.js Admin Dashboard Template"
+        title="React.js Badges Dashboard | React.js Admin Dashboard Template"
         description="This is React.js Badges Dashboard page "
       />
       <PageBreadcrumb pageTitle="Badges" />

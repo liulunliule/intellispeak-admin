@@ -7,7 +7,7 @@ export default function Avatars() {
   return (
     <>
       <PageMeta
-        title="React.js Avatars Dashboard | TailAdmin - React.js Admin Dashboard Template"
+        title="React.js Avatars Dashboard | React.js Admin Dashboard Template"
         description="This is React.js Avatars Dashboard page "
       />
       <PageBreadcrumb pageTitle="Avatars" />
