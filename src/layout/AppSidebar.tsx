@@ -10,7 +10,7 @@ import {
   FeedbackIcon,
   GridIcon,
   HorizontaLDots,
-  ListIcon,
+  // ListIcon,
   PageIcon,
   PieChartIcon,
   PlugInIcon,
