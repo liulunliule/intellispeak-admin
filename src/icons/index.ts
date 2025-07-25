@@ -59,6 +59,7 @@ import { ReactComponent as InterviewIcon } from "./interview.svg?react";
 
 import { ReactComponent as AISettingsIcon } from "./ai-settings.svg?react";
 import { ReactComponent as FeedbackIcon } from "./feedback.svg?react";
+import { ReactComponent as ManageHRIcon } from "./manageHR.svg?react";
 
 export {
   ErrorHexaIcon,
@@ -120,5 +121,6 @@ export {
   AISettingsIcon,
   FeedbackIcon,
   ForumIcon,
-  InterviewIcon
+  InterviewIcon,
+  ManageHRIcon
 };

@@ -1,72 +1,123 @@
-import { useModal } from "../../hooks/useModal";
-import { Modal } from "../ui/modal";
-import Button from "../ui/button/Button";
-import Input from "../form/input/InputField";
-import Label from "../form/Label";
+import React, { useState } from 'react';
+import { useModal } from '../../hooks/useModal';
+import { Modal } from '../ui/modal';
+import Button from '../ui/button/Button';
+import Input from '../form/input/InputField';
+import Label from '../form/Label';
+import api from '../../services/api';
 
-export default function UserInfoCard() {
+interface UserProfile {
+  firstName: string | null;
+  lastName: string | null;
+  userName: string;
+  bio: string | null;
+  role: string;
+  phone: string | null;
+  email: string;
+  avatar: string | null;
+  website: string | null;
+  github: string | null;
+  linkedin: string | null;
+  facebook: string | null;
+  youtube: string | null;
+}
+
+interface UserInfoCardProps {
+  user: UserProfile;
+  refetchProfile: () => Promise<void>;
+}
+
+const UserInfoCard: React.FC<UserInfoCardProps> = ({ user, refetchProfile }) => {
   const { isOpen, openModal, closeModal } = useModal();
-  const handleSave = () => {
-    // Xử lý logic lưu ở đây
-    console.log("Đang lưu thay đổi...");
-    closeModal();
+  const [formData, setFormData] = useState({
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    email: user.email || '',
+    phone: user.phone || '',
+    bio: user.bio || '',
+    avatar: user.avatar || '',
+  });
+  const [error, setError] = useState('');
+
+  const handleSave = async () => {
+    try {
+      const payload = {
+        firstName: formData.firstName || null,
+        lastName: formData.lastName || null,
+        bio: formData.bio || null,
+        phone: formData.phone || null,
+        avatar: formData.avatar || null,
+        website: user.website || null,
+        github: user.github || null,
+        linkedin: user.linkedin || null,
+        facebook: user.facebook || null,
+        youtube: user.youtube || null,
+        userName: user.userName || null,
+      };
+      const response = await api.put('/auth/profile', payload);
+      if (response.data.code === 200) {
+        await refetchProfile();
+        closeModal();
+        setError('');
+      } else {
+        setError(response.data.message || 'Không thể cập nhật hồ sơ');
+      }
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      setError('Không thể cập nhật hồ sơ. Vui lòng thử lại.');
+    }
   };
+
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
+          <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 lg:mb-6">
             Thông tin cá nhân
           </h4>
-
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Tên
               </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Thúy
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                {user.firstName || 'Chưa cập nhật'}
               </p>
             </div>
-
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Họ
               </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Liễu
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                {user.lastName || 'Chưa cập nhật'}
               </p>
             </div>
-
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Địa chỉ Email
               </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                randomuser@pimjo.com
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                {user.email}
               </p>
             </div>
-
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Điện thoại
               </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                +09 363 398 46
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                {user.phone || 'Chưa cập nhật'}
               </p>
             </div>
-
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
                 Tiểu sử
               </p>
-              <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Quản lý nhóm
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                {user.bio || 'Chưa cập nhật'}
               </p>
             </div>
           </div>
         </div>
-
         <button
           onClick={openModal}
           className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200 lg:inline-flex lg:w-auto"
@@ -89,84 +140,90 @@ export default function UserInfoCard() {
           Chỉnh sửa
         </button>
       </div>
-
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
           <div className="px-2 pr-14">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-gray-100">
               Chỉnh sửa thông tin cá nhân
             </h4>
             <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
               Cập nhật chi tiết để giữ hồ sơ của bạn luôn mới nhất.
             </p>
           </div>
-          <form className="flex flex-col">
+          <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
             <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
               <div>
-                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
-                  Liên kết mạng xã hội
-                </h5>
-
-                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                  <div>
-                    <Label>Facebook</Label>
-                    <Input
-                      type="text"
-                      value="https://www.facebook.com/PimjoHQ"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>X.com</Label>
-                    <Input type="text" value="https://x.com/PimjoHQ" />
-                  </div>
-
-                  <div>
-                    <Label>Linkedin</Label>
-                    <Input
-                      type="text"
-                      value="https://www.linkedin.com/company/pimjo"
-                    />
-                  </div>
-
-                  <div>
-                    <Label>Instagram</Label>
-                    <Input type="text" value="https://instagram.com/PimjoHQ" />
-                  </div>
-                </div>
-              </div>
-              <div className="mt-7">
-                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
+                <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-gray-100 lg:mb-6">
                   Thông tin cá nhân
                 </h5>
-
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div className="col-span-2 lg:col-span-1">
-                    <Label>Tên</Label>
-                    <Input type="text" value="Thúy" />
+                    <Label className="text-gray-800 dark:text-gray-100">Tên</Label>
+                    <Input
+                      type="text"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                      placeholder="Nhập tên"
+                      className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                    />
                   </div>
-
                   <div className="col-span-2 lg:col-span-1">
-                    <Label>Họ</Label>
-                    <Input type="text" value="Liễu" />
+                    <Label className="text-gray-800 dark:text-gray-100">Họ</Label>
+                    <Input
+                      type="text"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                      placeholder="Nhập họ"
+                      className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                    />
                   </div>
-
                   <div className="col-span-2 lg:col-span-1">
-                    <Label>Địa chỉ Email</Label>
-                    <Input type="text" value="randomuser@pimjo.com" />
+                    <Label className="text-gray-800 dark:text-gray-100">Địa chỉ Email</Label>
+                    <Input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="Nhập email"
+                      className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                    />
                   </div>
-
                   <div className="col-span-2 lg:col-span-1">
-                    <Label>Điện thoại</Label>
-                    <Input type="text" value="+09 363 398 46" />
+                    <Label className="text-gray-800 dark:text-gray-100">Điện thoại</Label>
+                    <Input
+                      type="text"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="Nhập số điện thoại"
+                      className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                    />
                   </div>
-
                   <div className="col-span-2">
-                    <Label>Tiểu sử</Label>
-                    <Input type="text" value="Quản lý nhóm" />
+                    <Label className="text-gray-800 dark:text-gray-100">Tiểu sử</Label>
+                    <Input
+                      type="text"
+                      value={formData.bio}
+                      onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                      placeholder="Nhập tiểu sử"
+                      className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-gray-800 dark:text-gray-100">Ảnh đại diện (URL)</Label>
+                    <Input
+                      type="text"
+                      value={formData.avatar}
+                      onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
+                      placeholder="Nhập URL ảnh đại diện"
+                      className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                    />
                   </div>
                 </div>
               </div>
+              {error && (
+                <div className="mt-4 text-sm text-red-500 dark:text-red-400">
+                  {error}
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" onClick={closeModal}>
@@ -181,4 +238,6 @@ export default function UserInfoCard() {
       </Modal>
     </div>
   );
-}
+};
+
+export default UserInfoCard;

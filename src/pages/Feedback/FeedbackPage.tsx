@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
 import { ReactComponent as FilterIcon } from '../../icons/filter.svg?react';
@@ -19,6 +19,11 @@ interface FeedbackItem {
     rating: number;
     date: string;
     status: 'New' | 'In Progress' | 'Resolved';
+}
+
+interface ApiFeedbackItem {
+    expression: string;
+    description: string;
 }
 
 export default function FeedbackPage() {
@@ -62,8 +67,28 @@ export default function FeedbackPage() {
         }
     ]);
 
+    const [apiFeedback, setApiFeedback] = useState<ApiFeedbackItem[]>([]);
+    const [loading, setLoading] = useState(true);
     const [currentStatusFilter, setCurrentStatusFilter] = useState<string>('All');
     const [currentRatingFilter, setCurrentRatingFilter] = useState<string>('All');
+
+    useEffect(() => {
+        const fetchWebsiteFeedback = async () => {
+            try {
+                const response = await fetch('/website-feedback');
+                const data = await response.json();
+                if (data.code === 200) {
+                    setApiFeedback(data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching website feedback:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchWebsiteFeedback();
+    }, []);
 
     const filteredFeedback = feedbackList.filter(item => {
         const statusMatch = currentStatusFilter === 'All' || item.status === currentStatusFilter;
@@ -197,6 +222,43 @@ export default function FeedbackPage() {
                             </div>
                         )}
                     </div>
+
+                    {/* FEED BACK API section */}
+                    <div className="mt-8">
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">
+                            Phản hồi từ website
+                        </h3>
+                        {loading ? (
+                            <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+                                Đang tải phản hồi...
+                            </div>
+                        ) : apiFeedback.length > 0 ? (
+                            <div className="space-y-4">
+                                {apiFeedback.map((feedback, index) => (
+                                    <div key={index} className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center justify-between">
+                                                <Badge color="primary">
+                                                    {feedback.expression === 'VERY_SATISFIED' ? 'Rất hài lòng' :
+                                                        feedback.expression === 'SATISFIED' ? 'Hài lòng' :
+                                                            feedback.expression === 'NEUTRAL' ? 'Trung lập' :
+                                                                feedback.expression === 'DISSATISFIED' ? 'Không hài lòng' : 'Rất không hài lòng'}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-gray-600 dark:text-gray-300">
+                                                {feedback.description || 'Không có mô tả'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+                                Hiện tại chưa có feedback từ website
+                            </div>
+                        )}
+                    </div>
+
                 </div>
             </div>
 

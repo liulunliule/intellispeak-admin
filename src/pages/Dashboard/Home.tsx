@@ -1,11 +1,11 @@
-import EcommerceMetrics from "../../components/ecommerce/EcommerceMetrics";
-import MonthlySalesChart from "../../components/ecommerce/MonthlySalesChart";
-import StatisticsChart from "../../components/ecommerce/StatisticsChart";
-import MonthlyTarget from "../../components/ecommerce/MonthlyTarget";
+import MonthlySalesChart from "../../components/dashboard/MonthlySalesChart";
+import StatisticsChart from "../../components/dashboard/StatisticsChart";
+import MonthlyTarget from "../../components/dashboard/MonthlyTarget";
 // import RecentOrders from "../../components/ecommerce/RecentOrders";
-import DemographicCard from "../../components/ecommerce/DemographicCard";
+import DemographicCard from "../../components/dashboard/DemographicCard";
 import PageMeta from "../../components/common/PageMeta";
-import TopHRQuestions from "../../components/ecommerce/TopHR";
+import TopHRQuestions from "../../components/dashboard/TopHR";
+import PackageMetrics from "../../components/dashboard/PackageMetrics";
 
 export default function Home() {
   return (
@@ -15,9 +15,10 @@ export default function Home() {
         description="This is React.js Ecommerce Dashboard page "
       />
       <div className="grid grid-cols-12 gap-4 md:gap-6">
+        <div className="col-span-12 overflow-x-auto">
+          <PackageMetrics />
+        </div>
         <div className="col-span-12 space-y-6 xl:col-span-7">
-          <EcommerceMetrics />
-
           <MonthlySalesChart />
         </div>
 

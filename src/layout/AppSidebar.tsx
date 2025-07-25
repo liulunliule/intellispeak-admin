@@ -18,6 +18,7 @@ import {
   UserCircleIcon,
   ForumIcon,
   InterviewIcon,
+  ManageHRIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 // import SidebarWidget from "./SidebarWidget";
@@ -35,8 +36,8 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Bảng điều khiển",
-    path: "/",
-    // subItems: [{ name: "Thương mại điện tử", path: "/", pro: false }],
+    path: "/dashboard",
+    // subItems: [{ name: "Thương mại điện tử", path:  "/dashboard", pro: false }],
   },
   // {
   //   icon: <CalenderIcon />,
@@ -50,6 +51,11 @@ const navItems: NavItem[] = [
       { name: "Hồ sơ", path: "/profile", pro: false },
       { name: "Quản lý người dùng", path: "/manage_user", pro: false },
     ],
+  },
+  {
+    name: "Quản lý nhân sự",
+    icon: <ManageHRIcon />, // Now using the custom HR icon
+    path: "/manage-hr",
   },
   // {
   //   name: "Biểu mẫu",
@@ -332,7 +338,7 @@ const AppSidebar: React.FC = () => {
         className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
           }`}
       >
-        <Link to="/">
+        <Link to="/dashboard">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <img

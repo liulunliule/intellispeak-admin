@@ -27,7 +27,8 @@ import ApiManagement from "./pages/AISettings/ApiManagement";
 import PerformanceMetrics from "./pages/AISettings/PerformanceMetrics";
 import ManageForum from "./pages/Forum/ManageForum";
 import ManageTags from "./pages/Questions/ManageTags";
-import ManageInterviewSessions from "./pages/Forum/ManageInterviewSessions";
+import ManageInterviewSessions from "./pages/Questions/ManageInterviewSessions";
+import ManageHR from "./pages/HR/ManageHR";
 
 export default function App() {
   return (
@@ -37,12 +38,13 @@ export default function App() {
         <Routes>
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
+            <Route path="/dashboard" element={<Home />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/manage_user" element={<ManageUsers />} />
             <Route path="/manage-forum" element={<ManageForum />} />
+            <Route path="/manage-hr" element={<ManageHR />} />
 
             <Route path="/questions" element={<ManageQuestions />} />
             <Route path="/manage-tags" element={<ManageTags />} />
@@ -80,7 +82,7 @@ export default function App() {
           </Route>
 
           {/* Auth Layout */}
-          <Route path="/signin" element={<SignIn />} />
+          <Route index path="/" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
 
           {/* Fallback Route */}

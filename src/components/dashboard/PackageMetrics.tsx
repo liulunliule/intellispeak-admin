@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useState, useEffect } from "react";
 import {
   ArrowDownIcon,
@@ -7,22 +6,30 @@ import {
   GroupIcon,
 } from "../../icons";
 import Badge from "../ui/badge/Badge";
+import api from '../../services/api';
 
-export default function EcommerceMetrics() {
+export default function PackageMetrics() {
   const [counts, setCounts] = useState<{ PROFESSIONAL: number; BUSINESS: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    axios
-      .get("https://endlessly-enabling-husky.ngrok-free.app/admin/plan-counts")
+    // Sử dụng api instance thay vì axios trực tiếp
+    api.get("/admin/plan-counts")
       .then((res) => {
+        console.log('Plan counts API response:', res);
         if (res.data && res.data.data) {
-          console.log('Plan counts API data:', res);
+          console.log('Plan counts API data:', res.data.data); // Log riêng res.data.data
           setCounts(res.data.data);
+        } else {
+          // Xử lý trường hợp API trả về thành công nhưng không có data hoặc data không đúng định dạng
+          console.warn("API returned successfully but missing or malformed data:", res.data);
+          setCounts({ PROFESSIONAL: 0, BUSINESS: 0 }); // Đặt về 0 hoặc giá trị mặc định
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Error fetching plan counts:", err);
+        // Xử lý lỗi một cách rõ ràng hơn
         setCounts({ PROFESSIONAL: 0, BUSINESS: 0 });
       })
       .finally(() => setLoading(false));

@@ -4,15 +4,15 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { MoreDotIcon } from "../../icons";
 import { useState, useEffect } from "react";
-import axios from "axios";
+// Import api instance đã cấu hình
+import api from '../../services/api'; // Điều chỉnh đường dẫn nếu cần
 
 export default function MonthlySalesChart() {
-  const options: ApexOptions = {
+  const [chartOptions, setChartOptions] = useState<ApexOptions>({
     colors: ["#465fff"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
-      height: 180,
       toolbar: {
         show: false,
       },
@@ -34,20 +34,7 @@ export default function MonthlySalesChart() {
       colors: ["transparent"],
     },
     xaxis: {
-      categories: [
-        "Thg 1",
-        "Thg 2",
-        "Thg 3",
-        "Thg 4",
-        "Thg 5",
-        "Thg 6",
-        "Thg 7",
-        "Thg 8",
-        "Thg 9",
-        "Thg 10",
-        "Thg 11",
-        "Thg 12",
-      ],
+      categories: [], // Khởi tạo rỗng, sẽ cập nhật từ API
       axisBorder: {
         show: false,
       },
@@ -84,7 +71,7 @@ export default function MonthlySalesChart() {
         formatter: (val: number) => `${val}`,
       },
     },
-  };
+  });
 
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
@@ -101,35 +88,79 @@ export default function MonthlySalesChart() {
 
   useEffect(() => {
     setLoading(true);
-    axios
-      .get(
-        `https://endlessly-enabling-husky.ngrok-free.app/admin/yearly-revenue?year=${year}`
-      )
+    // Sử dụng api instance đã cấu hình sẵn
+    api.get(`/admin/yearly-revenue?year=${year}`)
       .then((res) => {
-        if (res.data && res.data.data) {
-          // Extract numeric value from 'Amount' (e.g., '0 Đồng')
+        console.log("MonthlySalesChart data:", res.data);
+
+        // Kiểm tra xem res.data và res.data.data có tồn tại và là một mảng không
+        if (res.data && Array.isArray(res.data.data)) {
+          const categories = res.data.data.map((item: { Month: string }) => item.Month);
           const data = res.data.data.map((item: { Amount: string }) => {
+            // Trích xuất chỉ số từ chuỗi "Amount: xx" và chuyển đổi thành số nguyên
             const match = item.Amount.match(/\d+/g);
             return match ? parseInt(match.join(""), 10) : 0;
           });
+
           setSeries([
             {
               name: "Doanh số",
               data,
             },
           ]);
+
+          // Cập nhật categories cho xaxis
+          setChartOptions(prevOptions => ({
+            ...prevOptions,
+            xaxis: {
+              ...prevOptions.xaxis,
+              categories
+            }
+          }));
+        } else {
+          // Xử lý trường hợp data không đúng định dạng hoặc không tồn tại
+          console.warn("API response for plan counts is malformed or empty:", res.data);
+          // Đặt lại series về 0 và categories mặc định
+          setSeries([
+            {
+              name: "Doanh số",
+              data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            },
+          ]);
+          setChartOptions(prevOptions => ({
+            ...prevOptions,
+            xaxis: {
+              ...prevOptions.xaxis,
+              categories: [
+                "Thg 1", "Thg 2", "Thg 3", "Thg 4", "Thg 5", "Thg 6",
+                "Thg 7", "Thg 8", "Thg 9", "Thg 10", "Thg 11", "Thg 12"
+              ]
+            }
+          }));
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Error fetching monthly sales data:", err);
         setSeries([
           {
             name: "Doanh số",
             data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
           },
         ]);
+        // Reset về categories mặc định nếu có lỗi
+        setChartOptions(prevOptions => ({
+          ...prevOptions,
+          xaxis: {
+            ...prevOptions.xaxis,
+            categories: [
+              "Thg 1", "Thg 2", "Thg 3", "Thg 4", "Thg 5", "Thg 6",
+              "Thg 7", "Thg 8", "Thg 9", "Thg 10", "Thg 11", "Thg 12"
+            ]
+          }
+        }));
       })
       .finally(() => setLoading(false));
-  }, [year]);
+  }, [year]); // Dependencies: reruns when 'year' changes
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -188,7 +219,7 @@ export default function MonthlySalesChart() {
           {loading ? (
             <div className="text-center py-10 text-gray-400">Đang tải dữ liệu...</div>
           ) : (
-            <Chart options={options} series={series} type="bar" height={180} />
+            <Chart options={chartOptions} series={series} type="bar" height={180} />
           )}
         </div>
       </div>
