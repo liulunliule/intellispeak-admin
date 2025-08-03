@@ -1,14 +1,14 @@
 import { ReactNode } from "react";
 
 interface ButtonProps {
-  children: ReactNode; // Button text or content
-  size?: "sm" | "md"; // Button size
-  variant?: "primary" | "outline"; // Button variant
-  startIcon?: ReactNode; // Icon before the text
-  endIcon?: ReactNode; // Icon after the text
-  onClick?: () => void; // Click handler
-  disabled?: boolean; // Disabled state
-  className?: string; // Disabled state
+  children: ReactNode;
+  size?: "sm" | "md";
+  variant?: "primary" | "outline" | "danger";
+  startIcon?: ReactNode;
+  endIcon?: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  className?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -31,10 +31,10 @@ const Button: React.FC<ButtonProps> = ({
   const variantClasses = {
     primary:
       "bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300",
-    error:
-      "bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500",
     outline:
       "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
+    danger:
+      "bg-red-600 text-white shadow-theme-xs hover:bg-red-700 disabled:bg-red-300",
   };
 
   return (
