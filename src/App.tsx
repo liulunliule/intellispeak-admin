@@ -29,6 +29,8 @@ import ManageForum from "./pages/Forum/ManageForum";
 import ManageTags from "./pages/Questions/ManageTags";
 import ManageInterviewSessions from "./pages/Questions/ManageInterviewSessions";
 import ManageHR from "./pages/HR/ManageHR";
+import ManagePackage from "./pages/Package/ManagePackage";
+import ManageTopics from "./pages/Questions/Topics/ManageTopics";
 
 export default function App() {
   return (
@@ -46,9 +48,15 @@ export default function App() {
             <Route path="/manage-forum" element={<ManageForum />} />
             <Route path="/manage-hr" element={<ManageHR />} />
 
+            {/* Package Management */}
+            <Route path="/manage-package" element={<ManagePackage />} />
+            {/* Future: Add more package management screens here as needed */}
+
+
             <Route path="/questions" element={<ManageQuestions />} />
             <Route path="/manage-tags" element={<ManageTags />} />
             <Route path="/manage-interview-sessions" element={<ManageInterviewSessions />} />
+            <Route path="/manage-topics" element={<ManageTopics />} />
 
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />

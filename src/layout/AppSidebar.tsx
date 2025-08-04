@@ -69,6 +69,7 @@ const navItems: NavItem[] = [
       { name: "Quản lí câu hỏi", path: "/questions", pro: false },
       { name: "Quản lí tag", path: "/manage-tags", pro: false },
       { name: "Quản lí phỏng vấn session", path: "/manage-interview-sessions", pro: false },
+      { name: "Quản lý chủ đề", path: "/manage-topics", pro: false },
     ],
   },
   {
@@ -83,6 +84,12 @@ const navItems: NavItem[] = [
       { name: "Phản hồi người dùng", path: "/feedback", pro: false },
       { name: "Báo cáo hệ thống", path: "/reports", pro: false, new: true },
     ],
+  },
+
+  {
+    name: "Quản lý gói",
+    icon: <BoxCubeIcon />,
+    path: "/manage-package",
   },
   {
     name: "Cài đặt AI",
