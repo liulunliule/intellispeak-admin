@@ -22,7 +22,7 @@ import {
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 // import SidebarWidget from "./SidebarWidget";
-import { logo, squarelogo } from "../assets";
+import { squarelogo, intellispeakdark, intellispeaklight } from "../assets";
 
 
 type NavItem = {
@@ -148,6 +148,7 @@ const othersItems: NavItem[] = [
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const [showBothLogos, setShowBothLogos] = useState(false);
   const location = useLocation();
 
   const [openSubmenu, setOpenSubmenu] = useState<{
@@ -342,36 +343,58 @@ const AppSidebar: React.FC = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-          }`}
+        className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}
       >
-        <Link to="/dashboard">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <img
-                className="dark:hidden"
-                src={logo}
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src={logo}
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-            </>
-          ) : (
+        {isExpanded || isHovered || isMobileOpen ? (
+          <Link to="/dashboard" className="flex items-center gap-2">
             <img
               src={squarelogo}
               alt="Logo"
-              width={32}
-              height={32}
+              style={{ height: 40, width: 40 }}
             />
-          )}
-        </Link>
+            <img
+              src={intellispeaklight}
+              alt="Intellispeak Logo"
+              style={{ height: 40, width: 'auto' }}
+              className="dark:hidden"
+            />
+            <img
+              src={intellispeakdark}
+              alt="Intellispeak Logo"
+              style={{ height: 40, width: 'auto' }}
+              className="hidden dark:inline"
+            />
+          </Link>
+        ) : (
+          <button
+            type="button"
+            className="flex items-center gap-2 focus:outline-none"
+            onClick={() => setShowBothLogos((prev) => !prev)}
+            style={{ background: 'none', border: 'none', padding: 0 }}
+          >
+            <img
+              src={squarelogo}
+              alt="Logo"
+              style={{ height: 32, width: 32 }}
+            />
+            {showBothLogos && (
+              <>
+                <img
+                  src={intellispeaklight}
+                  alt="Intellispeak Logo"
+                  style={{ height: 32, width: 'auto' }}
+                  className="dark:hidden"
+                />
+                <img
+                  src={intellispeakdark}
+                  alt="Intellispeak Logo"
+                  style={{ height: 32, width: 'auto' }}
+                  className="hidden dark:inline"
+                />
+              </>
+            )}
+          </button>
+        )}
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">
