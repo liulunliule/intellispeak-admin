@@ -2,7 +2,7 @@ import React from "react";
 import GridShape from "../../components/common/GridShape";
 import { Link } from "react-router";
 import ThemeTogglerTwo from "../../components/common/ThemeTogglerTwo";
-import { logo } from "../../assets";
+import { squarelogo, intellispeakdark, intellispeaklight } from "../../assets";
 
 
 export default function AuthLayout({
@@ -20,12 +20,18 @@ export default function AuthLayout({
             <GridShape />
             <div className="flex flex-col items-center max-w-xs">
               <Link to="/dashboard" className="block mb-4">
-                <img
-                  width={231}
-                  height={48}
-                  src={logo}
-                  alt="Logo"
-                />
+                <span className="flex items-center gap-2">
+                  <img
+                    src={squarelogo}
+                    alt="Logo"
+                    style={{ height: 48, width: 48 }}
+                  />
+                  <img
+                    src={intellispeakdark}
+                    alt="Intellispeak Logo"
+                    style={{ height: 48, width: 'auto' }}
+                  />
+                </span>
               </Link>
               <p className="text-center text-gray-400 dark:text-white/60">
                 Free and Open-Source Tailwind CSS Admin Dashboard Template
