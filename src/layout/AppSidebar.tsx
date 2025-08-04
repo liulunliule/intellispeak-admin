@@ -22,7 +22,7 @@ import {
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 // import SidebarWidget from "./SidebarWidget";
-import { logo, squarelogo, intellispeakdark, intellispeaklight } from "../assets";
+import { squarelogo, intellispeakdark, intellispeaklight } from "../assets";
 
 
 type NavItem = {
