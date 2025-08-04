@@ -140,7 +140,7 @@ const othersItems: NavItem[] = [
     icon: <PlugInIcon />,
     name: "Xác thực",
     subItems: [
-      { name: "Đăng nhập", path: "/signin", pro: false },
+      { name: "Đăng nhập", path: "/", pro: false },
       { name: "Đăng ký", path: "/signup", pro: false },
     ],
   },
