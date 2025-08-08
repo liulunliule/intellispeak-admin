@@ -6,6 +6,8 @@ import Label from '../../components/form/Label';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
 import api from '../../services/api';
+import Badge from '../../components/ui/badge/Badge';
+import { CloseIcon } from '../../icons';
 
 interface Question {
     questionId: number;
@@ -18,6 +20,17 @@ interface Question {
     deleted: boolean;
 }
 
+interface Topic {
+    topicId: number;
+    title: string;
+    description: string;
+    longDescription: string | null;
+    createAt: string;
+    thumbnail: string | null;
+    updateAt: string | null;
+    isDeleted: boolean;
+}
+
 interface Tag {
     id: number;
     title: string;
@@ -26,6 +39,7 @@ interface Tag {
     updateAt: string | null;
     isDeleted: boolean;
     questions?: Question[];
+    topics?: Topic[];
 }
 
 const ManageTags: React.FC = () => {
@@ -40,6 +54,8 @@ const ManageTags: React.FC = () => {
     const [error, setError] = useState('');
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [showTopicDeleteConfirm, setShowTopicDeleteConfirm] = useState(false); // New state for topic deletion
+    const [deleteTopicData, setDeleteTopicData] = useState<{ tagId: number; topicId: number } | null>(null); // New state for topic deletion
     const [expandedTagId, setExpandedTagId] = useState<number | null>(null);
     const [isSelectingQuestions, setIsSelectingQuestions] = useState(false);
     const [selectedQuestionIds, setSelectedQuestionIds] = useState<number[]>([]);
@@ -56,15 +72,28 @@ const ManageTags: React.FC = () => {
                     const questionsResponse = await api.get('/tag/with-questions');
                     if (questionsResponse.data.code === 200) {
                         const tagsWithQuestions = questionsResponse.data.data;
-                        const mergedTags = tagsData.map((tag: Tag) => {
-                            const tagWithQuestions = tagsWithQuestions.find((t: Tag) => t.id === tag.id);
-                            return {
-                                ...tag,
-                                questions: tagWithQuestions ? tagWithQuestions.questions || [] : []
-                            };
-                        });
-                        setTags(mergedTags);
-                        setFilteredTags(mergedTags);
+                        const tagsWithTopics = await Promise.all(
+                            tagsData.map(async (tag: Tag) => {
+                                try {
+                                    const topicsResponse = await api.get(`/tag/${tag.id}/topics`);
+                                    return {
+                                        ...tag,
+                                        questions: tagsWithQuestions.find((t: Tag) => t.id === tag.id)?.questions || [],
+                                        topics: topicsResponse.status === 200 ? topicsResponse.data : [],
+                                    };
+                                } catch (err) {
+                                    console.error(`Error fetching topics for tag ${tag.id}:`, err);
+                                    return {
+                                        ...tag,
+                                        questions: tagsWithQuestions.find((t: Tag) => t.id === tag.id)?.questions || [],
+                                        topics: [],
+                                    };
+                                }
+                            })
+                        );
+
+                        setTags(tagsWithTopics);
+                        setFilteredTags(tagsWithTopics);
                     } else {
                         setError(questionsResponse.data.message || 'Failed to fetch questions');
                     }
@@ -90,6 +119,53 @@ const ManageTags: React.FC = () => {
         setFilteredTags(filtered);
     }, [search, tags]);
 
+    const handleRemoveTopic = async (tagId: number, topicId: number) => {
+        try {
+            const response = await api.delete(`/tag/${tagId}/topics/${topicId}`);
+            if (response.status === 200) {
+                setTags(tags.map(tag => {
+                    if (tag.id === tagId) {
+                        return {
+                            ...tag,
+                            topics: tag.topics?.filter(t => t.topicId !== topicId) || []
+                        };
+                    }
+                    return tag;
+                }));
+                setFilteredTags(filteredTags.map(tag => {
+                    if (tag.id === tagId) {
+                        return {
+                            ...tag,
+                            topics: tag.topics?.filter(t => t.topicId !== topicId) || []
+                        };
+                    }
+                    return tag;
+                }));
+            } else {
+                setError(response.data.message || 'Failed to remove topic from tag');
+            }
+        } catch (err) {
+            console.error('Error removing topic from tag:', err);
+            setError('Error removing topic from tag');
+        }
+    };
+
+    const requestTopicDelete = (tagId: number, topicId: number) => {
+        setDeleteTopicData({ tagId, topicId });
+        setShowTopicDeleteConfirm(true);
+    };
+
+    const confirmTopicDelete = async () => {
+        if (deleteTopicData) {
+            try {
+                await handleRemoveTopic(deleteTopicData.tagId, deleteTopicData.topicId);
+            } finally {
+                setShowTopicDeleteConfirm(false);
+                setDeleteTopicData(null);
+            }
+        }
+    };
+
     const openAddModal = () => {
         setEditingTag(null);
         setTagTitle('');
@@ -114,16 +190,22 @@ const ManageTags: React.FC = () => {
             try {
                 await api.delete(`/tag/${deleteId}`);
                 setTags(tags.filter(tag => tag.id !== deleteId));
+                setFilteredTags(filteredTags.filter(tag => tag.id !== deleteId));
             } catch (err) {
                 console.error('Error deleting tag:', err);
+                setError('Failed to delete tag');
             } finally {
                 setShowDeleteConfirm(false);
+                setDeleteId(null);
             }
         }
     };
 
     const handleSave = async () => {
-        if (!tagTitle) return;
+        if (!tagTitle) {
+            setError('Tag title is required');
+            return;
+        }
 
         try {
             const currentDate = new Date().toISOString();
@@ -139,8 +221,13 @@ const ManageTags: React.FC = () => {
                 };
 
                 const response = await api.put(`/tag/${editingTag.id}`, updateData);
-                const updatedTag = response.data.data;
-                setTags(tags.map(tag => tag.id === editingTag.id ? { ...updatedTag, questions: tag.questions } : tag));
+                if (response.data.code === 200) {
+                    const updatedTag = response.data.data;
+                    setTags(tags.map(tag => tag.id === editingTag.id ? { ...updatedTag, questions: tag.questions, topics: tag.topics } : tag));
+                    setFilteredTags(filteredTags.map(tag => tag.id === editingTag.id ? { ...updatedTag, questions: tag.questions, topics: tag.topics } : tag));
+                } else {
+                    setError(response.data.message || 'Failed to update tag');
+                }
             } else {
                 const newTagData = {
                     id: 0,
@@ -152,12 +239,19 @@ const ManageTags: React.FC = () => {
                 };
 
                 const response = await api.post('/tag', newTagData);
-                const newTag = response.data.data;
-                setTags([...tags, { ...newTag, questions: [] }]);
+                if (response.data.code === 200) {
+                    const newTag = response.data.data;
+                    setTags([...tags, { ...newTag, questions: [], topics: [] }]);
+                    setFilteredTags([...filteredTags, { ...newTag, questions: [], topics: [] }]);
+                } else {
+                    setError(response.data.message || 'Failed to create tag');
+                }
             }
             setIsModalOpen(false);
+            setError('');
         } catch (err) {
             console.error('Error saving tag:', err);
+            setError('Error saving tag');
         }
     };
 
@@ -177,39 +271,44 @@ const ManageTags: React.FC = () => {
         if (!selectedTagIdForAssignment || selectedQuestionIds.length === 0) return;
 
         try {
-            await api.put(`/tag/${selectedTagIdForAssignment}/questions`, selectedQuestionIds);
-            // Update local state to reflect the new tag assignments
-            const updatedTags = tags.map(tag => {
-                if (tag.id === selectedTagIdForAssignment) {
-                    const updatedQuestions = tag.questions ? [...tag.questions] : [];
-                    selectedQuestionIds.forEach(qId => {
-                        const question = tags
-                            .flatMap(t => t.questions || [])
-                            .find(q => q.questionId === qId);
-                        if (question && !updatedQuestions.some(q => q.questionId === qId)) {
-                            updatedQuestions.push({
-                                ...question,
-                                tags: [...question.tags, {
-                                    tagId: tag.id,
-                                    title: tag.title,
-                                    description: tag.description,
-                                    createAt: tag.createAt,
-                                    updateAt: tag.updateAt,
-                                    isDeleted: tag.isDeleted
-                                }]
-                            });
-                        }
-                    });
-                    return { ...tag, questions: updatedQuestions };
-                }
-                return tag;
-            });
-            setTags(updatedTags);
-            setSelectedQuestionIds([]);
-            setSelectedTagIdForAssignment(null);
-            setIsSelectingQuestions(false);
+            const response = await api.put(`/tag/${selectedTagIdForAssignment}/questions`, selectedQuestionIds);
+            if (response.data.code === 200) {
+                const updatedTags = tags.map(tag => {
+                    if (tag.id === selectedTagIdForAssignment) {
+                        const updatedQuestions = tag.questions ? [...tag.questions] : [];
+                        selectedQuestionIds.forEach(qId => {
+                            const question = tags
+                                .flatMap(t => t.questions || [])
+                                .find(q => q.questionId === qId);
+                            if (question && !updatedQuestions.some(q => q.questionId === qId)) {
+                                updatedQuestions.push({
+                                    ...question,
+                                    tags: [...question.tags, {
+                                        tagId: tag.id,
+                                        title: tag.title,
+                                        description: tag.description,
+                                        createAt: tag.createAt,
+                                        updateAt: tag.updateAt,
+                                        isDeleted: tag.isDeleted
+                                    }]
+                                });
+                            }
+                        });
+                        return { ...tag, questions: updatedQuestions };
+                    }
+                    return tag;
+                });
+                setTags(updatedTags);
+                setFilteredTags(updatedTags);
+                setSelectedQuestionIds([]);
+                setSelectedTagIdForAssignment(null);
+                setIsSelectingQuestions(false);
+            } else {
+                setError(response.data.message || 'Failed to assign tag to questions');
+            }
         } catch (err) {
             console.error('Error assigning tag to questions:', err);
+            setError('Error assigning tag to questions');
         }
     };
 
@@ -298,6 +397,37 @@ const ManageTags: React.FC = () => {
                                                             • Cập nhật: {new Date(tag.updateAt).toLocaleDateString()}
                                                         </span>
                                                     )}
+                                                </div>
+                                                <div className="mt-2">
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                                        Topics:
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {tag.topics && tag.topics.length > 0 ? (
+                                                            tag.topics.map(topic => (
+                                                                <Badge
+                                                                    key={topic.topicId}
+                                                                    variant="light"
+                                                                    color="info"
+                                                                    endIcon={
+                                                                        <CloseIcon
+                                                                            className="w-3 h-3 ml-1 cursor-pointer hover:text-red-500"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                requestTopicDelete(tag.id, topic.topicId);
+                                                                            }}
+                                                                        />
+                                                                    }
+                                                                >
+                                                                    {topic.title}
+                                                                </Badge>
+                                                            ))
+                                                        ) : (
+                                                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                                Không có topic
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
@@ -435,6 +565,12 @@ const ManageTags: React.FC = () => {
                             />
                         </div>
 
+                        {error && (
+                            <div className="text-red-500 dark:text-red-400 text-sm">
+                                {error}
+                            </div>
+                        )}
+
                         <div className="flex justify-end gap-3 pt-4">
                             <Button variant="outline" onClick={() => setIsModalOpen(false)}>
                                 Hủy
@@ -460,6 +596,25 @@ const ManageTags: React.FC = () => {
                             Hủy
                         </Button>
                         <Button onClick={confirmDelete}>
+                            Xác nhận xóa
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal isOpen={showTopicDeleteConfirm} onClose={() => setShowTopicDeleteConfirm(false)} className="max-w-md">
+                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
+                        Xóa Topic
+                    </h3>
+                    <p className="mb-6 text-gray-600 dark:text-gray-400">
+                        Bạn có chắc chắn muốn xóa topic này khỏi tag không? Hành động này không thể hoàn tác.
+                    </p>
+                    <div className="flex justify-end gap-3">
+                        <Button variant="outline" onClick={() => setShowTopicDeleteConfirm(false)}>
+                            Hủy
+                        </Button>
+                        <Button onClick={confirmTopicDelete}>
                             Xác nhận xóa
                         </Button>
                     </div>

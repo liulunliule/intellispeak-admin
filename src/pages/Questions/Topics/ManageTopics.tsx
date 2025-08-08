@@ -4,24 +4,35 @@ import Input from "../../../components/form/input/InputField";
 import Button from "../../../components/ui/button/Button";
 import { Modal } from "../../../components/ui/modal";
 import { squarelogo } from '../../../assets';
+import { FiEdit2, FiTrash2, FiMoreVertical, FiPlus, FiX, FiTag } from "react-icons/fi";
+import Label from "../../../components/form/Label";
+
+interface Tag {
+    tagId: number;
+    title: string;
+    description: string;
+    createdAt?: string;
+    updatedAt?: string | null;
+    isDeleted?: boolean;
+}
 
 interface Topic {
     topicId: number;
     title: string;
     description: string;
     longDescription?: string;
-    createAt?: string;
+    createdAt?: string;
     thumbnail?: string | null;
-    updateAt?: string | null;
+    updatedAt?: string | null;
     isDeleted?: boolean;
+    tags?: Tag[];
 }
 
-const TopicRow: React.FC<{
+interface TopicRowProps {
     topic: Topic;
     editingId: number | null;
     editedTitle: string;
     editedDesc: string;
-    editedThumbnailPreview: string | null;
     setEditedTitle: (value: string) => void;
     setEditedDesc: (value: string) => void;
     handleEdit: (topic: Topic) => void;
@@ -30,12 +41,13 @@ const TopicRow: React.FC<{
     handleDeleteClick: (topicId: number) => void;
     handleDetailClick: (topic: Topic) => void;
     updating: boolean;
-}> = ({
+}
+
+const TopicRow: React.FC<TopicRowProps> = ({
     topic,
     editingId,
     editedTitle,
     editedDesc,
-    editedThumbnailPreview,
     setEditedTitle,
     setEditedDesc,
     handleEdit,
@@ -45,128 +57,141 @@ const TopicRow: React.FC<{
     handleDetailClick,
     updating,
 }) => {
-        const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-        const dropdownRef = useRef<HTMLDivElement>(null);
-        const dropdownButtonRef = useRef<HTMLButtonElement>(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const dropdownButtonRef = useRef<HTMLButtonElement>(null);
 
-        useEffect(() => {
-            const handleClickOutside = (event: MouseEvent) => {
-                if (
-                    dropdownRef.current &&
-                    !dropdownRef.current.contains(event.target as Node) &&
-                    dropdownButtonRef.current &&
-                    !dropdownButtonRef.current.contains(event.target as Node)
-                ) {
-                    setIsDropdownOpen(false);
-                }
-            };
-            document.addEventListener("mousedown", handleClickOutside);
-            return () => {
-                document.removeEventListener("mousedown", handleClickOutside);
-            };
-        }, []);
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target as Node) &&
+                dropdownButtonRef.current &&
+                !dropdownButtonRef.current.contains(event.target as Node)
+            ) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
-        return (
-            <tr key={topic.topicId}>
-                <td className="px-3 py-4 text-center">
-                    <img
-                        src={topic.thumbnail ? topic.thumbnail : squarelogo}
-                        alt={topic.title}
-                        className="rounded w-16 h-16 object-cover border border-gray-200 dark:border-gray-700 transition-all duration-200 cursor-pointer"
+    return (
+        <tr key={topic.topicId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+            <td className="px-3 py-4 text-center">
+                <img
+                    src={topic.thumbnail ?? squarelogo}
+                    alt={topic.title}
+                    className="rounded w-16 h-16 object-cover border border-gray-200 dark:border-gray-700 transition-all duration-200 cursor-pointer"
+                />
+            </td>
+            <td className="px-5 py-4 sm:px-6 text-start">
+                {editingId === topic.topicId ? (
+                    <Input
+                        type="text"
+                        value={editedTitle}
+                        onChange={(e) => setEditedTitle(e.target.value)}
+                        className="w-full"
                     />
-                </td>
-                <td className="px-5 py-4 sm:px-6 text-start">
-                    {editingId === topic.topicId ? (
-                        <Input
-                            type="text"
-                            value={editedTitle}
-                            onChange={(e) => setEditedTitle(e.target.value)}
-                        />
-                    ) : (
+                ) : (
+                    <div>
                         <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
                             {topic.title}
                         </span>
-                    )}
-                </td>
-                <td className="px-4 py-3 text-start text-theme-sm dark:text-gray-400">
-                    {editingId === topic.topicId ? (
-                        <Input
-                            type="text"
-                            value={editedDesc}
-                            onChange={(e) => setEditedDesc(e.target.value)}
-                        />
-                    ) : (
-                        <span className="block text-gray-500 text-theme-sm dark:text-gray-400">
-                            {topic.description}
-                        </span>
-                    )}
-                </td>
-                <td className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {editingId === topic.topicId ? (
-                        <div className="flex gap-2">
-                            <Button size="sm" onClick={handleUpdate} disabled={updating}>
-                                {updating ? "Đang lưu..." : "Lưu"}
-                            </Button>
-                            <Button size="sm" variant="outline" onClick={handleCancelEdit}>
-                                Hủy
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="relative inline-block text-left" ref={dropdownRef}>
-                            <button
-                                ref={dropdownButtonRef}
-                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-5 w-5"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                >
-                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                </svg>
-                            </button>
-
-                            {isDropdownOpen && (
-                                <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 z-10">
-                                    <div className="py-1">
-                                        <button
-                                            onClick={() => {
-                                                handleDetailClick(topic);
-                                                setIsDropdownOpen(false);
-                                            }}
-                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                        >
-                                            Chi tiết
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                handleEdit(topic);
-                                                setIsDropdownOpen(false);
-                                            }}
-                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                        >
-                                            Sửa
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                handleDeleteClick(topic.topicId);
-                                                setIsDropdownOpen(false);
-                                            }}
-                                            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
-                                        >
-                                            Xóa
-                                        </button>
-                                    </div>
+                        {topic.tags && topic.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                                {topic.tags.slice(0, 3).map(tag => (
+                                    <span
+                                        key={tag.tagId}
+                                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                    >
+                                        {tag.title}
+                                    </span>
+                                ))}
+                                {topic.tags.length > 3 && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                        +{topic.tags.length - 3}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </td>
+            <td className="px-4 py-3 text-start text-theme-sm dark:text-gray-400">
+                {editingId === topic.topicId ? (
+                    <Input
+                        type="text"
+                        value={editedDesc}
+                        onChange={(e) => setEditedDesc(e.target.value)}
+                        className="w-full"
+                    />
+                ) : (
+                    <span className="block text-gray-500 text-theme-sm dark:text-gray-400 line-clamp-2">
+                        {topic.description}
+                    </span>
+                )}
+            </td>
+            <td className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                {editingId === topic.topicId ? (
+                    <div className="flex gap-2">
+                        <Button size="sm" onClick={handleUpdate} disabled={updating}>
+                            {updating ? "Đang lưu..." : "Lưu"}
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                            Hủy
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="relative inline-block text-left" ref={dropdownRef}>
+                        <button
+                            ref={dropdownButtonRef}
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        >
+                            <FiMoreVertical className="h-5 w-5" />
+                        </button>
+                        {isDropdownOpen && (
+                            <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 z-10">
+                                <div className="py-1">
+                                    <button
+                                        onClick={() => {
+                                            handleDetailClick(topic);
+                                            setIsDropdownOpen(false);
+                                        }}
+                                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                                    >
+                                        <FiTag className="mr-2" /> Chi tiết & Tags
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            handleEdit(topic);
+                                            setIsDropdownOpen(false);
+                                        }}
+                                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                                    >
+                                        <FiEdit2 className="mr-2" /> Sửa
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            handleDeleteClick(topic.topicId);
+                                            setIsDropdownOpen(false);
+                                        }}
+                                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
+                                    >
+                                        <FiTrash2 className="mr-2" /> Xóa
+                                    </button>
                                 </div>
-                            )}
-                        </div>
-                    )}
-                </td>
-            </tr>
-        );
-    };
+                            </div>
+                        )}
+                    </div>
+                )}
+            </td>
+        </tr>
+    );
+};
 
 const ManageTopics: React.FC = () => {
     const [topics, setTopics] = useState<Topic[]>([]);
@@ -174,7 +199,7 @@ const ManageTopics: React.FC = () => {
     const [error, setError] = useState("");
     const [search, setSearch] = useState("");
 
-    // State cho chức năng Thêm
+    // State for Add functionality
     const [newTitle, setNewTitle] = useState("");
     const [newDesc, setNewDesc] = useState("");
     const [newLongDesc, setNewLongDesc] = useState("");
@@ -183,43 +208,86 @@ const ManageTopics: React.FC = () => {
     const [adding, setAdding] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-    // State cho chức năng Sửa
+    // State for Edit functionality
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editedTitle, setEditedTitle] = useState("");
     const [editedDesc, setEditedDesc] = useState("");
     const [editedLongDesc, setEditedLongDesc] = useState("");
-    const [editedThumbnailFile, setEditedThumbnailFile] = useState<File | null>(null);
-    const [editedThumbnailPreview, setEditedThumbnailPreview] = useState<string | null>(null);
     const [updating, setUpdating] = useState(false);
-    const [updatingThumbnail, setUpdatingThumbnail] = useState(false);
 
-    // State cho chức năng Xóa
+    // State for Delete functionality
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    // State cho chức năng Chi tiết
+    // State for Detail functionality
     const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [detailThumbnailFile, setDetailThumbnailFile] = useState<File | null>(null);
     const [detailThumbnailPreview, setDetailThumbnailPreview] = useState<string | null>(null);
     const [updatingDetailThumbnail, setUpdatingDetailThumbnail] = useState(false);
 
+    // State for Tag management
+    const [allTags, setAllTags] = useState<Tag[]>([]);
+    const [loadingTags, setLoadingTags] = useState(false);
+    const [selectedTagToAdd, setSelectedTagToAdd] = useState<number | null>(null);
+    const [isAddTagModalOpen, setIsAddTagModalOpen] = useState(false);
+    const [isRemoveTagModalOpen, setIsRemoveTagModalOpen] = useState(false);
+    const [tagToRemove, setTagToRemove] = useState<number | null>(null);
+
     const detailThumbnailInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         fetchTopics();
+        fetchAllTags();
     }, []);
+
+    useEffect(() => {
+        console.log("selectedTopic:", selectedTopic);
+    }, [selectedTopic]);
 
     const fetchTopics = async () => {
         setLoading(true);
         setError("");
         try {
             const res = await api.get("/topic");
-            setTopics(res.data);
-        } catch {
+            const topicsWithTags = await Promise.all(
+                res.data.map(async (topic: Topic) => {
+                    try {
+                        const tagsRes = await api.get(`/topic/${topic.topicId}/tags`);
+                        return { ...topic, tags: tagsRes.data ?? [] };
+                    } catch (error) {
+                        console.error(`Error fetching tags for topic ${topic.topicId}:`, error);
+                        return { ...topic, tags: [] };
+                    }
+                })
+            );
+            setTopics(topicsWithTags);
+        } catch (err) {
             setError("Lỗi khi tải chủ đề.");
+            console.error("Error fetching topics:", err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAllTags = async () => {
+        setLoadingTags(true);
+        try {
+            const res = await api.get("/tag");
+            const tags = (res.data.data ?? []).map((tag: any) => ({
+                tagId: tag.tagId || tag.id,
+                title: tag.title,
+                description: tag.description,
+                createdAt: tag.createdAt || tag.createAt,
+                updatedAt: tag.updatedAt || tag.updateAt,
+                isDeleted: tag.isDeleted,
+            }));
+            setAllTags(tags);
+        } catch (error) {
+            console.error("Error fetching tags:", error);
+            setError("Lỗi khi tải danh sách tag");
+        } finally {
+            setLoadingTags(false);
         }
     };
 
@@ -236,7 +304,7 @@ const ManageTopics: React.FC = () => {
                 },
             });
 
-            return res.data[0] || null;
+            return res.data[0] ?? null;
         } catch (error) {
             console.error("Lỗi khi upload ảnh:", error);
             setError("Lỗi khi upload ảnh");
@@ -249,14 +317,6 @@ const ManageTopics: React.FC = () => {
             const file = e.target.files[0];
             setNewThumbnailFile(file);
             setNewThumbnailPreview(URL.createObjectURL(file));
-        }
-    };
-
-    const handleEditThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            setEditedThumbnailFile(file);
-            setEditedThumbnailPreview(URL.createObjectURL(file));
         }
     };
 
@@ -282,35 +342,18 @@ const ManageTopics: React.FC = () => {
                 });
                 setDetailThumbnailFile(null);
                 setDetailThumbnailPreview(null);
+
+                setSelectedTopic(prev => ({
+                    ...prev!,
+                    thumbnail: thumbnailUrl,
+                }));
+
                 fetchTopics();
             }
         } catch {
             setError("Lỗi khi cập nhật thumbnail.");
         } finally {
             setUpdatingDetailThumbnail(false);
-        }
-    };
-
-    const handleEditThumbnailUpdate = async () => {
-        if (!editingId || !editedThumbnailFile) return;
-
-        setUpdatingThumbnail(true);
-        try {
-            const thumbnailUrl = await handleImageUpload(editedThumbnailFile);
-            if (thumbnailUrl) {
-                await api.put(`/topic/thumbnail/${editingId}`, thumbnailUrl, {
-                    headers: {
-                        "Content-Type": "text/plain",
-                    },
-                });
-                setEditedThumbnailFile(null);
-                setEditedThumbnailPreview(null);
-                fetchTopics();
-            }
-        } catch {
-            setError("Lỗi khi cập nhật thumbnail.");
-        } finally {
-            setUpdatingThumbnail(false);
         }
     };
 
@@ -346,8 +389,9 @@ const ManageTopics: React.FC = () => {
 
             fetchTopics();
             setIsAddModalOpen(false);
-        } catch {
+        } catch (err) {
             setError("Lỗi khi thêm chủ đề.");
+            console.error("Error adding topic:", err);
         } finally {
             setAdding(false);
         }
@@ -357,9 +401,7 @@ const ManageTopics: React.FC = () => {
         setEditingId(topic.topicId);
         setEditedTitle(topic.title);
         setEditedDesc(topic.description);
-        setEditedLongDesc(topic.longDescription || "");
-        setEditedThumbnailPreview(topic.thumbnail || null);
-        setEditedThumbnailFile(null);
+        setEditedLongDesc(topic.longDescription ?? "");
     };
 
     const handleUpdate = async () => {
@@ -378,8 +420,9 @@ const ManageTopics: React.FC = () => {
             setEditedDesc("");
             setEditedLongDesc("");
             fetchTopics();
-        } catch {
+        } catch (err) {
             setError("Lỗi khi cập nhật chủ đề.");
+            console.error("Error updating topic:", err);
         } finally {
             setUpdating(false);
         }
@@ -390,8 +433,6 @@ const ManageTopics: React.FC = () => {
         setEditedTitle("");
         setEditedDesc("");
         setEditedLongDesc("");
-        setEditedThumbnailFile(null);
-        setEditedThumbnailPreview(null);
     };
 
     const handleDelete = async (id: number) => {
@@ -399,8 +440,9 @@ const ManageTopics: React.FC = () => {
         try {
             await api.delete(`/topic/${id}`);
             fetchTopics();
-        } catch {
+        } catch (err) {
             setError("Lỗi khi xóa chủ đề.");
+            console.error("Error deleting topic:", err);
         } finally {
             setDeletingId(null);
             setIsDeleteModalOpen(false);
@@ -412,83 +454,177 @@ const ManageTopics: React.FC = () => {
         setIsDeleteModalOpen(true);
     };
 
-    const handleDetailClick = (topic: Topic) => {
-        setSelectedTopic(topic);
-        setDetailThumbnailFile(null);
-        setDetailThumbnailPreview(null);
-        setIsDetailModalOpen(true);
+    const handleDetailClick = async (topic: Topic) => {
+        try {
+            const tagsRes = await api.get(`/topic/${topic.topicId}/tags`);
+            setSelectedTopic({
+                ...topic,
+                tags: tagsRes.data ?? [],
+            });
+            setDetailThumbnailFile(null);
+            setDetailThumbnailPreview(null);
+            setIsDetailModalOpen(true);
+        } catch (error) {
+            console.error(`Error fetching tags for topic ${topic.topicId}:`, error);
+            setSelectedTopic({ ...topic, tags: [] });
+            setIsDetailModalOpen(true);
+        }
     };
 
-    const handleUpdateFromDetail = (topic: Topic) => {
-        setEditingId(topic.topicId);
-        setEditedTitle(topic.title);
-        setEditedDesc(topic.description);
-        setEditedLongDesc(topic.longDescription || "");
-        setEditedThumbnailPreview(topic.thumbnail || null);
-        setEditedThumbnailFile(null);
-        setIsDetailModalOpen(false); // Close detail modal
+    const handleAddTagToTopic = async () => {
+        if (!selectedTopic || selectedTagToAdd === null) {
+            setError("Vui lòng chọn chủ đề và tag hợp lệ.");
+            console.warn("Invalid selectedTopic or selectedTagToAdd:", { selectedTopic, selectedTagToAdd });
+            return;
+        }
+
+        try {
+            console.log("Adding tag to topic:", selectedTopic.topicId, "Tag ID:", selectedTagToAdd);
+            await api.put(`/topic/${selectedTopic.topicId}/tags/${selectedTagToAdd}`);
+
+            const addedTag = allTags.find(tag => tag.tagId === selectedTagToAdd);
+            if (!addedTag) {
+                console.warn(`Tag with tagId ${selectedTagToAdd} not found in allTags`);
+                setError("Tag không tồn tại trong danh sách.");
+                return;
+            }
+
+            setSelectedTopic(prev => ({
+                ...prev!,
+                tags: [...(prev?.tags ?? []), addedTag],
+            }));
+
+            await fetchTopics();
+            setIsAddTagModalOpen(false);
+            setSelectedTagToAdd(null);
+        } catch (error: any) {
+            console.error("Error adding tag to topic:", error);
+            setError(error.response?.data?.message ?? "Lỗi khi thêm tag vào chủ đề");
+        }
     };
 
-    const filteredTopics = topics.filter(
-        (t) =>
-            t.title.toLowerCase().includes(search.toLowerCase()) ||
-            t.description.toLowerCase().includes(search.toLowerCase())
+    const handleRemoveTagFromTopic = async () => {
+        console.log("Removing tag from topic:", selectedTopic?.topicId, "Tag ID:", tagToRemove);
+
+        if (!selectedTopic || !tagToRemove) {
+            console.error("Missing topic or tag ID");
+            setError("Thiếu thông tin chủ đề hoặc tag");
+            return;
+        }
+
+        try {
+            setSelectedTopic(prev => {
+                const newTags = prev?.tags?.filter(tag => tag.tagId !== tagToRemove) ?? [];
+                return {
+                    ...prev!,
+                    tags: newTags,
+                };
+            });
+
+            await api.delete(`/topic/${selectedTopic.topicId}/tags/${tagToRemove}`);
+            await fetchTopics();
+
+            setIsRemoveTagModalOpen(false);
+            setTagToRemove(null);
+        } catch (error: any) {
+            console.error("Error details:", error);
+
+            if (selectedTopic) {
+                try {
+                    const refreshedTopic = await api.get(`/topic/${selectedTopic.topicId}`);
+                    const tagsRes = await api.get(`/topic/${selectedTopic.topicId}/tags`);
+                    setSelectedTopic({
+                        ...refreshedTopic.data,
+                        tags: tagsRes.data ?? [],
+                    });
+                } catch (refreshError) {
+                    console.error("Error refreshing topic:", refreshError);
+                }
+            }
+
+            setError(error.response?.data?.message ?? "Lỗi khi xóa tag khỏi chủ đề");
+        }
+    };
+
+    const openAddTagModal = () => {
+        setSelectedTagToAdd(null);
+        setIsAddTagModalOpen(true);
+    };
+
+    const openRemoveTagModal = (tagId: number) => {
+        console.log("Opening remove tag modal for tag ID:", tagId);
+        setTagToRemove(tagId);
+        setIsRemoveTagModalOpen(true);
+    };
+
+    const filteredTopics = topics.filter(t =>
+        t.title.toLowerCase().includes(search.toLowerCase()) ||
+        t.description.toLowerCase().includes(search.toLowerCase()) ||
+        t.tags?.some(tag =>
+            tag.title.toLowerCase().includes(search.toLowerCase()) ||
+            tag.description.toLowerCase().includes(search.toLowerCase())
+        )
     );
 
     return (
-        <div className="p-6 bg-white dark:bg-gray-900 rounded-3xl shadow-md w-full max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Quản lý chủ đề</h1>
-            <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <Input
-                    type="text"
-                    placeholder="Tìm kiếm chủ đề..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full sm:w-1/2"
-                />
-                <div className="flex gap-2 mt-2 sm:mt-0">
+        <div className="p-6 bg-white dark:bg-gray-900 rounded-3xl shadow-md w-full max-w-6xl mx-auto">
+            <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Quản lý chủ đề</h1>
+
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex-1 max-w-md">
+                    <Input
+                        type="text"
+                        placeholder="Tìm kiếm chủ đề theo tên, mô tả hoặc tag..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full"
+                    />
+                </div>
+                <div className="flex gap-2">
                     <Button onClick={() => setIsAddModalOpen(true)}>
-                        Thêm chủ đề mới
+                        <FiPlus className="mr-1" /> Thêm chủ đề mới
                     </Button>
                 </div>
             </div>
 
+            {error && (
+                <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg dark:bg-red-900/30 dark:text-red-400">
+                    {error}
+                </div>
+            )}
+
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
                 <div className="max-w-full overflow-x-auto">
-                    <table className="min-w-full">
-                        <thead className="border-b border-gray-100 dark:border-white/[0.05]">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-800">
                             <tr>
-                                <th className="px-3 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400 w-20">
+                                <th className="px-3 py-3 font-medium text-gray-500 text-center text-xs dark:text-gray-400 w-20">
                                     Ảnh
                                 </th>
-                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
                                     Tên chủ đề
                                 </th>
-                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
                                     Mô tả
                                 </th>
-                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
                                     Thao tác
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={4} className="py-6 text-center text-gray-500">
-                                        Đang tải...
-                                    </td>
-                                </tr>
-                            ) : error ? (
-                                <tr>
-                                    <td colSpan={4} className="py-6 text-center text-red-500">
-                                        {error}
+                                    <td colSpan={4} className="py-8 text-center">
+                                        <div className="flex justify-center">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : filteredTopics.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="py-6 text-center text-gray-500">
-                                        Không có chủ đề nào
+                                    <td colSpan={4} className="py-6 text-center text-gray-500 dark:text-gray-400">
+                                        {search ? "Không tìm thấy chủ đề phù hợp" : "Không có chủ đề nào"}
                                     </td>
                                 </tr>
                             ) : (
@@ -499,7 +635,6 @@ const ManageTopics: React.FC = () => {
                                         editingId={editingId}
                                         editedTitle={editedTitle}
                                         editedDesc={editedDesc}
-                                        editedThumbnailPreview={editedThumbnailPreview}
                                         setEditedTitle={setEditedTitle}
                                         setEditedDesc={setEditedDesc}
                                         handleEdit={handleEdit}
@@ -516,17 +651,24 @@ const ManageTopics: React.FC = () => {
                 </div>
             </div>
 
-            {/* Modal thêm chủ đề mới */}
+            {/* Add Topic Modal */}
             <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} className="max-w-[500px] m-4">
-                <div className="no-scrollbar relative w-full max-w-[500px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8 text-center">
-                    <h4 className="mb-2 mt-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-                        Thêm chủ đề mới
-                    </h4>
-                    <div className="flex flex-col gap-4 mt-4">
+                <div className="no-scrollbar relative w-full max-w-[500px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
+                    <div className="flex justify-between items-center mb-4">
+                        <h4 className="text-xl font-semibold text-gray-800 dark:text-white/90">
+                            Thêm chủ đề mới
+                        </h4>
+                        <button
+                            onClick={() => setIsAddModalOpen(false)}
+                            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                        >
+                            <FiX className="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
                         <div>
-                            <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Ảnh thumbnail
-                            </label>
+                            <Label>Ảnh thumbnail</Label>
                             <input
                                 type="file"
                                 accept="image/*"
@@ -542,311 +684,318 @@ const ManageTopics: React.FC = () => {
                                     cursor-pointer"
                             />
                             {newThumbnailPreview && (
-                                <div className="mt-2">
+                                <div className="mt-2 flex flex-col items-center">
                                     <img
                                         src={newThumbnailPreview}
                                         alt="Preview"
                                         className="h-32 object-contain rounded border border-gray-200 dark:border-gray-700"
                                     />
+                                    <button
+                                        onClick={() => {
+                                            setNewThumbnailFile(null);
+                                            setNewThumbnailPreview(null);
+                                        }}
+                                        className="mt-2 text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                    >
+                                        Xóa ảnh
+                                    </button>
                                 </div>
                             )}
                         </div>
 
-                        <Input
-                            type="text"
-                            placeholder="Tên chủ đề mới"
-                            value={newTitle}
-                            onChange={(e) => setNewTitle(e.target.value)}
-                        />
-                        <Input
-                            type="text"
-                            placeholder="Mô tả"
-                            value={newDesc}
-                            onChange={(e) => setNewDesc(e.target.value)}
-                        />
-                        <textarea
-                            placeholder="Mô tả chi tiết (longDescription)"
-                            value={newLongDesc}
-                            onChange={(e) => setNewLongDesc(e.target.value)}
-                            rows={5}
-                            className="resize-y min-h-[100px] rounded border border-gray-300 dark:border-gray-700 p-2 text-sm bg-white dark:bg-gray-900 text-gray-800 dark:text-white w-full"
-                        />
+                        <div>
+                            <Label>Tên chủ đề*</Label>
+                            <Input
+                                type="text"
+                                placeholder="Nhập tên chủ đề"
+                                value={newTitle}
+                                onChange={(e) => setNewTitle(e.target.value)}
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Mô tả*</Label>
+                            <Input
+                                type="text"
+                                placeholder="Nhập mô tả ngắn"
+                                value={newDesc}
+                                onChange={(e) => setNewDesc(e.target.value)}
+                            />
+                        </div>
+
+                        <div>
+                            <Label>Mô tả chi tiết</Label>
+                            <textarea
+                                placeholder="Nhập mô tả chi tiết (nếu có)"
+                                value={newLongDesc}
+                                onChange={(e) => setNewLongDesc(e.target.value)}
+                                rows={4}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                            />
+                        </div>
                     </div>
-                    <div className="flex items-center justify-center gap-3 mt-6">
+
+                    <div className="flex items-center justify-end gap-3 mt-6">
                         <Button size="sm" variant="outline" onClick={() => setIsAddModalOpen(false)}>
                             Hủy
                         </Button>
-                        <Button
-                            size="sm"
-                            onClick={handleAdd}
-                            disabled={adding || !newTitle || !newDesc}
-                        >
-                            {adding ? "Đang thêm..." : "Thêm"}
+                        <Button size="sm" onClick={handleAdd} disabled={adding || !newTitle || !newDesc}>
+                            {adding ? "Đang thêm..." : "Thêm chủ đề"}
                         </Button>
                     </div>
                 </div>
             </Modal>
 
-            {/* Modal chỉnh sửa chủ đề */}
-            {editingId !== null && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 w-full max-w-md">
-                        <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-                            Chỉnh sửa chủ đề
-                        </h2>
-
-                        <div className="mb-4">
-                            <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Ảnh thumbnail
-                            </label>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleEditThumbnailChange}
-                                className="block w-full text-sm text-gray-500
-                                    file:mr-4 file:py-2 file:px-4
-                                    file:rounded-md file:border-0
-                                    file:text-sm file:font-semibold
-                                    file:bg-blue-50 file:text-blue-700
-                                    hover:file:bg-blue-100
-                                    dark:file:bg-blue-900/50 dark:file:text-blue-300
-                                    dark:hover:file:bg-blue-900/70
-                                    cursor-pointer"
-                            />
-                            {editedThumbnailPreview && (
-                                <div className="mt-2">
-                                    <img
-                                        src={editedThumbnailPreview}
-                                        alt="Preview"
-                                        className="h-32 object-contain rounded border border-gray-200 dark:border-gray-700"
-                                    />
-                                    <div className="mt-4 flex justify-center gap-2">
-                                        <Button
-                                            size="sm"
-                                            onClick={handleEditThumbnailUpdate}
-                                            disabled={updatingThumbnail}
-                                        >
-                                            {updatingThumbnail ? "Đang lưu..." : "Lưu thumbnail"}
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => {
-                                                setEditedThumbnailFile(null);
-                                                setEditedThumbnailPreview(null);
-                                            }}
-                                        >
-                                            Hủy
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <Input
-                            type="text"
-                            placeholder="Tên chủ đề"
-                            value={editedTitle}
-                            onChange={(e) => setEditedTitle(e.target.value)}
-                            className="mb-4"
-                        />
-                        <Input
-                            type="text"
-                            placeholder="Mô tả"
-                            value={editedDesc}
-                            onChange={(e) => setEditedDesc(e.target.value)}
-                            className="mb-4"
-                        />
-                        <textarea
-                            placeholder="Mô tả chi tiết (longDescription)"
-                            value={editedLongDesc}
-                            onChange={(e) => setEditedLongDesc(e.target.value)}
-                            rows={5}
-                            className="resize-y min-h-[100px] rounded border border-gray-300 dark:border-gray-700 p-2 text-sm bg-white dark:bg-gray-900 text-gray-800 dark:text-white w-full mb-4"
-                        />
-
-                        <div className="flex justify-end gap-2 mt-4">
-                            <Button variant="outline" onClick={handleCancelEdit}>
-                                Hủy
-                            </Button>
-                            <Button
-                                onClick={handleUpdate}
-                                disabled={updating || !editedTitle || !editedDesc}
-                            >
-                                {updating ? "Đang lưu..." : "Lưu thay đổi"}
-                            </Button>
-                        </div>
+            {/* Topic Detail Modal with Tag Management */}
+            <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} className="max-w-2xl m-4">
+                <div className="no-scrollbar relative w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
+                    <div className="flex justify-between items-center mb-4">
+                        <h4 className="text-xl font-semibold text-gray-800 dark:text-white/90">
+                            Chi tiết chủ đề
+                        </h4>
+                        <button
+                            onClick={() => setIsDetailModalOpen(false)}
+                            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                        >
+                            <FiX className="h-5 w-5" />
+                        </button>
                     </div>
-                </div>
-            )}
 
-            {/* Modal chi tiết chủ đề */}
-            <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} className="max-w-[600px] m-4">
-                <div className="no-scrollbar relative w-full max-w-[600px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
-                    <h4 className="mb-6 text-2xl font-semibold text-gray-800 dark:text-white/90 text-center">
-                        Chi tiết chủ đề
-                    </h4>
                     {selectedTopic && (
-                        <div className="grid grid-cols-1 gap-6">
-                            <div className="flex flex-col items-center relative">
+                        <div className="space-y-6">
+                            <div className="flex flex-col items-center">
                                 <img
-                                    src={detailThumbnailPreview || (selectedTopic.thumbnail ? selectedTopic.thumbnail : squarelogo)}
+                                    src={detailThumbnailPreview ?? selectedTopic.thumbnail ?? squarelogo}
                                     alt={selectedTopic.title}
-                                    className="h-48 object-contain rounded-lg border border-gray-200 dark:border-gray-700"
+                                    className="h-48 w-48 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
                                 />
-                                <button
-                                    onClick={() => detailThumbnailInputRef.current?.click()}
-                                    className="absolute bottom-2 right-2 bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
-                                    title="Cập nhật thumbnail"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-5 w-5"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                        />
-                                    </svg>
-                                </button>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    ref={detailThumbnailInputRef}
-                                    onChange={handleDetailThumbnailChange}
-                                    className="hidden"
-                                />
-                                {detailThumbnailPreview && (
-                                    <div className="mt-4 flex justify-center gap-2">
-                                        <Button
-                                            size="sm"
-                                            onClick={handleDetailThumbnailUpdate}
-                                            disabled={updatingDetailThumbnail}
-                                        >
-                                            {updatingDetailThumbnail ? "Đang lưu..." : "Lưu thumbnail"}
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => {
-                                                setDetailThumbnailFile(null);
-                                                setDetailThumbnailPreview(null);
-                                            }}
-                                        >
-                                            Hủy
-                                        </Button>
+                                <div className="mt-4 flex gap-2">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        ref={detailThumbnailInputRef}
+                                        onChange={handleDetailThumbnailChange}
+                                        className="hidden"
+                                    />
+                                    <Button size="sm" onClick={() => detailThumbnailInputRef.current?.click()}>
+                                        Thay đổi ảnh
+                                    </Button>
+                                    {detailThumbnailPreview && (
+                                        <>
+                                            <Button
+                                                size="sm"
+                                                onClick={handleDetailThumbnailUpdate}
+                                                disabled={updatingDetailThumbnail}
+                                            >
+                                                {updatingDetailThumbnail ? "Đang lưu..." : "Lưu ảnh"}
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => {
+                                                    setDetailThumbnailFile(null);
+                                                    setDetailThumbnailPreview(null);
+                                                }}
+                                            >
+                                                Hủy
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <Label>ID chủ đề</Label>
+                                    <p className="text-gray-800 dark:text-white/90">{selectedTopic.topicId}</p>
+                                </div>
+                                <div>
+                                    <Label>Tên chủ đề</Label>
+                                    <p className="text-gray-800 dark:text-white/90">{selectedTopic.title}</p>
+                                </div>
+                                <div className="md:col-span-2">
+                                    <Label>Mô tả</Label>
+                                    <p className="text-gray-800 dark:text-white/90">{selectedTopic.description}</p>
+                                </div>
+                                {selectedTopic.longDescription && (
+                                    <div className="md:col-span-2">
+                                        <Label>Mô tả chi tiết</Label>
+                                        <p className="text-gray-800 dark:text-white/90 whitespace-pre-line">
+                                            {selectedTopic.longDescription}
+                                        </p>
+                                    </div>
+                                )}
+                                <div>
+                                    <Label>Ngày tạo</Label>
+                                    <p className="text-gray-800 dark:text-white/90">
+                                        {selectedTopic.createdAt ? new Date(selectedTopic.createdAt).toLocaleString() : "N/A"}
+                                    </p>
+                                </div>
+                                <div>
+                                    <Label>Ngày cập nhật</Label>
+                                    <p className="text-gray-800 dark:text-white/90">
+                                        {selectedTopic.updatedAt ? new Date(selectedTopic.updatedAt).toLocaleString() : "N/A"}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h5 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+                                        Quản lý Tags
+                                    </h5>
+                                    <Button size="sm" onClick={openAddTagModal}>
+                                        <FiPlus className="mr-1" /> Thêm Tag
+                                    </Button>
+                                </div>
+
+                                {selectedTopic.tags && selectedTopic.tags.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {selectedTopic.tags.map((tag) => (
+                                            <div
+                                                key={tag.tagId}
+                                                className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                                            >
+                                                <div>
+                                                    <span className="font-medium text-gray-800 dark:text-white/90">{tag.title}</span>
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400">{tag.description}</p>
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400">ID: {tag.tagId}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => openRemoveTagModal(tag.tagId)}
+                                                    className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1"
+                                                >
+                                                    <FiTrash2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                                        Chưa có tag nào được gán cho chủ đề này
                                     </div>
                                 )}
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">
-                                        ID chủ đề
-                                    </label>
-                                    <p className="text-base text-gray-800 dark:text-white/90">{selectedTopic.topicId}</p>
-                                </div>
-                                <div>
-                                    <label className="block mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">
-                                        Tên chủ đề
-                                    </label>
-                                    <p className="text-base text-gray-800 dark:text-white/90">{selectedTopic.title}</p>
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="block mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">
-                                        Mô tả
-                                    </label>
-                                    <p className="text-base text-gray-800 dark:text-white/90">{selectedTopic.description}</p>
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="block mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">
-                                        Mô tả chi tiết
-                                    </label>
-                                    <p className="text-base text-gray-800 dark:text-white/90">
-                                        {selectedTopic.longDescription || "Không có mô tả chi tiết"}
-                                    </p>
-                                </div>
-                                <div>
-                                    <label className="block mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">
-                                        Ngày tạo
-                                    </label>
-                                    <p className="text-base text-gray-800 dark:text-white/90">
-                                        {selectedTopic.createAt ? new Date(selectedTopic.createAt).toLocaleString() : "Chưa có"}
-                                    </p>
-                                </div>
-                                <div>
-                                    <label className="block mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">
-                                        Ngày cập nhật
-                                    </label>
-                                    <p className="text-base text-gray-800 dark:text-white/90">
-                                        {selectedTopic.updateAt ? new Date(selectedTopic.updateAt).toLocaleString() : "Chưa có"}
-                                    </p>
-                                </div>
-                                <div>
-                                    <label className="block mb-1 text-sm font-bold text-gray-700 dark:text-gray-300">
-                                        Trạng thái xóa
-                                    </label>
-                                    <p className="text-base text-gray-800 dark:text-white/90">
-                                        {selectedTopic.isDeleted ? "Đã xóa" : "Chưa xóa"}
-                                    </p>
-                                </div>
-                            </div>
                         </div>
                     )}
-                    <div className="flex items-center justify-center gap-3 mt-8">
-                        <Button size="sm" variant="outline" onClick={() => setIsDetailModalOpen(false)}>
+
+                    <div className="flex items-center justify-end gap-3 mt-6">
+                        <Button variant="outline" onClick={() => setIsDetailModalOpen(false)}>
                             Đóng
                         </Button>
-                        {selectedTopic && (
-                            <Button
-                                size="sm"
-                                onClick={() => handleUpdateFromDetail(selectedTopic)}
-                            >
-                                Cập nhật
-                            </Button>
-                        )}
                     </div>
                 </div>
             </Modal>
 
-            {/* Modal xác nhận xóa */}
-            <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} className="max-w-[400px] m-4">
-                <div className="no-scrollbar relative w-full max-w-[400px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8 text-center">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-16 w-16 mx-auto text-red-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                        />
-                    </svg>
-                    <h4 className="mb-2 mt-4 text-2xl font-semibold text-gray-800 dark:text-white/90">
-                        Xác nhận xóa
-                    </h4>
-                    <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
-                        Bạn có chắc chắn muốn xóa chủ đề này không? Hành động này không thể hoàn tác.
-                    </p>
-                    <div className="flex items-center justify-center gap-3 mt-6">
-                        <Button size="sm" variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+            {/* Add Tag Modal */}
+            <Modal isOpen={isAddTagModalOpen} onClose={() => setIsAddTagModalOpen(false)} className="max-w-md m-4">
+                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-semibold text-gray-800 dark:text-white/90">
+                            Thêm Tag vào chủ đề
+                        </h3>
+                        <button
+                            onClick={() => setIsAddTagModalOpen(false)}
+                            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                        >
+                            <FiX className="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div>
+                            <Label>Chọn Tag</Label>
+                            {loadingTags ? (
+                                <div className="py-4 text-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                                </div>
+                            ) : allTags.length === 0 ? (
+                                <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                                    Không có tag nào khả dụng
+                                </div>
+                            ) : (
+                                <select
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:ring-blue-500 focus:border-blue-500"
+                                    value={selectedTagToAdd ?? ""}
+                                    onChange={(e) => {
+                                        const id = Number(e.target.value);
+                                        setSelectedTagToAdd(id || null);
+                                    }}
+                                >
+                                    <option value="">-- Chọn tag --</option>
+                                    {allTags
+                                        .filter(tag => !selectedTopic?.tags?.some(t => t.tagId === tag.tagId))
+                                        .map(tag => (
+                                            <option key={tag.tagId} value={tag.tagId}>
+                                                {tag.title} - {tag.description}
+                                            </option>
+                                        ))}
+                                </select>
+                            )}
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-2">
+                            <Button variant="outline" onClick={() => setIsAddTagModalOpen(false)}>
+                                Hủy
+                            </Button>
+                            <Button
+                                onClick={handleAddTagToTopic}
+                                disabled={selectedTagToAdd === null || loadingTags}
+                            >
+                                Thêm Tag
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Remove Tag Confirmation Modal */}
+            <Modal isOpen={isRemoveTagModalOpen} onClose={() => setIsRemoveTagModalOpen(false)} className="max-w-md m-4">
+                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    <div className="text-center">
+                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30">
+                            <FiTrash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
+                        </div>
+                        <h3 className="mt-3 text-lg font-medium text-gray-900 dark:text-white">
+                            Xóa Tag khỏi chủ đề
+                        </h3>
+                        <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            Bạn có chắc chắn muốn xóa tag này khỏi chủ đề không? Hành động này không thể hoàn tác.
+                        </div>
+                    </div>
+
+                    <div className="mt-5 sm:mt-6 flex justify-center gap-3">
+                        <Button variant="outline" onClick={() => setIsRemoveTagModalOpen(false)}>
                             Hủy
                         </Button>
-                        <Button
-                            size="sm"
-                            variant="danger"
-                            onClick={() => handleDelete(deletingId!)}
-                            disabled={deletingId === null}
-                        >
-                            Xóa
+                        <Button variant="danger" onClick={handleRemoveTagFromTopic}>
+                            Xác nhận xóa
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Delete Confirmation Modal */}
+            <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} className="max-w-md m-4">
+                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    <div className="text-center">
+                        <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30">
+                            <FiTrash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
+                        </div>
+                        <h3 className="mt-3 text-lg font-medium text-gray-900 dark:text-white">
+                            Xác nhận xóa chủ đề
+                        </h3>
+                        <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            Bạn có chắc chắn muốn xóa chủ đề này không? Tất cả dữ liệu liên quan sẽ bị mất và hành động này không thể hoàn tác.
+                        </div>
+                    </div>
+
+                    <div className="mt-5 sm:mt-6 flex justify-center gap-3">
+                        <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+                            Hủy
+                        </Button>
+                        <Button variant="danger" onClick={() => deletingId && handleDelete(deletingId)}>
+                            Xác nhận xóa
                         </Button>
                     </div>
                 </div>
