@@ -4,194 +4,12 @@ import Input from "../../../components/form/input/InputField";
 import Button from "../../../components/ui/button/Button";
 import { Modal } from "../../../components/ui/modal";
 import { squarelogo } from '../../../assets';
-import { FiEdit2, FiTrash2, FiMoreVertical, FiPlus, FiX, FiTag } from "react-icons/fi";
+import { FiPlus, FiTrash2 } from "react-icons/fi";
 import Label from "../../../components/form/Label";
-
-interface Tag {
-    tagId: number;
-    title: string;
-    description: string;
-    createdAt?: string;
-    updatedAt?: string | null;
-    isDeleted?: boolean;
-}
-
-interface Topic {
-    topicId: number;
-    title: string;
-    description: string;
-    longDescription?: string;
-    createdAt?: string;
-    thumbnail?: string | null;
-    updatedAt?: string | null;
-    isDeleted?: boolean;
-    tags?: Tag[];
-}
-
-interface TopicRowProps {
-    topic: Topic;
-    editingId: number | null;
-    editedTitle: string;
-    editedDesc: string;
-    setEditedTitle: (value: string) => void;
-    setEditedDesc: (value: string) => void;
-    handleEdit: (topic: Topic) => void;
-    handleUpdate: () => void;
-    handleCancelEdit: () => void;
-    handleDeleteClick: (topicId: number) => void;
-    handleDetailClick: (topic: Topic) => void;
-    updating: boolean;
-}
-
-const TopicRow: React.FC<TopicRowProps> = ({
-    topic,
-    editingId,
-    editedTitle,
-    editedDesc,
-    setEditedTitle,
-    setEditedDesc,
-    handleEdit,
-    handleUpdate,
-    handleCancelEdit,
-    handleDeleteClick,
-    handleDetailClick,
-    updating,
-}) => {
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const dropdownButtonRef = useRef<HTMLButtonElement>(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                dropdownRef.current &&
-                !dropdownRef.current.contains(event.target as Node) &&
-                dropdownButtonRef.current &&
-                !dropdownButtonRef.current.contains(event.target as Node)
-            ) {
-                setIsDropdownOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-    return (
-        <tr key={topic.topicId} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-            <td className="px-3 py-4 text-center">
-                <img
-                    src={topic.thumbnail ?? squarelogo}
-                    alt={topic.title}
-                    className="rounded w-16 h-16 object-cover border border-gray-200 dark:border-gray-700 transition-all duration-200 cursor-pointer"
-                />
-            </td>
-            <td className="px-5 py-4 sm:px-6 text-start">
-                {editingId === topic.topicId ? (
-                    <Input
-                        type="text"
-                        value={editedTitle}
-                        onChange={(e) => setEditedTitle(e.target.value)}
-                        className="w-full"
-                    />
-                ) : (
-                    <div>
-                        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                            {topic.title}
-                        </span>
-                        {topic.tags && topic.tags.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-1">
-                                {topic.tags.slice(0, 3).map(tag => (
-                                    <span
-                                        key={tag.tagId}
-                                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                                    >
-                                        {tag.title}
-                                    </span>
-                                ))}
-                                {topic.tags.length > 3 && (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                                        +{topic.tags.length - 3}
-                                    </span>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                )}
-            </td>
-            <td className="px-4 py-3 text-start text-theme-sm dark:text-gray-400">
-                {editingId === topic.topicId ? (
-                    <Input
-                        type="text"
-                        value={editedDesc}
-                        onChange={(e) => setEditedDesc(e.target.value)}
-                        className="w-full"
-                    />
-                ) : (
-                    <span className="block text-gray-500 text-theme-sm dark:text-gray-400 line-clamp-2">
-                        {topic.description}
-                    </span>
-                )}
-            </td>
-            <td className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                {editingId === topic.topicId ? (
-                    <div className="flex gap-2">
-                        <Button size="sm" onClick={handleUpdate} disabled={updating}>
-                            {updating ? "Đang lưu..." : "Lưu"}
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={handleCancelEdit}>
-                            Hủy
-                        </Button>
-                    </div>
-                ) : (
-                    <div className="relative inline-block text-left" ref={dropdownRef}>
-                        <button
-                            ref={dropdownButtonRef}
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="p-1 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
-                        >
-                            <FiMoreVertical className="h-5 w-5" />
-                        </button>
-                        {isDropdownOpen && (
-                            <div className="absolute right-0 mt-2 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 z-10">
-                                <div className="py-1">
-                                    <button
-                                        onClick={() => {
-                                            handleDetailClick(topic);
-                                            setIsDropdownOpen(false);
-                                        }}
-                                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                    >
-                                        <FiTag className="mr-2" /> Chi tiết & Tags
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            handleEdit(topic);
-                                            setIsDropdownOpen(false);
-                                        }}
-                                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                                    >
-                                        <FiEdit2 className="mr-2" /> Sửa
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            handleDeleteClick(topic.topicId);
-                                            setIsDropdownOpen(false);
-                                        }}
-                                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
-                                    >
-                                        <FiTrash2 className="mr-2" /> Xóa
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </td>
-        </tr>
-    );
-};
+import TopicRow from "./TopicRow";
+import ModalHeader from "./ModalHeader";
+import ModalFooter from "./ModalFooter";
+import type { Topic, Tag } from "./types";
 
 const ManageTopics: React.FC = () => {
     const [topics, setTopics] = useState<Topic[]>([]);
@@ -654,17 +472,7 @@ const ManageTopics: React.FC = () => {
             {/* Add Topic Modal */}
             <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} className="max-w-[500px] m-4">
                 <div className="no-scrollbar relative w-full max-w-[500px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
-                    <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-xl font-semibold text-gray-800 dark:text-white/90">
-                            Thêm chủ đề mới
-                        </h4>
-                        <button
-                            onClick={() => setIsAddModalOpen(false)}
-                            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                        >
-                            <FiX className="h-5 w-5" />
-                        </button>
-                    </div>
+                    <ModalHeader title="Thêm chủ đề mới" onClose={() => setIsAddModalOpen(false)} />
 
                     <div className="space-y-4">
                         <div>
@@ -735,31 +543,20 @@ const ManageTopics: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-end gap-3 mt-6">
-                        <Button size="sm" variant="outline" onClick={() => setIsAddModalOpen(false)}>
-                            Hủy
-                        </Button>
-                        <Button size="sm" onClick={handleAdd} disabled={adding || !newTitle || !newDesc}>
-                            {adding ? "Đang thêm..." : "Thêm chủ đề"}
-                        </Button>
-                    </div>
+                    <ModalFooter
+                        onCancel={() => setIsAddModalOpen(false)}
+                        onConfirm={handleAdd}
+                        confirmText={adding ? "Đang thêm..." : "Thêm chủ đề"}
+                        cancelText="Hủy"
+                        confirmDisabled={adding || !newTitle || !newDesc}
+                    />
                 </div>
             </Modal>
 
             {/* Topic Detail Modal with Tag Management */}
             <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} className="max-w-2xl m-4">
                 <div className="no-scrollbar relative w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
-                    <div className="flex justify-between items-center mb-4">
-                        <h4 className="text-xl font-semibold text-gray-800 dark:text-white/90">
-                            Chi tiết chủ đề
-                        </h4>
-                        <button
-                            onClick={() => setIsDetailModalOpen(false)}
-                            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                        >
-                            <FiX className="h-5 w-5" />
-                        </button>
-                    </div>
+                    <ModalHeader title="Chi tiết chủ đề" onClose={() => setIsDetailModalOpen(false)} />
 
                     {selectedTopic && (
                         <div className="space-y-6">
@@ -879,28 +676,14 @@ const ManageTopics: React.FC = () => {
                         </div>
                     )}
 
-                    <div className="flex items-center justify-end gap-3 mt-6">
-                        <Button variant="outline" onClick={() => setIsDetailModalOpen(false)}>
-                            Đóng
-                        </Button>
-                    </div>
+                    <ModalFooter onCancel={() => setIsDetailModalOpen(false)} cancelText="Đóng" />
                 </div>
             </Modal>
 
             {/* Add Tag Modal */}
             <Modal isOpen={isAddTagModalOpen} onClose={() => setIsAddTagModalOpen(false)} className="max-w-md m-4">
                 <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-semibold text-gray-800 dark:text-white/90">
-                            Thêm Tag vào chủ đề
-                        </h3>
-                        <button
-                            onClick={() => setIsAddTagModalOpen(false)}
-                            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                        >
-                            <FiX className="h-5 w-5" />
-                        </button>
-                    </div>
+                    <ModalHeader title="Thêm Tag vào chủ đề" onClose={() => setIsAddTagModalOpen(false)} />
 
                     <div className="space-y-4">
                         <div>
@@ -934,17 +717,13 @@ const ManageTopics: React.FC = () => {
                             )}
                         </div>
 
-                        <div className="flex justify-end gap-3 pt-2">
-                            <Button variant="outline" onClick={() => setIsAddTagModalOpen(false)}>
-                                Hủy
-                            </Button>
-                            <Button
-                                onClick={handleAddTagToTopic}
-                                disabled={selectedTagToAdd === null || loadingTags}
-                            >
-                                Thêm Tag
-                            </Button>
-                        </div>
+                        <ModalFooter
+                            onCancel={() => setIsAddTagModalOpen(false)}
+                            onConfirm={handleAddTagToTopic}
+                            confirmText="Thêm Tag"
+                            cancelText="Hủy"
+                            confirmDisabled={selectedTagToAdd === null || loadingTags}
+                        />
                     </div>
                 </div>
             </Modal>
@@ -963,15 +742,13 @@ const ManageTopics: React.FC = () => {
                             Bạn có chắc chắn muốn xóa tag này khỏi chủ đề không? Hành động này không thể hoàn tác.
                         </div>
                     </div>
-
-                    <div className="mt-5 sm:mt-6 flex justify-center gap-3">
-                        <Button variant="outline" onClick={() => setIsRemoveTagModalOpen(false)}>
-                            Hủy
-                        </Button>
-                        <Button variant="danger" onClick={handleRemoveTagFromTopic}>
-                            Xác nhận xóa
-                        </Button>
-                    </div>
+                    <ModalFooter
+                        onCancel={() => setIsRemoveTagModalOpen(false)}
+                        onConfirm={handleRemoveTagFromTopic}
+                        confirmText="Xác nhận xóa"
+                        cancelText="Hủy"
+                        variant="danger"
+                    />
                 </div>
             </Modal>
 
@@ -989,15 +766,13 @@ const ManageTopics: React.FC = () => {
                             Bạn có chắc chắn muốn xóa chủ đề này không? Tất cả dữ liệu liên quan sẽ bị mất và hành động này không thể hoàn tác.
                         </div>
                     </div>
-
-                    <div className="mt-5 sm:mt-6 flex justify-center gap-3">
-                        <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
-                            Hủy
-                        </Button>
-                        <Button variant="danger" onClick={() => deletingId && handleDelete(deletingId)}>
-                            Xác nhận xóa
-                        </Button>
-                    </div>
+                    <ModalFooter
+                        onCancel={() => setIsDeleteModalOpen(false)}
+                        onConfirm={() => deletingId && handleDelete(deletingId)}
+                        confirmText="Xác nhận xóa"
+                        cancelText="Hủy"
+                        variant="danger"
+                    />
                 </div>
             </Modal>
         </div>

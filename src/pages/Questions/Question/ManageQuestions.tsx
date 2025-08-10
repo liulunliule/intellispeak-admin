@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import PageMeta from "../../components/common/PageMeta";
-import Button from "../../components/ui/button/Button";
-import { Modal } from "../../components/ui/modal";
-import Label from "../../components/form/Label";
-import Input from "../../components/form/input/InputField";
-import QuestionTable from "../../components/questions/QuestionTable";
-import api from "../../services/api";
+import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
+import PageMeta from "../../../components/common/PageMeta";
+import { Modal } from "../../../components/ui/modal";
+import Label from "../../../components/form/Label";
+import Input from "../../../components/form/input/InputField";
+import api from "../../../services/api";
+import AllQuestions from "./AllQuestions";
+import MyQuestions from "./MyQuestions";
+import Button from "../../../components/ui/button/Button";
 
 interface Tag {
     tagId: number;
@@ -28,7 +29,7 @@ interface Question {
     deleted: boolean;
 }
 
-interface QuestionSet {
+export interface QuestionSet {
     id: number;
     title: string;
     content: string;
@@ -39,9 +40,13 @@ interface QuestionSet {
 
 export default function ManageQuestions() {
     const [loadingQuestions, setLoadingQuestions] = useState(false);
+    const [loadingMyQuestions, setLoadingMyQuestions] = useState(false);
     const [errorQuestions, setErrorQuestions] = useState("");
+    const [errorMyQuestions, setErrorMyQuestions] = useState("");
     const [questionSets, setQuestionSets] = useState<QuestionSet[]>([]);
+    const [myQuestionSets, setMyQuestionSets] = useState<QuestionSet[]>([]);
     const [filteredSets, setFilteredSets] = useState<QuestionSet[]>([]);
+    const [filteredMySets, setFilteredMySets] = useState<QuestionSet[]>([]);
     const [currentTag, setCurrentTag] = useState("");
     const [currentDifficulty, setCurrentDifficulty] = useState("");
     const [currentSort, setCurrentSort] = useState("title");
@@ -67,9 +72,11 @@ export default function ManageQuestions() {
     const [selectedAddTag, setSelectedAddTag] = useState<string | null>(null);
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
     const [deleteTagInfo, setDeleteTagInfo] = useState<{ questionId: number; tagId: number } | null>(null);
+    const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
 
     useEffect(() => {
         fetchQuestions();
+        fetchMyQuestions();
     }, []);
 
     const fetchQuestions = async () => {
@@ -95,16 +102,35 @@ export default function ManageQuestions() {
         }
     };
 
+    const fetchMyQuestions = async () => {
+        setLoadingMyQuestions(true);
+        setErrorMyQuestions("");
+        try {
+            const response = await api.get("/question/my-questions");
+            const convertedSets = response.data.data.map((q: Question) => ({
+                id: q.questionId,
+                title: q.title,
+                content: q.content,
+                tags: q.tags,
+                difficulty: convertDifficulty(q.difficulty),
+                sampleAnswer: q.suitableAnswer1,
+            }));
+            setMyQuestionSets(convertedSets);
+            setFilteredMySets(convertedSets);
+        } catch (error) {
+            setErrorMyQuestions("Lỗi tải danh sách câu hỏi của bạn");
+            console.error("Error fetching my questions:", error);
+        } finally {
+            setLoadingMyQuestions(false);
+        }
+    };
+
     const convertDifficulty = (difficulty: string): "Easy" | "Medium" | "Hard" => {
         switch (difficulty) {
-            case "EASY":
-                return "Easy";
-            case "MEDIUM":
-                return "Medium";
-            case "HARD":
-                return "Hard";
-            default:
-                return "Medium";
+            case "EASY": return "Easy";
+            case "MEDIUM": return "Medium";
+            case "HARD": return "Hard";
+            default: return "Medium";
         }
     };
 
@@ -143,18 +169,35 @@ export default function ManageQuestions() {
         }
     };
 
+    const connectTagToTopic = async (topicId: number, tagId: number) => {
+        try {
+            const response = await api.get(`/topic/${topicId}/tags`);
+            const existingTags = response.data;
+
+            const tagExists = existingTags.some((tag: any) => tag.tagId === tagId);
+            if (!tagExists) {
+                await api.put(`/topic/${topicId}/tags/${tagId}`);
+                console.log(`Connected tag ${tagId} to topic ${topicId}`);
+            }
+        } catch (error) {
+            console.error("Error connecting tag to topic:", error);
+        }
+    };
+
     const handleAddTopic = async () => {
         if (!newTopic || !newTopicDesc) return;
         try {
-            await api.post("/topic", {
+            const response = await api.post("/topic", {
                 title: newTopic,
                 description: newTopicDesc,
             });
-            await fetchTopics();
+            const newTopicId = response.data.topicId;
             setSelectedTopic(newTopic);
+            setSelectedTopicId(newTopicId);
             setNewTopic("");
             setNewTopicDesc("");
             setCreateStep(2);
+            await fetchTopics();
         } catch (error) {
             console.error("Error adding topic:", error);
         }
@@ -181,6 +224,12 @@ export default function ManageQuestions() {
         if (!questionContent || !questionDifficulty || !suitableAnswer1) return;
         try {
             const selectedTagObj = tags.find((tag) => tag.title === selectedTag);
+
+            if (!selectedTagObj || !selectedTopicId) {
+                console.error("Tag or topic not found");
+                return;
+            }
+
             await api.post("/question", {
                 title: newQuestion,
                 content: questionContent,
@@ -189,7 +238,11 @@ export default function ManageQuestions() {
                 suitableAnswer2,
                 tagIds: selectedTagObj ? [selectedTagObj.id] : [],
             });
+
+            await connectTagToTopic(selectedTopicId, selectedTagObj.id);
+
             await fetchQuestions();
+            await fetchMyQuestions();
             setIsCreateModalOpen(false);
             resetCreateFlow();
         } catch (error) {
@@ -204,6 +257,7 @@ export default function ManageQuestions() {
             if (selectedTagObj) {
                 await api.put(`/tag/${selectedQuestionId}/tags/${selectedTagObj.id}`);
                 await fetchQuestions();
+                await fetchMyQuestions();
                 setIsAddTagModalOpen(false);
                 setSelectedQuestionId(null);
                 setSelectedAddTag(null);
@@ -218,6 +272,7 @@ export default function ManageQuestions() {
         try {
             await api.delete(`/tag/${deleteTagInfo.questionId}/tags/${deleteTagInfo.tagId}`);
             await fetchQuestions();
+            await fetchMyQuestions();
             setIsDeleteTagModalOpen(false);
             setDeleteTagInfo(null);
         } catch (error) {
@@ -233,6 +288,7 @@ export default function ManageQuestions() {
     const resetCreateFlow = () => {
         setCreateStep(1);
         setSelectedTopic(null);
+        setSelectedTopicId(null);
         setSelectedTag(null);
         setNewTopic("");
         setNewTopicDesc("");
@@ -259,15 +315,23 @@ export default function ManageQuestions() {
 
     const applyFiltersAndSort = () => {
         let filtered = [...questionSets];
+        let filteredMy = [...myQuestionSets];
+
         if (currentTag) {
             filtered = filtered.filter((set) =>
                 set.tags.some((tag) => tag.title === currentTag)
             );
+            filteredMy = filteredMy.filter((set) =>
+                set.tags.some((tag) => tag.title === currentTag)
+            );
         }
+
         if (currentDifficulty) {
             filtered = filtered.filter((set) => set.difficulty === currentDifficulty);
+            filteredMy = filteredMy.filter((set) => set.difficulty === currentDifficulty);
         }
-        filtered.sort((a, b) => {
+
+        const sortFunction = (a: QuestionSet, b: QuestionSet) => {
             switch (currentSort) {
                 case "title":
                     return a.title.localeCompare(b.title);
@@ -282,13 +346,18 @@ export default function ManageQuestions() {
                 default:
                     return 0;
             }
-        });
+        };
+
+        filtered.sort(sortFunction);
+        filteredMy.sort(sortFunction);
+
         setFilteredSets(filtered);
+        setFilteredMySets(filteredMy);
     };
 
     useEffect(() => {
         applyFiltersAndSort();
-    }, [currentTag, currentDifficulty, currentSort, questionSets]);
+    }, [currentTag, currentDifficulty, currentSort, questionSets, myQuestionSets]);
 
     const handleTagChange = (tag: string) => {
         setCurrentTag(tag);
@@ -315,80 +384,38 @@ export default function ManageQuestions() {
             />
             <PageBreadcrumb pageTitle="Câu hỏi" />
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-                <div className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                            Quản lý Bộ Câu hỏi
-                        </h3>
-                        <div className="flex gap-2">
-                            <Button onClick={() => setIsCreateModalOpen(true)}>
-                                Tạo câu hỏi mới
-                            </Button>
-                        </div>
-                    </div>
+            <MyQuestions
+                loading={loadingMyQuestions}
+                error={errorMyQuestions}
+                questionSets={myQuestionSets}
+                filteredSets={filteredMySets}
+                currentTag={currentTag}
+                currentDifficulty={currentDifficulty}
+                currentSort={currentSort}
+                filterTags={filterTags}
+                onTagChange={handleTagChange}
+                onDifficultyChange={handleDifficultyChange}
+                onSortChange={handleSortChange}
+                onAddTag={openAddTagModal}
+                onDeleteTag={requestDeleteTag}
+                onCreateQuestion={() => setIsCreateModalOpen(true)}
+            />
 
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex flex-wrap gap-2">
-                            <select
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-white"
-                                value={currentTag}
-                                onChange={(e) => handleTagChange(e.target.value)}
-                            >
-                                <option value="">Tất cả tag</option>
-                                {filterTags.map((tag) => (
-                                    <option key={tag} value={tag}>
-                                        {tag}
-                                    </option>
-                                ))}
-                            </select>
-                            <select
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-white"
-                                value={currentDifficulty}
-                                onChange={(e) => handleDifficultyChange(e.target.value)}
-                            >
-                                <option value="">Tất cả độ khó</option>
-                                <option value="Easy">Dễ</option>
-                                <option value="Medium">Trung bình</option>
-                                <option value="Hard">Khó</option>
-                            </select>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                                Sắp xếp theo:
-                            </span>
-                            <select
-                                className="px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-white"
-                                value={currentSort}
-                                onChange={(e) => handleSortChange(e.target.value)}
-                            >
-                                <option value="title">Tiêu đề (A-Z)</option>
-                                <option value="title-desc">Tiêu đề (Z-A)</option>
-                                <option value="difficulty">Độ khó (Dễ đến Khó)</option>
-                                <option value="difficulty-desc">Độ khó (Khó đến Dễ)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {loadingQuestions && (
-                        <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                            Đang tải danh sách câu hỏi...
-                        </div>
-                    )}
-                    {errorQuestions && (
-                        <div className="py-8 text-center text-red-500 dark:text-red-400">
-                            {errorQuestions}
-                        </div>
-                    )}
-                    {!loadingQuestions && !errorQuestions && (
-                        <QuestionTable
-                            questionSets={filteredSets}
-                            onAddTag={openAddTagModal}
-                            onDeleteTag={requestDeleteTag}
-                        />
-                    )}
-                </div>
-            </div>
+            <AllQuestions
+                loading={loadingQuestions}
+                error={errorQuestions}
+                questionSets={questionSets}
+                filteredSets={filteredSets}
+                currentTag={currentTag}
+                currentDifficulty={currentDifficulty}
+                currentSort={currentSort}
+                filterTags={filterTags}
+                onTagChange={handleTagChange}
+                onDifficultyChange={handleDifficultyChange}
+                onSortChange={handleSortChange}
+                onAddTag={openAddTagModal}
+                onDeleteTag={requestDeleteTag}
+            />
 
             <Modal
                 isOpen={isAddTagModalOpen}
@@ -487,7 +514,9 @@ export default function ManageQuestions() {
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                                     value={selectedTopic || ""}
                                                     onChange={(e) => {
+                                                        const selected = topics.find(t => t.title === e.target.value);
                                                         setSelectedTopic(e.target.value);
+                                                        setSelectedTopicId(selected?.topicId || null);
                                                         if (e.target.value) setCreateStep(2);
                                                     }}
                                                 >
