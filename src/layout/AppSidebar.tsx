@@ -82,7 +82,7 @@ const navItems: NavItem[] = [
     icon: <FeedbackIcon />,
     subItems: [
       { name: "Phản hồi người dùng", path: "/feedback", pro: false },
-      { name: "Báo cáo hệ thống", path: "/reports", pro: false, new: true },
+      // { name: "Báo cáo hệ thống", path: "/reports", pro: false, new: true },
     ],
   },
 

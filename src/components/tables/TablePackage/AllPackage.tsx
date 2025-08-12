@@ -4,9 +4,9 @@ import { Modal } from "../../../components/ui/modal";
 import Button from "../../../components/ui/button/Button";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
-import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
+// import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
 import ComponentCard from "../../../components/common/ComponentCard";
-import PageMeta from "../../../components/common/PageMeta";
+// import PageMeta from "../../../components/common/PageMeta";
 import api from "../../../services/api";
 import { toast } from "react-toastify";
 import Badge from "../../../components/ui/badge/Badge";
@@ -16,6 +16,9 @@ interface Package {
     packageName: string;
     description: string;
     price: number;
+    interviewCount: number;
+    cvAnalyzeCount: number;
+    jdAnalyzeCount: number;
     createAt: string;
     updateAt: string;
     status?: "active" | "inactive";
@@ -36,6 +39,9 @@ const ManagePackage: React.FC = () => {
         packageName: "",
         description: "",
         price: 0,
+        interviewCount: 0,
+        cvAnalyzeCount: 0,
+        jdAnalyzeCount: 0,
     });
 
     useEffect(() => {
@@ -75,6 +81,9 @@ const ManagePackage: React.FC = () => {
                     packageName: "",
                     description: "",
                     price: 0,
+                    interviewCount: 0,
+                    cvAnalyzeCount: 0,
+                    jdAnalyzeCount: 0,
                 });
             } else {
                 toast.error(response.data.message || "Lỗi khi tạo gói");
@@ -89,15 +98,21 @@ const ManagePackage: React.FC = () => {
         if (!selectedPackage) return;
 
         try {
-            const response = await api.put(`/package/${selectedPackage.packageId}`, {
+            const data = {
                 packageName: selectedPackage.packageName,
                 description: selectedPackage.description,
                 price: selectedPackage.price,
-            });
+                interviewCount: selectedPackage.interviewCount,
+                cvAnalyzeCount: selectedPackage.cvAnalyzeCount,
+                jdAnalyzeCount: selectedPackage.jdAnalyzeCount,
+            };
+            console.log("PUT /package/" + selectedPackage.packageId, data);
+            const response = await api.put(`/package/${selectedPackage.packageId}`, data);
+
+            console.log("Cập nhật gói:", response);
 
             if (response.data.code === 200) {
                 toast.success("Cập nhật gói thành công");
-                fetchPackages();
                 closeEditModal();
             } else {
                 toast.error(response.data.message || "Lỗi khi cập nhật gói");
@@ -115,7 +130,7 @@ const ManagePackage: React.FC = () => {
             const response = await api.delete(`/package/${selectedPackage.packageId}`);
             if (response.data.code === 200) {
                 toast.success("Xóa gói thành công");
-                fetchPackages();
+                // fetchPackages();
                 closeDeleteModal();
             } else {
                 toast.error(response.data.message || "Lỗi khi xóa gói");
@@ -175,12 +190,6 @@ const ManagePackage: React.FC = () => {
 
     return (
         <>
-            <PageMeta
-                title="React.js Quản lý Gói"
-                description="Đây là trang quản lý gói"
-            />
-            <PageBreadcrumb pageTitle="Quản lý Gói" />
-
             <div className="space-y-6">
                 <div className="flex justify-between items-center">
                     <h2 className="text-2xl font-semibold text-gray-800 dark:text-white/90">
@@ -236,13 +245,13 @@ const ManagePackage: React.FC = () => {
                                 <tbody className="bg-white divide-y divide-gray-200 dark:bg-white/[0.03] dark:divide-white/[0.05]">
                                     {loading ? (
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-4 text-center">
+                                            <td colSpan={6} className="px-6 py-4 text-center dark:text-white">
                                                 Đang tải...
                                             </td>
                                         </tr>
                                     ) : packageData.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="px-6 py-4 text-center">
+                                            <td colSpan={6} className="px-6 py-4 text-center dark:text-white">
                                                 Không có dữ liệu
                                             </td>
                                         </tr>
@@ -356,6 +365,38 @@ const ManagePackage: React.FC = () => {
                                     />
                                 </div>
 
+                                <div className="col-span-2 lg:col-span-1">
+                                    <Label>Số lượt phỏng vấn</Label>
+                                    <Input
+                                        type="number"
+                                        name="interviewCount"
+                                        value={newPackage.interviewCount.toString()}
+                                        onChange={handleInputChange}
+                                        placeholder="Nhập số lượt phỏng vấn"
+                                    />
+                                </div>
+                                <div className="col-span-2 lg:col-span-1">
+                                </div>
+                                <div className="col-span-2 lg:col-span-1">
+                                    <Label>Số lượt phân tích CV</Label>
+                                    <Input
+                                        type="number"
+                                        name="cvAnalyzeCount"
+                                        value={newPackage.cvAnalyzeCount.toString()}
+                                        onChange={handleInputChange}
+                                        placeholder="Nhập số lượt phân tích CV"
+                                    />
+                                </div>
+                                <div className="col-span-2 lg:col-span-1">
+                                    <Label>Số lượt phân tích JD</Label>
+                                    <Input
+                                        type="number"
+                                        name="jdAnalyzeCount"
+                                        value={newPackage.jdAnalyzeCount.toString()}
+                                        onChange={handleInputChange}
+                                        placeholder="Nhập số lượt phân tích JD"
+                                    />
+                                </div>
                                 <div className="col-span-2">
                                     <Label>Mô tả</Label>
                                     <textarea
@@ -420,6 +461,37 @@ const ManagePackage: React.FC = () => {
                                         />
                                     </div>
 
+                                    <div className="col-span-2 lg:col-span-1">
+                                        <Label>Số lượt phỏng vấn</Label>
+                                        <Input
+                                            type="number"
+                                            name="interviewCount"
+                                            value={selectedPackage.interviewCount?.toString() || "0"}
+                                            onChange={handleEditInputChange}
+                                            placeholder="Nhập số lượt phỏng vấn"
+                                        />
+                                    </div>
+                                    <div className="col-span-2 lg:col-span-1"></div>
+                                    <div className="col-span-2 lg:col-span-1">
+                                        <Label>Số lượt phân tích CV</Label>
+                                        <Input
+                                            type="number"
+                                            name="cvAnalyzeCount"
+                                            value={selectedPackage.cvAnalyzeCount?.toString() || "0"}
+                                            onChange={handleEditInputChange}
+                                            placeholder="Nhập số lượt phân tích CV"
+                                        />
+                                    </div>
+                                    <div className="col-span-2 lg:col-span-1">
+                                        <Label>Số lượt phân tích JD</Label>
+                                        <Input
+                                            type="number"
+                                            name="jdAnalyzeCount"
+                                            value={selectedPackage.jdAnalyzeCount?.toString() || "0"}
+                                            onChange={handleEditInputChange}
+                                            placeholder="Nhập số lượt phân tích JD"
+                                        />
+                                    </div>
                                     <div className="col-span-2">
                                         <Label>Mô tả</Label>
                                         <textarea

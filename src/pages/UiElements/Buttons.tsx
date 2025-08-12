@@ -8,8 +8,8 @@ export default function Buttons() {
   return (
     <div>
       <PageMeta
-        title="React.js Buttons Dashboard | React.js Admin Dashboard Template"
-        description="This is React.js Buttons Dashboard page "
+        title="Buttons Dashboard | Admin Dashboard Template"
+        description="This is Buttons Dashboard page "
       />
       <PageBreadcrumb pageTitle="Buttons" />
       <div className="space-y-5 sm:space-y-6">

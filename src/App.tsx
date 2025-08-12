@@ -1,4 +1,15 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router";
+// Auth wrapper to check for token
+function RequireAuth({ children }: { children: React.ReactElement }) {
+  const authToken = localStorage.getItem("authToken");
+  const location = useLocation();
+  if (!authToken) {
+    // If not logged in, redirect to login
+    return <Navigate to="/" state={{ from: location }} replace />;
+  }
+  return children;
+}
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
@@ -38,44 +49,34 @@ export default function App() {
       <Router>
         <ScrollToTop />
         <Routes>
-          {/* Dashboard Layout */}
-          <Route element={<AppLayout />}>
+          {/* Dashboard Layout - Protected by RequireAuth */}
+          <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
             <Route path="/dashboard" element={<Home />} />
-
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/manage_user" element={<ManageUsers />} />
             <Route path="/manage-forum" element={<ManageForum />} />
             <Route path="/manage-hr" element={<ManageHR />} />
-
             {/* Package Management */}
             <Route path="/manage-package" element={<ManagePackage />} />
             {/* Future: Add more package management screens here as needed */}
-
-
             <Route path="/questions" element={<ManageQuestions />} />
             <Route path="/manage-tags" element={<ManageTags />} />
             <Route path="/manage-interview-sessions" element={<ManageInterviewSessions />} />
             <Route path="/manage-topics" element={<ManageTopics />} />
-
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
-
             {/* Feedback and Reports */}
             <Route path="/feedback" element={<FeedbackPage />} />
             <Route path="/reports" element={<ReportsPage />} />
-
             {/* AI Settings */}
             <Route path="/ai/config" element={<ModelConfiguration />} />
             <Route path="/ai/api" element={<ApiManagement />} />
             <Route path="/ai/metrics" element={<PerformanceMetrics />} />
-
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />
-
             {/* Tables */}
             <Route path="/basic-tables" element={<BasicTables />} />
-
             {/* Ui Elements */}
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/avatars" element={<Avatars />} />
@@ -83,15 +84,17 @@ export default function App() {
             <Route path="/buttons" element={<Buttons />} />
             <Route path="/images" element={<Images />} />
             <Route path="/videos" element={<Videos />} />
-
             {/* Charts */}
             <Route path="/line-chart" element={<LineChart />} />
             <Route path="/bar-chart" element={<BarChart />} />
           </Route>
 
           {/* Auth Layout */}
-          <Route index path="/" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+          {/* If already logged in, redirect from / to /dashboard */}
+          <Route path="/" element={
+            localStorage.getItem("authToken") ? <Navigate to="/dashboard" replace /> : <SignIn />
+          } />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />

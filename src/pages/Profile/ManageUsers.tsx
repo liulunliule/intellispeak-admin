@@ -20,8 +20,8 @@ export default function ManageUsers() {
     return (
         <>
             <PageMeta
-                title="React.js Quản lý Người dùng"
-                description="Đây là trang Bảng điều khiển hồ sơ React.js"
+                title="Quản lý Người dùng"
+                description="Đây là trang Bảng điều khiển hồ sơ"
             />
             <PageBreadcrumb pageTitle="Quản lý Người dùng" />
 

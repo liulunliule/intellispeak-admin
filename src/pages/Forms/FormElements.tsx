@@ -15,8 +15,8 @@ export default function FormElements() {
   return (
     <div>
       <PageMeta
-        title="React.js Form Elements Dashboard | React.js Admin Dashboard Template"
-        description="This is React.js Form Elements  Dashboard page "
+        title="Form Elements Dashboard | Admin Dashboard Template"
+        description="This is Form Elements  Dashboard page "
       />
       <PageBreadcrumb pageTitle="From Elements" />
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

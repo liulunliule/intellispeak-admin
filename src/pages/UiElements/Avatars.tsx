@@ -7,8 +7,8 @@ export default function Avatars() {
   return (
     <>
       <PageMeta
-        title="React.js Avatars Dashboard | React.js Admin Dashboard Template"
-        description="This is React.js Avatars Dashboard page "
+        title="Avatars Dashboard | Admin Dashboard Template"
+        description="This is Avatars Dashboard page "
       />
       <PageBreadcrumb pageTitle="Avatars" />
       <div className="space-y-5 sm:space-y-6">

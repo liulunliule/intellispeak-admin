@@ -379,7 +379,7 @@ export default function ManageQuestions() {
     return (
         <>
             <PageMeta
-                title="React.js Quản lý Bộ Câu hỏi"
+                title="Quản lý Bộ Câu hỏi"
                 description="Đây là trang Quản lý Bộ Câu hỏi React.js"
             />
             <PageBreadcrumb pageTitle="Câu hỏi" />
