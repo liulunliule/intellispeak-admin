@@ -2,19 +2,16 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
 import { useState, useEffect } from "react";
-// Đảm bảo đường dẫn này đúng với vị trí file HRApplications của bạn
 import HRApplicationTable, { HRApplication } from "../../components/hr/HRApplications";
-// Import instance API đã cấu hình sẵn
-import api from '../../services/api'; // Điều chỉnh đường dẫn nếu cần
+import api from '../../services/api';
+import { Modal } from "../../components/ui/modal";
 
 export default function ManageHR() {
     const [hrApplications, setHrApplications] = useState<HRApplication[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    // Không cần định nghĩa API_BASE_URL hoặc axios.create ở đây nữa
-    // const API_BASE_URL = 'https://endlessly-enabling-husky.ngrok-free.app';
-    // const api = axios.create({...});
+    const [showCvModal, setShowCvModal] = useState(false);
+    const [selectedCvUrls, setSelectedCvUrls] = useState<string[]>([]);
 
     const fetchHRAApplications = async () => {
         setLoading(true);
@@ -46,7 +43,6 @@ export default function ManageHR() {
         }
         try {
             const response = await api.put(`/admin/hr/${id}/approve`);
-
             if (response.data.code === 200) {
                 alert("Yêu cầu đã được duyệt thành công!");
                 fetchHRAApplications();
@@ -65,7 +61,6 @@ export default function ManageHR() {
         }
         try {
             const response = await api.put(`/admin/hr/${id}/reject`);
-
             if (response.data.code === 200) {
                 alert("Yêu cầu đã được từ chối thành công!");
                 fetchHRAApplications();
@@ -76,6 +71,19 @@ export default function ManageHR() {
             console.error("Lỗi từ chối yêu cầu:", err);
             alert(`Đã xảy ra lỗi: ${err.response?.data?.message || err.message || "Có lỗi xảy ra khi từ chối."}`);
         }
+    };
+
+    const handleViewCv = (cvUrl: string) => {
+        if (cvUrl) {
+            const urls = cvUrl.split(';').filter(url => url.trim() !== '');
+            setSelectedCvUrls(urls);
+            setShowCvModal(true);
+        }
+    };
+
+    const handleCloseCvModal = () => {
+        setShowCvModal(false);
+        setSelectedCvUrls([]);
     };
 
     useEffect(() => {
@@ -102,6 +110,7 @@ export default function ManageHR() {
                         applications={hrApplications}
                         onApprove={handleApprove}
                         onReject={handleReject}
+                        onViewCv={handleViewCv}
                     />
                 )}
                 {!loading && !error && hrApplications.length === 0 && (
@@ -110,6 +119,26 @@ export default function ManageHR() {
                     </div>
                 )}
             </ComponentCard>
+
+            <Modal
+                isOpen={showCvModal}
+                onClose={handleCloseCvModal}
+                className="max-w-4xl p-6"
+                showCloseButton={true}
+            >
+                <div className="pb-3 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Xem CV</h3>
+                </div>
+                <div className="mt-4 max-h-[80vh] overflow-y-auto">
+                    {selectedCvUrls.length > 0 ? (
+                        selectedCvUrls.map((url, index) => (
+                            <img key={index} src={url} alt={`CV Image ${index + 1}`} className="w-full h-auto mb-4" />
+                        ))
+                    ) : (
+                        <p>Không có hình ảnh CV để hiển thị.</p>
+                    )}
+                </div>
+            </Modal>
         </div>
     );
 }

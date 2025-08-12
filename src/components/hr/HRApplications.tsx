@@ -22,16 +22,19 @@ export interface HRApplication {
     submittedAt: string;
 }
 
+// Cập nhật interface Props
 interface HRApplicationTableProps {
     applications: HRApplication[];
     onApprove: (id: number) => void;
     onReject: (id: number) => void;
+    onViewCv: (cvUrl: string) => void; // Thêm prop này
 }
 
 export default function HRApplicationTable({
     applications,
     onApprove,
     onReject,
+    onViewCv, // Thêm vào destructuring của props
 }: HRApplicationTableProps) {
     const getStatusColor = (status: HRApplication['status']) => {
         switch (status) {
@@ -79,7 +82,11 @@ export default function HRApplicationTable({
                                 className="relative group"
                             >
                                 <TableCell className="py-3">
-                                    <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                                    {/* Gắn sự kiện onClick vào đây */}
+                                    <p
+                                        className="font-medium text-blue-600 text-theme-sm dark:text-blue-400 cursor-pointer hover:underline"
+                                        onClick={() => onViewCv(app.cvUrl)}
+                                    >
                                         {app.fullName}
                                     </p>
                                 </TableCell>

@@ -19,7 +19,7 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import ManageUsers from "./pages/Profile/ManageUsers";
-import ManageQuestions from "./pages/Questions/ManageQuestions";
+import ManageQuestions from "./pages/Questions/Question/ManageQuestions";
 import FeedbackPage from "./pages/Feedback/FeedbackPage";
 import ReportsPage from "./pages/Feedback/ReportsPage";
 import ModelConfiguration from "./pages/AISettings/ModelConfiguration";
