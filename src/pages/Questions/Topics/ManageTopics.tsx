@@ -82,7 +82,7 @@ const ManageTopics: React.FC = () => {
             );
             setTopics(topicsWithTags);
         } catch (err) {
-            setError("Lỗi khi tải chủ đề.");
+            setError("Error loading topics.");
             console.error("Error fetching topics:", err);
         } finally {
             setLoading(false);
@@ -104,7 +104,7 @@ const ManageTopics: React.FC = () => {
             setAllTags(tags);
         } catch (error) {
             console.error("Error fetching tags:", error);
-            setError("Lỗi khi tải danh sách tag");
+            setError("Error loading tag list");
         } finally {
             setLoadingTags(false);
         }
@@ -126,7 +126,7 @@ const ManageTopics: React.FC = () => {
             return res.data[0] ?? null;
         } catch (error) {
             console.error("Lỗi khi upload ảnh:", error);
-            setError("Lỗi khi upload ảnh");
+            setError("Error uploading image");
             return null;
         }
     };
@@ -170,7 +170,7 @@ const ManageTopics: React.FC = () => {
                 fetchTopics();
             }
         } catch {
-            setError("Lỗi khi cập nhật thumbnail.");
+            setError("Error updating thumbnail.");
         } finally {
             setUpdatingDetailThumbnail(false);
         }
@@ -209,7 +209,7 @@ const ManageTopics: React.FC = () => {
             fetchTopics();
             setIsAddModalOpen(false);
         } catch (err) {
-            setError("Lỗi khi thêm chủ đề.");
+            setError("Error adding topic.");
             console.error("Error adding topic:", err);
         } finally {
             setAdding(false);
@@ -240,7 +240,7 @@ const ManageTopics: React.FC = () => {
             setEditedLongDesc("");
             fetchTopics();
         } catch (err) {
-            setError("Lỗi khi cập nhật chủ đề.");
+            setError("Error updating topic.");
             console.error("Error updating topic:", err);
         } finally {
             setUpdating(false);
@@ -260,7 +260,7 @@ const ManageTopics: React.FC = () => {
             await api.delete(`/topic/${id}`);
             fetchTopics();
         } catch (err) {
-            setError("Lỗi khi xóa chủ đề.");
+            setError("Error deleting topic.");
             console.error("Error deleting topic:", err);
         } finally {
             setDeletingId(null);
@@ -292,7 +292,7 @@ const ManageTopics: React.FC = () => {
 
     const handleAddTagToTopic = async () => {
         if (!selectedTopic || selectedTagToAdd === null) {
-            setError("Vui lòng chọn chủ đề và tag hợp lệ.");
+            setError("Please select a valid topic and tag.");
             console.warn("Invalid selectedTopic or selectedTagToAdd:", { selectedTopic, selectedTagToAdd });
             return;
         }
@@ -304,7 +304,7 @@ const ManageTopics: React.FC = () => {
             const addedTag = allTags.find(tag => tag.tagId === selectedTagToAdd);
             if (!addedTag) {
                 console.warn(`Tag with tagId ${selectedTagToAdd} not found in allTags`);
-                setError("Tag không tồn tại trong danh sách.");
+                setError("Tag does not exist in the list.");
                 return;
             }
 
@@ -318,7 +318,7 @@ const ManageTopics: React.FC = () => {
             setSelectedTagToAdd(null);
         } catch (error: any) {
             console.error("Error adding tag to topic:", error);
-            setError(error.response?.data?.message ?? "Lỗi khi thêm tag vào chủ đề");
+            setError(error.response?.data?.message ?? "Error adding tag to topic");
         }
     };
 
@@ -327,7 +327,7 @@ const ManageTopics: React.FC = () => {
 
         if (!selectedTopic || !tagToRemove) {
             console.error("Missing topic or tag ID");
-            setError("Thiếu thông tin chủ đề hoặc tag");
+            setError("Missing topic or tag information");
             return;
         }
 
@@ -361,7 +361,7 @@ const ManageTopics: React.FC = () => {
                 }
             }
 
-            setError(error.response?.data?.message ?? "Lỗi khi xóa tag khỏi chủ đề");
+            setError(error.response?.data?.message ?? "Error removing tag from topic");
         }
     };
 
@@ -387,15 +387,15 @@ const ManageTopics: React.FC = () => {
 
     return (
         <>
-            <PageMeta title="Quản lý chủ đề" description="Trang quản lý chủ đề, thêm, sửa, xóa và gán tag cho chủ đề." />
+            <PageMeta title="Manage Topics" description="Topic management page: add, edit, delete, and assign tags to topics." />
             <div className="p-6 bg-white dark:bg-gray-900 rounded-3xl shadow-md w-full max-w-6xl mx-auto">
-                <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Quản lý chủ đề</h1>
+                <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Manage Topics</h1>
 
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex-1 max-w-md">
                         <Input
                             type="text"
-                            placeholder="Tìm kiếm chủ đề theo tên, mô tả hoặc tag..."
+                            placeholder="Search topics by name, description, or tag..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-full"
@@ -403,7 +403,7 @@ const ManageTopics: React.FC = () => {
                     </div>
                     <div className="flex gap-2">
                         <Button onClick={() => setIsAddModalOpen(true)}>
-                            <FiPlus className="mr-1" /> Thêm chủ đề mới
+                            <FiPlus className="mr-1" /> Add new topic
                         </Button>
                     </div>
                 </div>
@@ -445,7 +445,7 @@ const ManageTopics: React.FC = () => {
                                 ) : filteredTopics.length === 0 ? (
                                     <tr>
                                         <td colSpan={4} className="py-6 text-center text-gray-500 dark:text-gray-400">
-                                            {search ? "Không tìm thấy chủ đề phù hợp" : "Không có chủ đề nào"}
+                                            {search ? "No matching topics found" : "No topics available"}
                                         </td>
                                     </tr>
                                 ) : (
@@ -475,11 +475,11 @@ const ManageTopics: React.FC = () => {
                 {/* Add Topic Modal */}
                 <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} className="max-w-[500px] m-4">
                     <div className="no-scrollbar relative w-full max-w-[500px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
-                        <ModalHeader title="Thêm chủ đề mới" onClose={() => setIsAddModalOpen(false)} />
+                        <ModalHeader title="Add new topic" onClose={() => setIsAddModalOpen(false)} />
 
                         <div className="space-y-4">
                             <div>
-                                <Label>Ảnh thumbnail</Label>
+                                <Label>Thumbnail image</Label>
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -508,36 +508,36 @@ const ManageTopics: React.FC = () => {
                                             }}
                                             className="mt-2 text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                                         >
-                                            Xóa ảnh
+                                            Remove image
                                         </button>
                                     </div>
                                 )}
                             </div>
 
                             <div>
-                                <Label>Tên chủ đề*</Label>
+                                <Label>Topic name*</Label>
                                 <Input
                                     type="text"
-                                    placeholder="Nhập tên chủ đề"
+                                    placeholder="Enter topic name"
                                     value={newTitle}
                                     onChange={(e) => setNewTitle(e.target.value)}
                                 />
                             </div>
 
                             <div>
-                                <Label>Mô tả*</Label>
+                                <Label>Description*</Label>
                                 <Input
                                     type="text"
-                                    placeholder="Nhập mô tả ngắn"
+                                    placeholder="Enter short description"
                                     value={newDesc}
                                     onChange={(e) => setNewDesc(e.target.value)}
                                 />
                             </div>
 
                             <div>
-                                <Label>Mô tả chi tiết</Label>
+                                <Label>Long description</Label>
                                 <textarea
-                                    placeholder="Nhập mô tả chi tiết (nếu có)"
+                                    placeholder="Enter detailed description (optional)"
                                     value={newLongDesc}
                                     onChange={(e) => setNewLongDesc(e.target.value)}
                                     rows={4}
@@ -549,8 +549,8 @@ const ManageTopics: React.FC = () => {
                         <ModalFooter
                             onCancel={() => setIsAddModalOpen(false)}
                             onConfirm={handleAdd}
-                            confirmText={adding ? "Đang thêm..." : "Thêm chủ đề"}
-                            cancelText="Hủy"
+                            confirmText={adding ? "Adding..." : "Add topic"}
+                            cancelText="Cancel"
                             confirmDisabled={adding || !newTitle || !newDesc}
                         />
                     </div>
@@ -559,7 +559,7 @@ const ManageTopics: React.FC = () => {
                 {/* Topic Detail Modal with Tag Management */}
                 <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} className="max-w-2xl m-4">
                     <div className="no-scrollbar relative w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
-                        <ModalHeader title="Chi tiết chủ đề" onClose={() => setIsDetailModalOpen(false)} />
+                        <ModalHeader title="Topic details" onClose={() => setIsDetailModalOpen(false)} />
 
                         {selectedTopic && (
                             <div className="space-y-6">
@@ -578,7 +578,7 @@ const ManageTopics: React.FC = () => {
                                             className="hidden"
                                         />
                                         <Button size="sm" onClick={() => detailThumbnailInputRef.current?.click()}>
-                                            Thay đổi ảnh
+                                            Change image
                                         </Button>
                                         {detailThumbnailPreview && (
                                             <>
@@ -587,7 +587,7 @@ const ManageTopics: React.FC = () => {
                                                     onClick={handleDetailThumbnailUpdate}
                                                     disabled={updatingDetailThumbnail}
                                                 >
-                                                    {updatingDetailThumbnail ? "Đang lưu..." : "Lưu ảnh"}
+                                                    {updatingDetailThumbnail ? "Saving..." : "Save image"}
                                                 </Button>
                                                 <Button
                                                     size="sm"
@@ -597,7 +597,7 @@ const ManageTopics: React.FC = () => {
                                                         setDetailThumbnailPreview(null);
                                                     }}
                                                 >
-                                                    Hủy
+                                                    Cancel
                                                 </Button>
                                             </>
                                         )}
@@ -606,33 +606,33 @@ const ManageTopics: React.FC = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <Label>ID chủ đề</Label>
+                                        <Label>Topic ID</Label>
                                         <p className="text-gray-800 dark:text-white/90">{selectedTopic.topicId}</p>
                                     </div>
                                     <div>
-                                        <Label>Tên chủ đề</Label>
+                                        <Label>Topic name</Label>
                                         <p className="text-gray-800 dark:text-white/90">{selectedTopic.title}</p>
                                     </div>
                                     <div className="md:col-span-2">
-                                        <Label>Mô tả</Label>
+                                        <Label>Description</Label>
                                         <p className="text-gray-800 dark:text-white/90">{selectedTopic.description}</p>
                                     </div>
                                     {selectedTopic.longDescription && (
                                         <div className="md:col-span-2">
-                                            <Label>Mô tả chi tiết</Label>
+                                            <Label>Long description</Label>
                                             <p className="text-gray-800 dark:text-white/90 whitespace-pre-line">
                                                 {selectedTopic.longDescription}
                                             </p>
                                         </div>
                                     )}
                                     <div>
-                                        <Label>Ngày tạo</Label>
+                                        <Label>Created at</Label>
                                         <p className="text-gray-800 dark:text-white/90">
                                             {selectedTopic.createdAt ? new Date(selectedTopic.createdAt).toLocaleString() : "N/A"}
                                         </p>
                                     </div>
                                     <div>
-                                        <Label>Ngày cập nhật</Label>
+                                        <Label>Updated at</Label>
                                         <p className="text-gray-800 dark:text-white/90">
                                             {selectedTopic.updatedAt ? new Date(selectedTopic.updatedAt).toLocaleString() : "N/A"}
                                         </p>
@@ -642,10 +642,10 @@ const ManageTopics: React.FC = () => {
                                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                                     <div className="flex justify-between items-center mb-4">
                                         <h5 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                                            Quản lý Tags
+                                            Manage Tags
                                         </h5>
                                         <Button size="sm" onClick={openAddTagModal}>
-                                            <FiPlus className="mr-1" /> Thêm Tag
+                                            <FiPlus className="mr-1" /> Add Tag
                                         </Button>
                                     </div>
 
@@ -672,7 +672,7 @@ const ManageTopics: React.FC = () => {
                                         </div>
                                     ) : (
                                         <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                                            Chưa có tag nào được gán cho chủ đề này
+                                            No tags assigned to this topic yet
                                         </div>
                                     )}
                                 </div>
@@ -686,18 +686,18 @@ const ManageTopics: React.FC = () => {
                 {/* Add Tag Modal */}
                 <Modal isOpen={isAddTagModalOpen} onClose={() => setIsAddTagModalOpen(false)} className="max-w-md m-4">
                     <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
-                        <ModalHeader title="Thêm Tag vào chủ đề" onClose={() => setIsAddTagModalOpen(false)} />
+                        <ModalHeader title="Add Tag to topic" onClose={() => setIsAddTagModalOpen(false)} />
 
                         <div className="space-y-4">
                             <div>
-                                <Label>Chọn Tag</Label>
+                                <Label>Select Tag</Label>
                                 {loadingTags ? (
                                     <div className="py-4 text-center">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
                                     </div>
                                 ) : allTags.length === 0 ? (
                                     <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                                        Không có tag nào khả dụng
+                                        No tags available
                                     </div>
                                 ) : (
                                     <select
@@ -708,7 +708,7 @@ const ManageTopics: React.FC = () => {
                                             setSelectedTagToAdd(id || null);
                                         }}
                                     >
-                                        <option value="">-- Chọn tag --</option>
+                                        <option value="">-- Select tag --</option>
                                         {allTags
                                             .filter(tag => !selectedTopic?.tags?.some(t => t.tagId === tag.tagId))
                                             .map(tag => (
@@ -723,8 +723,8 @@ const ManageTopics: React.FC = () => {
                             <ModalFooter
                                 onCancel={() => setIsAddTagModalOpen(false)}
                                 onConfirm={handleAddTagToTopic}
-                                confirmText="Thêm Tag"
-                                cancelText="Hủy"
+                                confirmText="Add Tag"
+                                cancelText="Cancel"
                                 confirmDisabled={selectedTagToAdd === null || loadingTags}
                             />
                         </div>
@@ -739,17 +739,17 @@ const ManageTopics: React.FC = () => {
                                 <FiTrash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
                             </div>
                             <h3 className="mt-3 text-lg font-medium text-gray-900 dark:text-white">
-                                Xóa Tag khỏi chủ đề
+                                Remove Tag from topic
                             </h3>
                             <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                Bạn có chắc chắn muốn xóa tag này khỏi chủ đề không? Hành động này không thể hoàn tác.
+                                Are you sure you want to remove this tag from the topic? This action cannot be undone.
                             </div>
                         </div>
                         <ModalFooter
                             onCancel={() => setIsRemoveTagModalOpen(false)}
                             onConfirm={handleRemoveTagFromTopic}
-                            confirmText="Xác nhận xóa"
-                            cancelText="Hủy"
+                            confirmText="Confirm remove"
+                            cancelText="Cancel"
                             variant="danger"
                         />
                     </div>
@@ -763,17 +763,17 @@ const ManageTopics: React.FC = () => {
                                 <FiTrash2 className="h-6 w-6 text-red-600 dark:text-red-400" />
                             </div>
                             <h3 className="mt-3 text-lg font-medium text-gray-900 dark:text-white">
-                                Xác nhận xóa chủ đề
+                                Confirm topic deletion
                             </h3>
                             <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                Bạn có chắc chắn muốn xóa chủ đề này không? Tất cả dữ liệu liên quan sẽ bị mất và hành động này không thể hoàn tác.
+                                Are you sure you want to delete this topic? All related data will be lost and this action cannot be undone.
                             </div>
                         </div>
                         <ModalFooter
                             onCancel={() => setIsDeleteModalOpen(false)}
                             onConfirm={() => deletingId && handleDelete(deletingId)}
-                            confirmText="Xác nhận xóa"
-                            cancelText="Hủy"
+                            confirmText="Confirm delete"
+                            cancelText="Cancel"
                             variant="danger"
                         />
                     </div>

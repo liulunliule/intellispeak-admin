@@ -315,8 +315,8 @@ const ManageTags: React.FC = () => {
     return (
         <>
             <PageMeta
-                title="Quản lý Tags"
-                description="Trang quản lý các tags trong hệ thống"
+                title="Manage Tags"
+                description="Tag management page in the system"
             />
             <PageBreadcrumb pageTitle="Tags" />
 
@@ -324,7 +324,7 @@ const ManageTags: React.FC = () => {
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                            Quản lý Tags
+                            Manage Tags
                         </h3>
                         <div className="flex gap-2">
                             <Button
@@ -333,10 +333,10 @@ const ManageTags: React.FC = () => {
                                     setSelectedQuestionIds([]);
                                 }}
                             >
-                                {isSelectingQuestions ? 'Hủy chọn câu hỏi' : 'Chọn câu hỏi'}
+                                {isSelectingQuestions ? 'Cancel question selection' : 'Select questions'}
                             </Button>
                             <Button onClick={openAddModal}>
-                                Thêm Tag mới
+                                Add new Tag
                             </Button>
                         </div>
                     </div>
@@ -345,7 +345,7 @@ const ManageTags: React.FC = () => {
                         <div className="flex-1">
                             <Input
                                 type="text"
-                                placeholder="Tìm kiếm tag theo tên hoặc mô tả..."
+                                placeholder="Search tag by name or description..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
@@ -354,7 +354,7 @@ const ManageTags: React.FC = () => {
 
                     {loading && (
                         <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                            Đang tải danh sách tags...
+                            Loading tag list...
                         </div>
                     )}
 
@@ -424,7 +424,7 @@ const ManageTags: React.FC = () => {
                                                             ))
                                                         ) : (
                                                             <span className="text-sm text-gray-500 dark:text-gray-400">
-                                                                Không có topic
+                                                                No topics
                                                             </span>
                                                         )}
                                                     </div>
@@ -436,21 +436,21 @@ const ManageTags: React.FC = () => {
                                                     variant="outline"
                                                     onClick={() => openEditModal(tag)}
                                                 >
-                                                    Chỉnh sửa
+                                                    Edit
                                                 </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
                                                     onClick={() => requestDelete(tag.id)}
                                                 >
-                                                    Xóa
+                                                    Delete
                                                 </Button>
                                             </div>
                                         </div>
                                         {expandedTagId === tag.id && (
                                             <div className="mt-4 border-t border-gray-200 dark:border-gray-800 pt-4">
                                                 <h5 className="text-md font-semibold text-gray-800 dark:text-white/90 mb-3">
-                                                    Danh sách câu hỏi
+                                                    Question list
                                                 </h5>
                                                 {tag.questions && tag.questions.length > 0 ? (
                                                     <div className="space-y-3">
@@ -477,7 +477,7 @@ const ManageTags: React.FC = () => {
                                                                                 {question.content}
                                                                             </p>
                                                                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                                                                Độ khó: {question.difficulty}
+                                                                                Difficulty: {question.difficulty}
                                                                             </div>
                                                                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                                                                 Tags: {question.tags.map(t => t.title).join(', ')}
@@ -493,7 +493,7 @@ const ManageTags: React.FC = () => {
                                                     </div>
                                                 ) : (
                                                     <div className="text-sm text-gray-500 dark:text-gray-400">
-                                                        Không có câu hỏi nào liên quan đến tag này.
+                                                        No questions related to this tag.
                                                     </div>
                                                 )}
                                             </div>
@@ -502,7 +502,7 @@ const ManageTags: React.FC = () => {
                                 ))
                             ) : (
                                 <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                                    Không tìm thấy tag nào phù hợp với tiêu chí tìm kiếm.
+                                    No tags found matching your search criteria.
                                 </div>
                             )}
                         </div>
@@ -513,7 +513,7 @@ const ManageTags: React.FC = () => {
             {isSelectingQuestions && selectedQuestionIds.length > 0 && (
                 <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-4 flex items-center justify-between">
                     <span className="pl-80 text-gray-800 dark:text-white/90">
-                        Đã chọn {selectedQuestionIds.length} câu hỏi
+                        Selected {selectedQuestionIds.length} questions
                     </span>
                     <div className="flex items-center gap-3">
                         <select
@@ -521,7 +521,7 @@ const ManageTags: React.FC = () => {
                             value={selectedTagIdForAssignment || ''}
                             onChange={(e) => setSelectedTagIdForAssignment(Number(e.target.value) || null)}
                         >
-                            <option value="">Chọn tag để gán</option>
+                            <option value="">Select tag to assign</option>
                             {tags.map(tag => (
                                 <option key={tag.id} value={tag.id}>
                                     {tag.title}
@@ -532,7 +532,7 @@ const ManageTags: React.FC = () => {
                             onClick={assignTagToQuestions}
                             disabled={!selectedTagIdForAssignment}
                         >
-                            Gán Tag
+                            Assign Tag
                         </Button>
                     </div>
                 </div>
@@ -541,27 +541,27 @@ const ManageTags: React.FC = () => {
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-2xl">
                 <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900">
                     <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
-                        {editingTag ? 'Chỉnh sửa Tag' : 'Thêm Tag mới'}
+                        {editingTag ? 'Edit Tag' : 'Add new Tag'}
                     </h3>
 
                     <div className="space-y-4">
                         <div>
-                            <Label>Tên Tag*</Label>
+                            <Label>Tag Name*</Label>
                             <Input
                                 value={tagTitle}
                                 onChange={(e) => setTagTitle(e.target.value)}
-                                placeholder="Nhập tên tag"
+                                placeholder="Enter tag name"
                             />
                         </div>
 
                         <div>
-                            <Label>Mô tả</Label>
+                            <Label>Description</Label>
                             <textarea
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white/90"
                                 rows={4}
                                 value={tagDescription}
                                 onChange={(e) => setTagDescription(e.target.value)}
-                                placeholder="Nhập mô tả tag"
+                                placeholder="Enter tag description"
                             />
                         </div>
 
@@ -573,10 +573,10 @@ const ManageTags: React.FC = () => {
 
                         <div className="flex justify-end gap-3 pt-4">
                             <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-                                Hủy
+                                Cancel
                             </Button>
                             <Button onClick={handleSave}>
-                                {editingTag ? 'Cập nhật' : 'Thêm'}
+                                {editingTag ? 'Update' : 'Add'}
                             </Button>
                         </div>
                     </div>
@@ -586,17 +586,17 @@ const ManageTags: React.FC = () => {
             <Modal isOpen={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)} className="max-w-md">
                 <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
                     <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
-                        Xóa Tag
+                        Delete Tag
                     </h3>
                     <p className="mb-6 text-gray-600 dark:text-gray-400">
-                        Bạn có chắc chắn muốn xóa tag này không? Hành động này không thể hoàn tác.
+                        Are you sure you want to delete this tag? This action cannot be undone.
                     </p>
                     <div className="flex justify-end gap-3">
                         <Button variant="outline" onClick={() => setShowDeleteConfirm(false)}>
-                            Hủy
+                            Cancel
                         </Button>
                         <Button onClick={confirmDelete}>
-                            Xác nhận xóa
+                            Confirm delete
                         </Button>
                     </div>
                 </div>
@@ -605,17 +605,17 @@ const ManageTags: React.FC = () => {
             <Modal isOpen={showTopicDeleteConfirm} onClose={() => setShowTopicDeleteConfirm(false)} className="max-w-md">
                 <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
                     <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
-                        Xóa Topic
+                        Delete Topic
                     </h3>
                     <p className="mb-6 text-gray-600 dark:text-gray-400">
-                        Bạn có chắc chắn muốn xóa topic này khỏi tag không? Hành động này không thể hoàn tác.
+                        Are you sure you want to remove this topic from the tag? This action cannot be undone.
                     </p>
                     <div className="flex justify-end gap-3">
                         <Button variant="outline" onClick={() => setShowTopicDeleteConfirm(false)}>
-                            Hủy
+                            Cancel
                         </Button>
                         <Button onClick={confirmTopicDelete}>
-                            Xác nhận xóa
+                            Confirm delete
                         </Button>
                     </div>
                 </div>

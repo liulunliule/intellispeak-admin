@@ -35,7 +35,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: "Bảng điều khiển",
+    name: "Dashboard",
     path: "/dashboard",
     // subItems: [{ name: "Thương mại điện tử", path:  "/dashboard", pro: false }],
   },
@@ -46,14 +46,14 @@ const navItems: NavItem[] = [
   // },
   {
     icon: <UserCircleIcon />,
-    name: "Hồ sơ người dùng",
+    name: "User Profile",
     subItems: [
-      { name: "Hồ sơ", path: "/profile", pro: false },
-      { name: "Quản lý người dùng", path: "/manage_user", pro: false },
+      { name: "Profile", path: "/profile", pro: false },
+      { name: "User Management", path: "/manage_user", pro: false },
     ],
   },
   {
-    name: "Quản lý nhân sự",
+    name: "HR Management",
     icon: <ManageHRIcon />, // Now using the custom HR icon
     path: "/manage-hr",
   },
@@ -63,85 +63,85 @@ const navItems: NavItem[] = [
   //   subItems: [{ name: "Phần tử biểu mẫu", path: "/form-elements", pro: false }],
   // },
   {
-    name: "Phỏng vấn",
+    name: "Interview",
     icon: <InterviewIcon />,
     subItems: [
-      { name: "Quản lí câu hỏi", path: "/questions", pro: false },
-      { name: "Quản lí tag", path: "/manage-tags", pro: false },
-      { name: "Quản lí phỏng vấn session", path: "/manage-interview-sessions", pro: false },
-      { name: "Quản lý chủ đề", path: "/manage-topics", pro: false },
+      { name: "Question Management", path: "/questions", pro: false },
+      { name: "Tag Management", path: "/manage-tags", pro: false },
+      { name: "Interview Session Management", path: "/manage-interview-sessions", pro: false },
+      { name: "Topic Management", path: "/manage-topics", pro: false },
     ],
   },
   {
-    name: "Quản lý diễn đàn",
+    name: "Forum Management",
     icon: <ForumIcon />,
     path: "/manage-forum",
   },
   {
-    name: "Phản hồi",
+    name: "Feedback",
     icon: <FeedbackIcon />,
     subItems: [
-      { name: "Phản hồi người dùng", path: "/feedback", pro: false },
+      { name: "User Feedback", path: "/feedback", pro: false },
       // { name: "Báo cáo hệ thống", path: "/reports", pro: false, new: true },
     ],
   },
 
   {
-    name: "Quản lý gói",
+    name: "Package Management",
     icon: <BoxCubeIcon />,
     path: "/manage-package",
   },
-  {
-    name: "Cài đặt AI",
-    icon: <AISettingsIcon />,
-    subItems: [
-      { name: "Cấu hình mô hình", path: "/ai/config", pro: false },
-      { name: "Quản lý API", path: "/ai/api", pro: false },
-      { name: "Chỉ số hiệu suất", path: "/ai/metrics", pro: false },
-    ],
-  },
+  // {
+  //   name: "AI Settings",
+  //   icon: <AISettingsIcon />,
+  //   subItems: [
+  //     { name: "Model Configuration", path: "/ai/config", pro: false },
+  //     { name: "API Management", path: "/ai/api", pro: false },
+  //     { name: "Performance Metrics", path: "/ai/metrics", pro: false },
+  //   ],
+  // },
   // {
   //   name: "Bảng",
   //   icon: <TableIcon />,
   //   subItems: [{ name: "Bảng cơ bản", path: "/basic-tables", pro: false }],
   // },
-  {
-    name: "Trang",
-    icon: <PageIcon />,
-    subItems: [
-      { name: "Trang trống", path: "/blank", pro: false },
-      { name: "Lỗi 404", path: "/error-404", pro: false },
-    ],
-  },
+  // {
+  //   name: "Pages",
+  //   icon: <PageIcon />,
+  //   subItems: [
+  //     { name: "Blank Page", path: "/blank", pro: false },
+  //     { name: "404 Error", path: "/error-404", pro: false },
+  //   ],
+  // },
 ];
 
 const othersItems: NavItem[] = [
   {
     icon: <PieChartIcon />,
-    name: "Biểu đồ",
+    name: "Charts",
     subItems: [
-      { name: "Biểu đồ đường", path: "/line-chart", pro: false },
-      { name: "Biểu đồ cột", path: "/bar-chart", pro: false },
+      { name: "Line Chart", path: "/line-chart", pro: false },
+      { name: "Bar Chart", path: "/bar-chart", pro: false },
     ],
   },
   {
     icon: <BoxCubeIcon />,
-    name: "Thành phần UI",
+    name: "UI Components",
     subItems: [
-      { name: "Cảnh báo", path: "/alerts", pro: false },
-      { name: "Ảnh đại diện", path: "/avatars", pro: false },
-      { name: "Huy hiệu", path: "/badge", pro: false },
-      { name: "Nút bấm", path: "/buttons", pro: false },
-      { name: "Hình ảnh", path: "/images", pro: false },
-      { name: "Video", path: "/videos", pro: false },
+      { name: "Alerts", path: "/alerts", pro: false },
+      { name: "Avatars", path: "/avatars", pro: false },
+      { name: "Badge", path: "/badge", pro: false },
+      { name: "Buttons", path: "/buttons", pro: false },
+      { name: "Images", path: "/images", pro: false },
+      { name: "Videos", path: "/videos", pro: false },
     ],
   },
   {
     icon: <PlugInIcon />,
-    name: "Xác thực",
+    name: "Authentication",
     subItems: [
-      { name: "Đăng nhập", path: "/", pro: false },
-      { name: "Đăng ký", path: "/signup", pro: false },
+      { name: "Login", path: "/", pro: false },
+      { name: "Sign Up", path: "/signup", pro: false },
     ],
   },
 ];
@@ -303,7 +303,7 @@ const AppSidebar: React.FC = () => {
                               : "menu-dropdown-badge-inactive"
                               } menu-dropdown-badge`}
                           >
-                            mới
+                            new
                           </span>
                         )}
                         {subItem.pro && (
@@ -414,7 +414,7 @@ const AppSidebar: React.FC = () => {
               </h2>
               {renderMenuItems(navItems, "main")}
             </div>
-            <div className="">
+            {/* <div className="">
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
                   ? "lg:justify-center"
@@ -422,13 +422,13 @@ const AppSidebar: React.FC = () => {
                   }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Khác"
+                  "Others"
                 ) : (
                   <HorizontaLDots />
                 )}
               </h2>
               {renderMenuItems(othersItems, "others")}
-            </div>
+            </div> */}
           </div>
         </nav>
       </div>

@@ -3,79 +3,75 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   BoxIconLine,
-  GroupIcon,
 } from "../../icons";
 import Badge from "../ui/badge/Badge";
 import api from '../../services/api';
 
 export default function PackageMetrics() {
-  const [counts, setCounts] = useState<{ PROFESSIONAL: number; BUSINESS: number } | null>(null);
+  const [counts, setCounts] = useState<Record<string, number> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    // Sử dụng api instance thay vì axios trực tiếp
     api.get("/admin/plan-counts")
       .then((res) => {
-        console.log('Plan counts API response:', res);
         if (res.data && res.data.data) {
-          console.log('Plan counts API data:', res.data.data); // Log riêng res.data.data
           setCounts(res.data.data);
         } else {
-          // Xử lý trường hợp API trả về thành công nhưng không có data hoặc data không đúng định dạng
-          console.warn("API returned successfully but missing or malformed data:", res.data);
-          setCounts({ PROFESSIONAL: 0, BUSINESS: 0 }); // Đặt về 0 hoặc giá trị mặc định
+          setCounts({});
         }
       })
-      .catch((err) => {
-        console.error("Error fetching plan counts:", err);
-        // Xử lý lỗi một cách rõ ràng hơn
-        setCounts({ PROFESSIONAL: 0, BUSINESS: 0 });
+      .catch(() => {
+        setCounts({});
       })
       .finally(() => setLoading(false));
   }, []);
 
+  // Always use BoxIconLine for all packages
+  const getIcon = () => <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />;
+
+  // Choose badge color (success if count > 0, error if 0)
+  const getBadgeColor = (count: number) => (count > 0 ? "success" : "error");
+
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
-      {/* PROFESSIONAL Premium Metric Item */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-        <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-          <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
-        </div>
-        <div className="flex items-end justify-between mt-5">
-          <div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              PROFESSIONAL Premium
-            </span>
-            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              {loading || !counts ? "..." : counts.PROFESSIONAL}
-            </h4>
-          </div>
-          <Badge color="success">
-            <ArrowUpIcon />
-            {/* Placeholder for percentage or trend */}
-          </Badge>
-        </div>
-      </div>
-      {/* BUSINESS Premium Metric Item */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] md:p-6">
-        <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
-          <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />
-        </div>
-        <div className="flex items-end justify-between mt-5">
-          <div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              BUSINESS Premium
-            </span>
-            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              {loading || !counts ? "..." : counts.BUSINESS}
-            </h4>
-          </div>
-          <Badge color="error">
-            <ArrowDownIcon />
-            {/* Placeholder for percentage or trend */}
-          </Badge>
-        </div>
+    <div
+      className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-black dark:scrollbar-track-gray-800"
+      style={{
+        scrollbarColor: typeof window !== 'undefined' && document.documentElement.classList.contains('dark')
+          ? '#6d6b6bff #1f2937'
+          : '#d1d5db #f3f4f6',
+        WebkitOverflowScrolling: 'touch',
+      }}
+    >
+      <div className="flex gap-4 md:gap-6 min-w-max py-1">
+        {loading || !counts ? (
+          <div className="flex-1 text-center py-8 text-gray-500 dark:text-gray-400">Loading...</div>
+        ) : (
+          Object.entries(counts).map(([name, count]) => (
+            <div
+              key={name}
+              className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03] md:p-8 flex-shrink-0 w-96"
+              style={{ minWidth: '10rem', maxWidth: '30rem' }}
+            >
+              <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-xl dark:bg-gray-800">
+                {getIcon()}
+              </div>
+              <div className="flex items-end justify-between mt-5">
+                <div>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {name}
+                  </span>
+                  <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+                    {count}
+                  </h4>
+                </div>
+                <Badge color={getBadgeColor(count)}>
+                  {count > 0 ? <ArrowUpIcon /> : <ArrowDownIcon />}
+                </Badge>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

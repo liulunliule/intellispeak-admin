@@ -60,11 +60,11 @@ const ManagePackage: React.FC = () => {
                 }));
                 setPackageData(dataWithStatus);
             } else {
-                toast.error(response.data.message || "Lỗi khi lấy danh sách gói");
+                toast.error(response.data.message || "Error fetching package list");
             }
         } catch (error) {
-            console.error("Lỗi khi lấy danh sách gói:", error);
-            toast.error("Lỗi khi lấy danh sách gói");
+            console.error("Error fetching package list:", error);
+            toast.error("Error fetching package list");
         } finally {
             setLoading(false);
         }
@@ -74,7 +74,7 @@ const ManagePackage: React.FC = () => {
         try {
             const response = await api.post("/package", newPackage);
             if (response.data.code === 200) {
-                toast.success("Tạo gói thành công");
+                toast.success("Package created successfully");
                 fetchPackages();
                 closeCreateModal();
                 setNewPackage({
@@ -86,11 +86,11 @@ const ManagePackage: React.FC = () => {
                     jdAnalyzeCount: 0,
                 });
             } else {
-                toast.error(response.data.message || "Lỗi khi tạo gói");
+                toast.error(response.data.message || "Error creating package");
             }
         } catch (error) {
-            console.error("Lỗi khi tạo gói:", error);
-            toast.error("Lỗi khi tạo gói");
+            console.error("Error creating package:", error);
+            toast.error("Error creating package");
         }
     };
 
@@ -106,20 +106,21 @@ const ManagePackage: React.FC = () => {
                 cvAnalyzeCount: selectedPackage.cvAnalyzeCount,
                 jdAnalyzeCount: selectedPackage.jdAnalyzeCount,
             };
-            console.log("PUT /package/" + selectedPackage.packageId, data);
+            // console.log("PUT /package/" + selectedPackage.packageId, data);
             const response = await api.put(`/package/${selectedPackage.packageId}`, data);
 
-            console.log("Cập nhật gói:", response);
+            // console.log("Update package:", response);
 
             if (response.data.code === 200) {
-                toast.success("Cập nhật gói thành công");
+                toast.success("Package updated successfully");
                 closeEditModal();
+                fetchPackages();
             } else {
-                toast.error(response.data.message || "Lỗi khi cập nhật gói");
+                toast.error(response.data.message || "Error updating package");
             }
         } catch (error) {
-            console.error("Lỗi khi cập nhật gói:", error);
-            toast.error("Lỗi khi cập nhật gói");
+            console.error("Error updating package:", error);
+            toast.error("Error updating package");
         }
     };
 
@@ -129,20 +130,20 @@ const ManagePackage: React.FC = () => {
         try {
             const response = await api.delete(`/package/${selectedPackage.packageId}`);
             if (response.data.code === 200) {
-                toast.success("Xóa gói thành công");
-                // fetchPackages();
+                toast.success("Package deleted successfully");
+                fetchPackages();
                 closeDeleteModal();
             } else {
-                toast.error(response.data.message || "Lỗi khi xóa gói");
+                toast.error(response.data.message || "Error deleting package");
             }
         } catch (error) {
-            console.error("Lỗi khi xóa gói:", error);
-            toast.error("Lỗi khi xóa gói");
+            console.error("Error deleting package:", error);
+            toast.error("Error deleting package");
         }
     };
 
     const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('vi-VN', {
+        return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'VND'
         }).format(price);
@@ -150,7 +151,7 @@ const ManagePackage: React.FC = () => {
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('vi-VN');
+        return date.toLocaleDateString('en-GB');
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -193,7 +194,7 @@ const ManagePackage: React.FC = () => {
             <div className="space-y-6">
                 <div className="flex justify-between items-center">
                     <h2 className="text-2xl font-semibold text-gray-800 dark:text-white/90">
-                        Quản lý Gói
+                        Manage Packages
                     </h2>
                     <Button
                         onClick={openCreateModal}
@@ -212,33 +213,33 @@ const ManagePackage: React.FC = () => {
                                 fill=""
                             />
                         </svg>
-                        Thêm Gói Mới
+                        Add New Package
                     </Button>
                 </div>
 
-                <ComponentCard title="Danh sách Gói">
+                <ComponentCard title="Package List">
                     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
                         <div className="max-w-full overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200 dark:divide-white/[0.05]">
                                 <thead className="bg-gray-50 dark:bg-white/[0.03]">
                                     <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-                                            Tên gói
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider dark:text-gray-400">
+                                            Package Name
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-                                            Mô tả
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider dark:text-gray-400">
+                                            Description
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-                                            Giá
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider dark:text-gray-400">
+                                            Price
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-                                            Ngày tạo
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider dark:text-gray-400">
+                                            Created At
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-                                            Trạng thái
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider dark:text-gray-400">
+                                            Status
                                         </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-                                            Thao tác
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 tracking-wider dark:text-gray-400">
+                                            Actions
                                         </th>
                                     </tr>
                                 </thead>
@@ -246,13 +247,13 @@ const ManagePackage: React.FC = () => {
                                     {loading ? (
                                         <tr>
                                             <td colSpan={6} className="px-6 py-4 text-center dark:text-white">
-                                                Đang tải...
+                                                Loading...
                                             </td>
                                         </tr>
                                     ) : packageData.length === 0 ? (
                                         <tr>
                                             <td colSpan={6} className="px-6 py-4 text-center dark:text-white">
-                                                Không có dữ liệu
+                                                No data available
                                             </td>
                                         </tr>
                                     ) : (
@@ -280,7 +281,7 @@ const ManagePackage: React.FC = () => {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <Badge size="sm" color={pkg.status === "active" ? "success" : "error"}>
-                                                        {pkg.status === "active" ? "Hoạt động" : "Không hoạt động"}
+                                                        {pkg.status === "active" ? "Active" : "Inactive"}
                                                     </Badge>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
@@ -305,13 +306,13 @@ const ManagePackage: React.FC = () => {
                                                                         onClick={() => handleEditClick(pkg)}
                                                                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                                                                     >
-                                                                        Chỉnh sửa
+                                                                        Edit
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleDeleteClick(pkg)}
                                                                         className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
                                                                     >
-                                                                        Xóa
+                                                                        Delete
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -328,15 +329,15 @@ const ManagePackage: React.FC = () => {
                 </ComponentCard>
             </div>
 
-            {/* Modal tạo gói mới */}
+            {/* Create Package Modal */}
             <Modal isOpen={isCreateModalOpen} onClose={closeCreateModal} className="max-w-[700px] m-4">
                 <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
                     <div className="px-2 pr-14">
                         <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-                            Thêm Gói Mới
+                            Add New Package
                         </h4>
                         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-                            Điền thông tin chi tiết để tạo gói mới.
+                            Enter detailed information to create a new package.
                         </p>
                     </div>
 
@@ -344,66 +345,66 @@ const ManagePackage: React.FC = () => {
                         <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
                             <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                                 <div className="col-span-2 lg:col-span-1">
-                                    <Label>Tên gói</Label>
+                                    <Label>Package Name</Label>
                                     <Input
                                         type="text"
                                         name="packageName"
                                         value={newPackage.packageName}
                                         onChange={handleInputChange}
-                                        placeholder="Nhập tên gói"
+                                        placeholder="Enter package name"
                                     />
                                 </div>
 
                                 <div className="col-span-2 lg:col-span-1">
-                                    <Label>Giá (VND)</Label>
+                                    <Label>Price (VND)</Label>
                                     <Input
                                         type="number"
                                         name="price"
                                         value={newPackage.price.toString()}
                                         onChange={handleInputChange}
-                                        placeholder="Nhập giá"
+                                        placeholder="Enter price"
                                     />
                                 </div>
 
                                 <div className="col-span-2 lg:col-span-1">
-                                    <Label>Số lượt phỏng vấn</Label>
+                                    <Label>Interview Count</Label>
                                     <Input
                                         type="number"
                                         name="interviewCount"
                                         value={newPackage.interviewCount.toString()}
                                         onChange={handleInputChange}
-                                        placeholder="Nhập số lượt phỏng vấn"
+                                        placeholder="Enter interview count"
                                     />
                                 </div>
                                 <div className="col-span-2 lg:col-span-1">
                                 </div>
                                 <div className="col-span-2 lg:col-span-1">
-                                    <Label>Số lượt phân tích CV</Label>
+                                    <Label>CV Analyze Count</Label>
                                     <Input
                                         type="number"
                                         name="cvAnalyzeCount"
                                         value={newPackage.cvAnalyzeCount.toString()}
                                         onChange={handleInputChange}
-                                        placeholder="Nhập số lượt phân tích CV"
+                                        placeholder="Enter CV analyze count"
                                     />
                                 </div>
                                 <div className="col-span-2 lg:col-span-1">
-                                    <Label>Số lượt phân tích JD</Label>
+                                    <Label>JD Analyze Count</Label>
                                     <Input
                                         type="number"
                                         name="jdAnalyzeCount"
                                         value={newPackage.jdAnalyzeCount.toString()}
                                         onChange={handleInputChange}
-                                        placeholder="Nhập số lượt phân tích JD"
+                                        placeholder="Enter JD analyze count"
                                     />
                                 </div>
                                 <div className="col-span-2">
-                                    <Label>Mô tả</Label>
+                                    <Label>Description</Label>
                                     <textarea
                                         name="description"
                                         value={newPackage.description}
                                         onChange={handleInputChange}
-                                        placeholder="Nhập mô tả"
+                                        placeholder="Enter description"
                                         rows={3}
                                         className="w-full px-4 py-2.5 text-theme-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                     />
@@ -413,26 +414,26 @@ const ManagePackage: React.FC = () => {
 
                         <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
                             <Button size="sm" variant="outline" onClick={closeCreateModal}>
-                                Hủy
+                                Cancel
                             </Button>
                             <Button size="sm" onClick={handleCreatePackage}>
-                                Tạo Gói
+                                Create Package
                             </Button>
                         </div>
                     </form>
                 </div>
             </Modal>
 
-            {/* Modal chỉnh sửa gói */}
+            {/* Edit Package Modal */}
             {selectedPackage && (
                 <Modal isOpen={isEditModalOpen} onClose={closeEditModal} className="max-w-[700px] m-4">
                     <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
                         <div className="px-2 pr-14">
                             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-                                Chỉnh sửa Gói
+                                Edit Package
                             </h4>
                             <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-                                Cập nhật thông tin gói.
+                                Update package information.
                             </p>
                         </div>
 
@@ -440,65 +441,65 @@ const ManagePackage: React.FC = () => {
                             <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
                                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                                     <div className="col-span-2 lg:col-span-1">
-                                        <Label>Tên gói</Label>
+                                        <Label>Package Name</Label>
                                         <Input
                                             type="text"
                                             name="packageName"
                                             value={selectedPackage.packageName}
                                             onChange={handleEditInputChange}
-                                            placeholder="Nhập tên gói"
+                                            placeholder="Enter package name"
                                         />
                                     </div>
 
                                     <div className="col-span-2 lg:col-span-1">
-                                        <Label>Giá (VND)</Label>
+                                        <Label>Price (VND)</Label>
                                         <Input
                                             type="number"
                                             name="price"
                                             value={selectedPackage.price.toString()}
                                             onChange={handleEditInputChange}
-                                            placeholder="Nhập giá"
+                                            placeholder="Enter price"
                                         />
                                     </div>
 
                                     <div className="col-span-2 lg:col-span-1">
-                                        <Label>Số lượt phỏng vấn</Label>
+                                        <Label>Interview Count</Label>
                                         <Input
                                             type="number"
                                             name="interviewCount"
                                             value={selectedPackage.interviewCount?.toString() || "0"}
                                             onChange={handleEditInputChange}
-                                            placeholder="Nhập số lượt phỏng vấn"
+                                            placeholder="Enter interview count"
                                         />
                                     </div>
                                     <div className="col-span-2 lg:col-span-1"></div>
                                     <div className="col-span-2 lg:col-span-1">
-                                        <Label>Số lượt phân tích CV</Label>
+                                        <Label>CV Analyze Count</Label>
                                         <Input
                                             type="number"
                                             name="cvAnalyzeCount"
                                             value={selectedPackage.cvAnalyzeCount?.toString() || "0"}
                                             onChange={handleEditInputChange}
-                                            placeholder="Nhập số lượt phân tích CV"
+                                            placeholder="Enter CV analyze count"
                                         />
                                     </div>
                                     <div className="col-span-2 lg:col-span-1">
-                                        <Label>Số lượt phân tích JD</Label>
+                                        <Label>JD Analyze Count</Label>
                                         <Input
                                             type="number"
                                             name="jdAnalyzeCount"
                                             value={selectedPackage.jdAnalyzeCount?.toString() || "0"}
                                             onChange={handleEditInputChange}
-                                            placeholder="Nhập số lượt phân tích JD"
+                                            placeholder="Enter JD analyze count"
                                         />
                                     </div>
                                     <div className="col-span-2">
-                                        <Label>Mô tả</Label>
+                                        <Label>Description</Label>
                                         <textarea
                                             name="description"
                                             value={selectedPackage.description}
                                             onChange={handleEditInputChange}
-                                            placeholder="Nhập mô tả"
+                                            placeholder="Enter description"
                                             rows={3}
                                             className="w-full px-4 py-2.5 text-theme-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                         />
@@ -508,10 +509,10 @@ const ManagePackage: React.FC = () => {
 
                             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
                                 <Button size="sm" variant="outline" onClick={closeEditModal}>
-                                    Hủy
+                                    Cancel
                                 </Button>
                                 <Button size="sm" onClick={handleUpdatePackage}>
-                                    Cập nhật
+                                    Update
                                 </Button>
                             </div>
                         </form>
@@ -519,7 +520,7 @@ const ManagePackage: React.FC = () => {
                 </Modal>
             )}
 
-            {/* Modal xác nhận xóa */}
+            {/* Delete Confirmation Modal */}
             {selectedPackage && (
                 <Modal isOpen={isDeleteModalOpen} onClose={closeDeleteModal} className="max-w-[400px] m-4">
                     <div className="no-scrollbar relative w-full max-w-[400px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-8 text-center">
@@ -538,22 +539,22 @@ const ManagePackage: React.FC = () => {
                             />
                         </svg>
                         <h4 className="mb-2 mt-4 text-2xl font-semibold text-gray-800 dark:text-white/90">
-                            Xác nhận xóa
+                            Confirm Deletion
                         </h4>
                         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
-                            Bạn có chắc chắn muốn xóa gói{" "}
+                            Are you sure you want to delete the package {" "}
                             <span className="font-semibold text-gray-900 dark:text-white/90">
                                 {selectedPackage.packageName}
                             </span>{" "}
-                            không? Hành động này không thể hoàn tác.
+                            ? This action cannot be undone.
                         </p>
 
                         <div className="flex items-center justify-center gap-3 mt-6">
                             <Button size="sm" variant="outline" onClick={closeDeleteModal}>
-                                Hủy
+                                Cancel
                             </Button>
                             <Button size="sm" variant="danger" onClick={handleDeletePackage}>
-                                Xóa
+                                Delete
                             </Button>
                         </div>
                     </div>

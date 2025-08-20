@@ -24,52 +24,52 @@ export default function ManageHR() {
                 if (Array.isArray(response.data.data)) {
                     setHrApplications(response.data.data);
                 } else {
-                    setError("Dữ liệu nhận được không đúng định dạng.");
+                    setError("Received data is not in the correct format.");
                 }
             } else {
-                setError(response.data.message || "Không thể tải danh sách yêu cầu HR.");
+                setError(response.data.message || "Unable to load HR request list.");
             }
         } catch (err: any) {
-            console.error("Lỗi khi fetch yêu cầu HR:", err);
-            setError(err.response?.data?.message || err.message || "Đã xảy ra lỗi không xác định khi tải dữ liệu.");
+            console.error("Error fetching HR requests:", err);
+            setError(err.response?.data?.message || err.message || "An unknown error occurred while loading data.");
         } finally {
             setLoading(false);
         }
     };
 
     const handleApprove = async (id: number) => {
-        if (!confirm("Bạn có chắc chắn muốn duyệt yêu cầu này?")) {
+        if (!confirm("Are you sure you want to approve this request?")) {
             return;
         }
         try {
             const response = await api.put(`/admin/hr/${id}/approve`);
             if (response.data.code === 200) {
-                alert("Yêu cầu đã được duyệt thành công!");
+                alert("Request approved successfully!");
                 fetchHRAApplications();
             } else {
-                alert(`Lỗi khi duyệt yêu cầu: ${response.data.message}`);
+                alert(`Error approving request: ${response.data.message}`);
             }
         } catch (err: any) {
-            console.error("Lỗi duyệt yêu cầu:", err);
-            alert(`Đã xảy ra lỗi: ${err.response?.data?.message || err.message || "Có lỗi xảy ra khi duyệt."}`);
+            console.error("Error approving request:", err);
+            alert(`An error occurred: ${err.response?.data?.message || err.message || "An error occurred while approving."}`);
         }
     };
 
     const handleReject = async (id: number) => {
-        if (!confirm("Bạn có chắc chắn muốn từ chối yêu cầu này?")) {
+        if (!confirm("Are you sure you want to reject this request?")) {
             return;
         }
         try {
             const response = await api.put(`/admin/hr/${id}/reject`);
             if (response.data.code === 200) {
-                alert("Yêu cầu đã được từ chối thành công!");
+                alert("Request rejected successfully!");
                 fetchHRAApplications();
             } else {
-                alert(`Lỗi khi từ chối yêu cầu: ${response.data.message}`);
+                alert(`Error rejecting request: ${response.data.message}`);
             }
         } catch (err: any) {
-            console.error("Lỗi từ chối yêu cầu:", err);
-            alert(`Đã xảy ra lỗi: ${err.response?.data?.message || err.message || "Có lỗi xảy ra khi từ chối."}`);
+            console.error("Error rejecting request:", err);
+            alert(`An error occurred: ${err.response?.data?.message || err.message || "An error occurred while rejecting."}`);
         }
     };
 
@@ -92,17 +92,17 @@ export default function ManageHR() {
 
     return (
         <div>
-            <PageMeta title="Quản lý Yêu cầu HR | Admin Dashboard" description="Trang quản lý các yêu cầu đăng ký quyền HR." />
-            <PageBreadcrumb pageTitle="Quản lý Yêu cầu HR" />
-            <ComponentCard title="Danh sách Yêu cầu HR">
+            <PageMeta title="Manage HR Requests | Admin Dashboard" description="Page for managing HR permission requests." />
+            <PageBreadcrumb pageTitle="Manage HR Requests" />
+            <ComponentCard title="HR Request List">
                 {loading && (
                     <div className="flex justify-center items-center py-4">
-                        <p className="text-gray-600 dark:text-gray-300">Đang tải dữ liệu yêu cầu HR...</p>
+                        <p className="text-gray-600 dark:text-gray-300">Loading HR requests...</p>
                     </div>
                 )}
                 {error && (
                     <div className="flex justify-center items-center py-4">
-                        <p className="text-red-500 font-medium">Lỗi: {error}</p>
+                        <p className="text-red-500 font-medium">Error: {error}</p>
                     </div>
                 )}
                 {!loading && !error && hrApplications.length > 0 && (
@@ -115,7 +115,7 @@ export default function ManageHR() {
                 )}
                 {!loading && !error && hrApplications.length === 0 && (
                     <div className="flex justify-center items-center py-4">
-                        <p className="text-gray-600 dark:text-gray-300">Hiện tại không có người dùng yêu cầu quyền HR.</p>
+                        <p className="text-gray-600 dark:text-gray-300">There are currently no users requesting HR permissions.</p>
                     </div>
                 )}
             </ComponentCard>
@@ -127,7 +127,7 @@ export default function ManageHR() {
                 showCloseButton={true}
             >
                 <div className="pb-3 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Xem CV</h3>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">View CV</h3>
                 </div>
                 <div className="mt-4 max-h-[80vh] overflow-y-auto">
                     {selectedCvUrls.length > 0 ? (
@@ -135,7 +135,7 @@ export default function ManageHR() {
                             <img key={index} src={url} alt={`CV Image ${index + 1}`} className="w-full h-auto mb-4" />
                         ))
                     ) : (
-                        <p>Không có hình ảnh CV để hiển thị.</p>
+                        <p>No CV images to display.</p>
                     )}
                 </div>
             </Modal>

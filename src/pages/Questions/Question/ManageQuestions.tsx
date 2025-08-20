@@ -95,7 +95,7 @@ export default function ManageQuestions() {
             setQuestionSets(convertedSets);
             setFilteredSets(convertedSets);
         } catch (error) {
-            setErrorQuestions("Lỗi tải danh sách câu hỏi");
+            setErrorQuestions("Failed to load question list");
             console.error("Error fetching questions:", error);
         } finally {
             setLoadingQuestions(false);
@@ -118,7 +118,7 @@ export default function ManageQuestions() {
             setMyQuestionSets(convertedSets);
             setFilteredMySets(convertedSets);
         } catch (error) {
-            setErrorMyQuestions("Lỗi tải danh sách câu hỏi của bạn");
+            setErrorMyQuestions("Failed to load your question list");
             console.error("Error fetching my questions:", error);
         } finally {
             setLoadingMyQuestions(false);
@@ -148,7 +148,7 @@ export default function ManageQuestions() {
             const response = await api.get("/topic");
             setTopics(response.data);
         } catch (error) {
-            setErrorTags("Lỗi tải chủ đề");
+            setErrorTags("Failed to load topics");
             console.error("Error fetching topics:", error);
         } finally {
             setLoadingTags(false);
@@ -162,7 +162,7 @@ export default function ManageQuestions() {
             const response = await api.get("/tag");
             setTags(response.data.data || []);
         } catch (error) {
-            setErrorTags("Lỗi tải tag");
+            setErrorTags("Failed to load tags");
             console.error("Error fetching tags:", error);
         } finally {
             setLoadingTags(false);
@@ -379,10 +379,10 @@ export default function ManageQuestions() {
     return (
         <>
             <PageMeta
-                title="Quản lý Bộ Câu hỏi"
-                description="Đây là trang Quản lý Bộ Câu hỏi React.js"
+                title="Manage Question Sets"
+                description="This is the React.js Question Set Management page"
             />
-            <PageBreadcrumb pageTitle="Câu hỏi" />
+            <PageBreadcrumb pageTitle="Questions" />
 
             <MyQuestions
                 loading={loadingMyQuestions}
@@ -424,20 +424,20 @@ export default function ManageQuestions() {
             >
                 <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
                     <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
-                        Thêm Tag cho Câu hỏi
+                        Add Tag to Question
                     </h3>
                     <div className="space-y-4">
                         <div>
-                            <Label>Chọn tag</Label>
+                            <Label>Select tag</Label>
                             {loadingTags ? (
-                                <div className="py-2 text-gray-500">Đang tải tag...</div>
+                                <div className="py-2 text-gray-500">Loading tags...</div>
                             ) : (
                                 <select
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                     value={selectedAddTag || ""}
                                     onChange={(e) => setSelectedAddTag(e.target.value)}
                                 >
-                                    <option value="">-- Chọn tag --</option>
+                                    <option value="">-- Select tag --</option>
                                     {tags.map((tag) => (
                                         <option key={tag.id} value={tag.title}>
                                             {tag.title}
@@ -452,13 +452,13 @@ export default function ManageQuestions() {
                                 variant="outline"
                                 onClick={() => setIsAddTagModalOpen(false)}
                             >
-                                Hủy
+                                Cancel
                             </Button>
                             <Button
                                 onClick={handleAddTagToQuestion}
                                 disabled={!selectedAddTag}
                             >
-                                Thêm
+                                Add
                             </Button>
                         </div>
                     </div>
@@ -472,20 +472,20 @@ export default function ManageQuestions() {
             >
                 <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
                     <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
-                        Xóa Tag khỏi Câu hỏi
+                        Remove Tag from Question
                     </h3>
                     <p className="mb-6 text-gray-600 dark:text-gray-400">
-                        Bạn có chắc chắn muốn xóa tag này khỏi câu hỏi không? Hành động này không thể hoàn tác.
+                        Are you sure you want to remove this tag from the question? This action cannot be undone.
                     </p>
                     <div className="flex justify-end gap-3">
                         <Button
                             variant="outline"
                             onClick={() => setIsDeleteTagModalOpen(false)}
                         >
-                            Hủy
+                            Cancel
                         </Button>
                         <Button onClick={handleDeleteTagFromQuestion}>
-                            Xóa
+                            Remove
                         </Button>
                     </div>
                 </div>
@@ -499,15 +499,15 @@ export default function ManageQuestions() {
                 >
                     <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900">
                         <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
-                            Tạo Câu hỏi Mới
+                            Create New Question
                         </h3>
                         <div className="space-y-4">
                             {createStep === 1 && (
                                 <div className="space-y-4">
                                     <div>
-                                        <Label>1. Chọn chủ đề</Label>
+                                        <Label>1. Select topic</Label>
                                         {loadingTags ? (
-                                            <div className="py-2 text-gray-500">Đang tải chủ đề...</div>
+                                            <div className="py-2 text-gray-500">Loading topics...</div>
                                         ) : (
                                             <>
                                                 <select
@@ -520,7 +520,7 @@ export default function ManageQuestions() {
                                                         if (e.target.value) setCreateStep(2);
                                                     }}
                                                 >
-                                                    <option value="">-- Chọn chủ đề có sẵn --</option>
+                                                    <option value="">-- Select available topic --</option>
                                                     {topics.map((topic) => (
                                                         <option key={topic.topicId} value={topic.title}>
                                                             {topic.title}
@@ -528,11 +528,11 @@ export default function ManageQuestions() {
                                                     ))}
                                                 </select>
                                                 <div className="mt-4">
-                                                    <Label>Hoặc tạo chủ đề mới</Label>
+                                                    <Label>Or create new topic</Label>
                                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                         <div>
                                                             <Input
-                                                                placeholder="Tên chủ đề"
+                                                                placeholder="Topic name"
                                                                 value={newTopic}
                                                                 onChange={(e) => setNewTopic(e.target.value)}
                                                             />
@@ -540,7 +540,7 @@ export default function ManageQuestions() {
                                                         <div>
                                                             <textarea
                                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
-                                                                placeholder="Mô tả chủ đề"
+                                                                placeholder="Topic description"
                                                                 rows={3}
                                                                 value={newTopicDesc}
                                                                 onChange={(e) => setNewTopicDesc(e.target.value)}
@@ -552,7 +552,7 @@ export default function ManageQuestions() {
                                                             onClick={handleAddTopic}
                                                             disabled={!newTopic || !newTopicDesc}
                                                         >
-                                                            Tạo chủ đề
+                                                            Create topic
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -565,9 +565,9 @@ export default function ManageQuestions() {
                             {createStep === 2 && selectedTopic && (
                                 <div className="space-y-4">
                                     <div>
-                                        <Label>2. Chọn tag (danh mục)</Label>
+                                        <Label>2. Select tag (category)</Label>
                                         {loadingTags ? (
-                                            <div className="py-2 text-gray-500">Đang tải tag...</div>
+                                            <div className="py-2 text-gray-500">Loading tags...</div>
                                         ) : (
                                             <>
                                                 <select
@@ -578,7 +578,7 @@ export default function ManageQuestions() {
                                                         if (e.target.value) setCreateStep(3);
                                                     }}
                                                 >
-                                                    <option value="">-- Chọn tag có sẵn --</option>
+                                                    <option value="">-- Select available tag --</option>
                                                     {tags.map((tag) => (
                                                         <option key={tag.id} value={tag.title}>
                                                             {tag.title}
@@ -586,11 +586,11 @@ export default function ManageQuestions() {
                                                     ))}
                                                 </select>
                                                 <div className="mt-4">
-                                                    <Label>Hoặc tạo tag mới</Label>
+                                                    <Label>Or create new tag</Label>
                                                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                         <div>
                                                             <Input
-                                                                placeholder="Tên tag"
+                                                                placeholder="Tag name"
                                                                 value={newTag}
                                                                 onChange={(e) => setNewTag(e.target.value)}
                                                             />
@@ -598,7 +598,7 @@ export default function ManageQuestions() {
                                                         <div>
                                                             <textarea
                                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
-                                                                placeholder="Mô tả tag"
+                                                                placeholder="Tag description"
                                                                 rows={3}
                                                                 value={newTagDesc}
                                                                 onChange={(e) => setNewTagDesc(e.target.value)}
@@ -610,7 +610,7 @@ export default function ManageQuestions() {
                                                             onClick={handleAddTag}
                                                             disabled={!newTag || !newTagDesc}
                                                         >
-                                                            Tạo tag
+                                                            Create tag
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -623,13 +623,13 @@ export default function ManageQuestions() {
                                             variant="outline"
                                             onClick={() => setCreateStep(1)}
                                         >
-                                            Quay lại
+                                            Back
                                         </Button>
                                         <Button
                                             onClick={() => setCreateStep(3)}
                                             disabled={!selectedTag && !newTag}
                                         >
-                                            Tiếp tục
+                                            Continue
                                         </Button>
                                     </div>
                                 </div>
@@ -637,60 +637,60 @@ export default function ManageQuestions() {
                             {createStep === 3 && selectedTag && (
                                 <div className="space-y-4">
                                     <div>
-                                        <Label>3. Thông tin câu hỏi</Label>
+                                        <Label>3. Question information</Label>
                                         <div className="space-y-4">
                                             <div>
-                                                <Label>Tiêu đề câu hỏi</Label>
+                                                <Label>Question title</Label>
                                                 <Input
                                                     value={newQuestion}
                                                     onChange={(e) => setNewQuestion(e.target.value)}
-                                                    placeholder="Nhập tiêu đề câu hỏi"
+                                                    placeholder="Enter question title"
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Nội dung câu hỏi</Label>
+                                                <Label>Question content</Label>
                                                 <textarea
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                                     rows={4}
                                                     value={questionContent}
                                                     onChange={(e) => setQuestionContent(e.target.value)}
-                                                    placeholder="Nhập nội dung chi tiết câu hỏi"
+                                                    placeholder="Enter detailed question content"
                                                 />
                                             </div>
                                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                                 <div>
-                                                    <Label>Độ khó</Label>
+                                                    <Label>Difficulty</Label>
                                                     <select
                                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                                         value={questionDifficulty}
                                                         onChange={(e) => setQuestionDifficulty(e.target.value)}
                                                     >
-                                                        <option value="">-- Chọn độ khó --</option>
-                                                        <option value="EASY">Dễ</option>
-                                                        <option value="MEDIUM">Trung bình</option>
-                                                        <option value="HARD">Khó</option>
+                                                        <option value="">-- Select difficulty --</option>
+                                                        <option value="EASY">Easy</option>
+                                                        <option value="MEDIUM">Medium</option>
+                                                        <option value="HARD">Hard</option>
                                                     </select>
                                                 </div>
                                             </div>
                                             <div>
-                                                <Label>Câu trả lời phù hợp 1</Label>
+                                                <Label>Suitable answer 1</Label>
                                                 <textarea
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                                     rows={2}
                                                     value={suitableAnswer1}
                                                     onChange={(e) => setSuitableAnswer1(e.target.value)}
-                                                    placeholder="Nhập câu trả lời mẫu"
+                                                    placeholder="Enter sample answer"
                                                     required
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Câu trả lời phù hợp 2 (tuỳ chọn)</Label>
+                                                <Label>Suitable answer 2 (optional)</Label>
                                                 <textarea
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                                     rows={2}
                                                     value={suitableAnswer2}
                                                     onChange={(e) => setSuitableAnswer2(e.target.value)}
-                                                    placeholder="Nhập câu trả lời mẫu thứ 2"
+                                                    placeholder="Enter second sample answer"
                                                 />
                                             </div>
                                         </div>
@@ -700,13 +700,13 @@ export default function ManageQuestions() {
                                             variant="outline"
                                             onClick={() => setCreateStep(2)}
                                         >
-                                            Quay lại
+                                            Back
                                         </Button>
                                         <Button
                                             onClick={handleAddQuestion}
                                             disabled={!questionContent || !questionDifficulty || !suitableAnswer1}
                                         >
-                                            Tạo câu hỏi
+                                            Create question
                                         </Button>
                                     </div>
                                 </div>
