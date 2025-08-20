@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { MoreDotIcon } from "../../icons";
-// Import api instance đã cấu hình
-import api from '../../services/api'; // Điều chỉnh đường dẫn nếu cần
+// Import configured api instance
+import api from '../../services/api'; // Adjust path if needed
 
 export default function MonthlyTarget() {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth() + 1; // Tháng bắt đầu từ 1-12
+  const currentMonth = currentDate.getMonth() + 1; // Month starts from 1-12
 
   const [month] = useState(currentMonth); // Removed setMonth since it's unused
   const [year] = useState(currentYear); // Removed setYear since it's unused
@@ -20,21 +20,21 @@ export default function MonthlyTarget() {
   const [progressPercentage, setProgressPercentage] = useState(0);
   const [target] = useState(20000); // Removed setTarget since it's unused
 
-  // Tính toán tháng trước
+  // Calculate previous month
   const prevMonth = month === 1 ? 12 : month - 1;
   const prevMonthYear = month === 1 ? year - 1 : year;
 
-  // Format tháng thành chuỗi "Thg X"
-  const formatMonth = (m: number) => `Thg ${m}`;
+  // Format month as string "Month X"
+  const formatMonth = (m: number) => `Month ${m}`;
 
-  // Lấy dữ liệu doanh thu
+  // Get revenue data
   useEffect(() => {
     setLoading(true);
 
-    // Hàm fetch dữ liệu
+    // Fetch data function
     const fetchRevenue = async (year: number, month: number) => {
       try {
-        // Sử dụng api instance đã cấu hình sẵn
+        // Use the pre-configured api instance
         const response = await api.get(
           `/admin/monthly-revenue?year=${year}&month=${month}`
         );
@@ -49,7 +49,7 @@ export default function MonthlyTarget() {
       }
     };
 
-    // Fetch dữ liệu cho tháng hiện tại và tháng trước
+    // Fetch data for current and previous month
     Promise.all([
       fetchRevenue(year, month),
       fetchRevenue(prevMonthYear, prevMonth)
@@ -57,7 +57,7 @@ export default function MonthlyTarget() {
       setCurrentMonthRevenue(current);
       setPrevMonthRevenue(prev);
 
-      // Tính phần trăm tiến độ
+      // Calculate progress percentage
       const percentage = target > 0 ? Math.min(Math.round((current / target) * 100), 100) : 0;
       setProgressPercentage(percentage);
       setLoading(false);
@@ -75,7 +75,7 @@ export default function MonthlyTarget() {
     ? Math.round(((currentMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100)
     : currentMonthRevenue > 0 ? 100 : 0;
 
-  // Cấu hình biểu đồ
+  // Chart configuration
   const options: ApexOptions = {
     colors: ["#465FFF"],
     chart: {
@@ -121,7 +121,7 @@ export default function MonthlyTarget() {
     stroke: {
       lineCap: "round",
     },
-    labels: ["Tiến độ"],
+    labels: ["Progress"],
   };
 
   const series = [progressPercentage];
@@ -136,11 +136,11 @@ export default function MonthlyTarget() {
     setIsOpen(false);
   }
 
-  // Format số tiền
+  // Format currency
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'VND',
+      currency: 'USD',
       maximumFractionDigits: 0
     }).format(amount);
   };
@@ -151,10 +151,10 @@ export default function MonthlyTarget() {
         <div className="flex justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-              Mục tiêu tháng
+              Monthly Target
             </h3>
             <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-              {formatMonth(month)}/{year} so với {formatMonth(prevMonth)}/{prevMonthYear}
+              {formatMonth(month)}/{year} vs {formatMonth(prevMonth)}/{prevMonthYear}
             </p>
           </div>
           <div className="relative inline-block">
@@ -170,13 +170,13 @@ export default function MonthlyTarget() {
                 onItemClick={closeDropdown}
                 className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
-                Xem thêm
+                View more
               </DropdownItem>
               <DropdownItem
                 onItemClick={closeDropdown}
                 className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
               >
-                Xóa
+                Delete
               </DropdownItem>
             </Dropdown>
           </div>
@@ -184,7 +184,7 @@ export default function MonthlyTarget() {
         <div className="relative ">
           {loading ? (
             <div className="flex items-center justify-center h-[330px]">
-              <div className="text-gray-400">Đang tải dữ liệu...</div>
+              <div className="text-gray-400">Loading data...</div>
             </div>
           ) : (
             <>
@@ -208,9 +208,9 @@ export default function MonthlyTarget() {
         </div>
         <p className="mx-auto mt-10 w-full max-w-[380px] text-center text-sm text-gray-500 sm:text-base">
           {currentMonthRevenue >= prevMonthRevenue ? (
-            `Bạn đã kiếm được ${formatCurrency(currentMonthRevenue)} tháng này, cao hơn tháng trước. Tiếp tục phát huy nhé!`
+            `You earned ${formatCurrency(currentMonthRevenue)} this month, higher than last month. Keep it up!`
           ) : (
-            `Bạn đã kiếm được ${formatCurrency(currentMonthRevenue)} tháng này, thấp hơn tháng trước. Cố gắng hơn nhé!`
+            `You earned ${formatCurrency(currentMonthRevenue)} this month, lower than last month. Try harder!`
           )}
         </p>
       </div>
@@ -218,7 +218,7 @@ export default function MonthlyTarget() {
       <div className="flex items-center justify-center gap-5 px-6 py-3.5 sm:gap-8 sm:py-5">
         <div>
           <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-            Mục tiêu
+            Target
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
             {formatCurrency(target)}
@@ -229,7 +229,7 @@ export default function MonthlyTarget() {
 
         <div>
           <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-            Tháng này
+            This month
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
             {formatCurrency(currentMonthRevenue)}
@@ -271,7 +271,7 @@ export default function MonthlyTarget() {
 
         <div>
           <p className="mb-1 text-center text-gray-500 text-theme-xs dark:text-gray-400 sm:text-sm">
-            Hôm nay
+            Today
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
             {formatCurrency(3287)} {/* Giá trị cứng theo yêu cầu */}

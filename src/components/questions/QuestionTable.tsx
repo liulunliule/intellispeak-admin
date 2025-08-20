@@ -43,7 +43,7 @@ export default function QuestionTable({ questionSets, onAddTag, onDeleteTag }: Q
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Tiêu đề
+                                Title
                             </TableCell>
                             <TableCell
                                 isHeader
@@ -55,13 +55,13 @@ export default function QuestionTable({ questionSets, onAddTag, onDeleteTag }: Q
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Độ khó
+                                Difficulty
                             </TableCell>
                             <TableCell
                                 isHeader
                                 className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                             >
-                                Hành động
+                                Actions
                             </TableCell>
                         </TableRow>
                     </TableHeader>
@@ -104,10 +104,10 @@ export default function QuestionTable({ questionSets, onAddTag, onDeleteTag }: Q
                                             }
                                         >
                                             {set.difficulty === "Easy"
-                                                ? "Dễ"
+                                                ? "Easy"
                                                 : set.difficulty === "Medium"
-                                                    ? "Trung bình"
-                                                    : "Khó"}
+                                                    ? "Medium"
+                                                    : "Hard"}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-start text-theme-sm">
@@ -116,7 +116,7 @@ export default function QuestionTable({ questionSets, onAddTag, onDeleteTag }: Q
                                             variant="outline"
                                             onClick={() => onAddTag(set.id)}
                                         >
-                                            Thêm Tag
+                                            Add Tag
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -126,7 +126,7 @@ export default function QuestionTable({ questionSets, onAddTag, onDeleteTag }: Q
                                 <TableCell
                                     className="py-8 text-center text-gray-500 dark:text-gray-400"
                                 >
-                                    Không tìm thấy bộ câu hỏi nào phù hợp với tiêu chí của bạn.
+                                    No question sets found matching your criteria.
                                 </TableCell>
                             </TableRow>
                         )}

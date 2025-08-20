@@ -48,7 +48,7 @@ export default function MyQuestions({
                         onClick={() => setIsExpanded(!isExpanded)}
                     >
                         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90 flex items-center">
-                            Câu hỏi của tôi
+                            My Questions
                             <span className="ml-2">
                                 {isExpanded ? (
                                     <ChevronUp size={20} className="text-gray-600 dark:text-gray-400" />
@@ -63,7 +63,7 @@ export default function MyQuestions({
                             onClick={onCreateQuestion}
                             className="whitespace-nowrap"
                         >
-                            Tạo câu hỏi mới
+                            Create new question
                         </Button>
                     </div>
                 </div>
@@ -78,7 +78,7 @@ export default function MyQuestions({
                                     value={currentTag}
                                     onChange={(e) => onTagChange(e.target.value)}
                                 >
-                                    <option value="">Tất cả tag</option>
+                                    <option value="">All tags</option>
                                     {filterTags.map((tag) => (
                                         <option key={tag} value={tag}>
                                             {tag}
@@ -90,32 +90,32 @@ export default function MyQuestions({
                                     value={currentDifficulty}
                                     onChange={(e) => onDifficultyChange(e.target.value)}
                                 >
-                                    <option value="">Tất cả độ khó</option>
-                                    <option value="Easy">Dễ</option>
-                                    <option value="Medium">Trung bình</option>
-                                    <option value="Hard">Khó</option>
+                                    <option value="">All difficulties</option>
+                                    <option value="Easy">Easy</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Hard">Hard</option>
                                 </select>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                                    Sắp xếp theo:
+                                    Sort by:
                                 </span>
                                 <select
                                     className="px-3 py-2 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-white"
                                     value={currentSort}
                                     onChange={(e) => onSortChange(e.target.value)}
                                 >
-                                    <option value="title">Tiêu đề (A-Z)</option>
-                                    <option value="title-desc">Tiêu đề (Z-A)</option>
-                                    <option value="difficulty">Độ khó (Dễ đến Khó)</option>
-                                    <option value="difficulty-desc">Độ khó (Khó đến Dễ)</option>
+                                    <option value="title">Title (A-Z)</option>
+                                    <option value="title-desc">Title (Z-A)</option>
+                                    <option value="difficulty">Difficulty (Easy to Hard)</option>
+                                    <option value="difficulty-desc">Difficulty (Hard to Easy)</option>
                                 </select>
                             </div>
                         </div>
 
                         {loading && (
                             <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                                Đang tải danh sách câu hỏi của bạn...
+                                Loading your question list...
                             </div>
                         )}
                         {error && (

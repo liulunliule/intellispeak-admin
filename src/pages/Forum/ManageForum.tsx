@@ -95,19 +95,19 @@ const ManageForum: React.FC = () => {
     return (
         <>
             <PageMeta
-                title="Quản lý Diễn đàn"
-                description="Trang quản lý các chủ đề diễn đàn trong hệ thống"
+                title="Manage Forum"
+                description="Forum topic management page in the system"
             />
-            <PageBreadcrumb pageTitle="Diễn đàn" />
+            <PageBreadcrumb pageTitle="Forum" />
 
             <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                            Quản lý Diễn đàn
+                            Manage Forum
                         </h3>
                         <div className="flex gap-2">
-                            <Button onClick={handleAdd}>Thêm Chủ đề mới</Button>
+                            <Button onClick={handleAdd}>Add New Topic</Button>
                         </div>
                     </div>
 
@@ -115,7 +115,7 @@ const ManageForum: React.FC = () => {
                         <div className="flex-1">
                             <Input
                                 type="text"
-                                placeholder="Tìm kiếm chủ đề theo tên..."
+                                placeholder="Search topic by name..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
@@ -125,7 +125,7 @@ const ManageForum: React.FC = () => {
 
                     {loading && (
                         <div className="py-8 text-center text-gray-600 dark:text-gray-400">
-                            Đang tải danh sách chủ đề...
+                            Loading topic list...
                         </div>
                     )}
 
@@ -150,21 +150,20 @@ const ManageForum: React.FC = () => {
                                                 </h4>
                                                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                                                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                        Tạo: {new Date(topic.createAt).toLocaleDateString()}
+                                                        Created: {new Date(topic.createAt).toLocaleDateString()}
                                                     </span>
                                                     {topic.updateAt && (
                                                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                            • Cập nhật:{' '}
-                                                            {new Date(topic.updateAt).toLocaleDateString()}
+                                                            • Updated: {new Date(topic.updateAt).toLocaleDateString()}
                                                         </span>
                                                     )}
                                                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                        • Trạng thái:{' '}
+                                                        • Status: {' '}
                                                         <Badge
                                                             variant="light"
                                                             color={topic.deleted ? 'error' : 'success'}
                                                         >
-                                                            {topic.deleted ? 'Đã xóa' : 'Hoạt động'}
+                                                            {topic.deleted ? 'Deleted' : 'Active'}
                                                         </Badge>
                                                     </span>
                                                 </div>
@@ -175,7 +174,7 @@ const ManageForum: React.FC = () => {
                                                     variant="outline"
                                                     onClick={() => handleEdit(topic)}
                                                 >
-                                                    Chỉnh sửa
+                                                    Edit
                                                 </Button>
                                             </div>
                                         </div>
@@ -183,7 +182,7 @@ const ManageForum: React.FC = () => {
                                 ))
                             ) : (
                                 <div className="py-8 text-center text-gray-600 dark:text-gray-400">
-                                    Không tìm thấy chủ đề nào phù hợp với tiêu chí tìm kiếm.
+                                    No topics found matching your search criteria.
                                 </div>
                             )}
                         </div>
@@ -199,19 +198,19 @@ const ManageForum: React.FC = () => {
             >
                 <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900">
                     <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-gray-100">
-                        {editingTopic ? 'Chỉnh sửa Chủ đề' : 'Thêm Chủ đề mới'}
+                        {editingTopic ? 'Edit Topic' : 'Add New Topic'}
                     </h3>
                     <div className="space-y-4">
                         <div>
                             <Label className="text-gray-800 dark:text-gray-100">
-                                Tên Chủ đề*
+                                Topic Name*
                             </Label>
                             <Input
                                 value={topicData.title}
                                 onChange={(e) =>
                                     setTopicData({ ...topicData, title: e.target.value })
                                 }
-                                placeholder="Nhập tên chủ đề"
+                                placeholder="Enter topic name"
                                 className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                             />
                         </div>
@@ -220,10 +219,10 @@ const ManageForum: React.FC = () => {
                                 variant="outline"
                                 onClick={() => setIsModalOpen(false)}
                             >
-                                Hủy
+                                Cancel
                             </Button>
                             <Button onClick={handleSave}>
-                                {editingTopic ? 'Cập nhật' : 'Thêm'}
+                                {editingTopic ? 'Update' : 'Add'}
                             </Button>
                         </div>
                     </div>

@@ -61,18 +61,18 @@ export default function StatisticsChart() {
     xaxis: {
       type: "category",
       categories: [
-        "Thg 1",
-        "Thg 2",
-        "Thg 3",
-        "Thg 4",
-        "Thg 5",
-        "Thg 6",
-        "Thg 7",
-        "Thg 8",
-        "Thg 9",
-        "Thg 10",
-        "Thg 11",
-        "Thg 12",
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
       ],
       axisBorder: {
         show: false,
@@ -102,11 +102,11 @@ export default function StatisticsChart() {
 
   const series = [
     {
-      name: "Doanh số",
+      name: "Package 1",
       data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
     },
     {
-      name: "Doanh thu",
+      name: "Package 2",
       data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
     },
   ];
@@ -116,10 +116,10 @@ export default function StatisticsChart() {
       <div className="flex flex-col gap-5 mb-6 sm:flex-row sm:justify-between">
         <div className="w-full">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Thống kê
+            Statistics
           </h3>
           <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
-            Mục tiêu bạn đặt ra cho mỗi tháng
+            Your monthly goals
           </p>
         </div>
         <div className="flex items-start w-full gap-3 sm:justify-end">

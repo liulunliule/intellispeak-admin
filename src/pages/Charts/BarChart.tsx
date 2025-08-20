@@ -7,8 +7,8 @@ export default function BarChart() {
   return (
     <div>
       <PageMeta
-        title="React.js Chart Dashboard | React.js Admin Dashboard Template"
-        description="This is React.js Chart Dashboard page "
+        title="Chart Dashboard | Admin Dashboard Template"
+        description="This is Chart Dashboard page "
       />
       <PageBreadcrumb pageTitle="Bar Chart" />
       <div className="space-y-6">
