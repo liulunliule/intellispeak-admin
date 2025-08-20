@@ -3,7 +3,8 @@ import { ThemeToggleButton } from "../common/ThemeToggleButton";
 import NotificationDropdown from "./NotificationDropdown";
 import UserDropdown from "./UserDropdown";
 import { Link } from "react-router";
-import { logo } from "../../assets";
+import { intellispeakdark, intellispeaklight, squarelogo } from "../../assets";
+// import { logo } from "../../assets";
 
 
 // Define the interface for the props
@@ -81,16 +82,25 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
           </button>
 
           <Link to="/dashboard" className="lg:hidden">
-            <img
-              className="dark:hidden"
-              src={logo}
-              alt="Logo"
-            />
-            <img
-              className="hidden dark:block"
-              src={logo}
-              alt="Logo"
-            />
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <img
+                src={squarelogo}
+                alt="Logo"
+                style={{ height: 40, width: 40 }}
+              />
+              <img
+                src={intellispeaklight}
+                alt="Intellispeak Logo"
+                style={{ height: 40, width: 'auto' }}
+                className="dark:hidden"
+              />
+              <img
+                src={intellispeakdark}
+                alt="Intellispeak Logo"
+                style={{ height: 40, width: 'auto' }}
+                className="hidden dark:inline"
+              />
+            </span>
           </Link>
 
           <button

@@ -5,7 +5,8 @@ import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
-import { logo } from "../assets";
+import { intellispeakdark, intellispeaklight, squarelogo } from "../assets";
+// import { logo } from "../assets";
 
 
 const AppHeader: React.FC = () => {
@@ -86,16 +87,25 @@ const AppHeader: React.FC = () => {
           </button>
 
           <Link to="/dashboard" className="lg:hidden">
-            <img
-              className="dark:hidden"
-              src={logo}
-              alt="Logo"
-            />
-            <img
-              className="hidden dark:block"
-              src={logo}
-              alt="Logo"
-            />
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <img
+                src={squarelogo}
+                alt="Logo"
+                style={{ height: 40, width: 40 }}
+              />
+              <img
+                src={intellispeaklight}
+                alt="Intellispeak Logo"
+                style={{ height: 40, width: 'auto' }}
+                className="dark:hidden"
+              />
+              <img
+                src={intellispeakdark}
+                alt="Intellispeak Logo"
+                style={{ height: 40, width: 'auto' }}
+                className="hidden dark:inline"
+              />
+            </span>
           </Link>
 
           <button
