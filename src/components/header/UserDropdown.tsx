@@ -22,7 +22,7 @@ export default function UserDropdown() {
   const fetchUserProfile = useCallback(async () => {
     try {
       const response = await api.get('/auth/profile');
-      console.log('User profile response:', response);
+      // console.log('User profile response:', response);
 
       if (response.data.code === 200) {
         setUserProfile({
@@ -58,7 +58,7 @@ export default function UserDropdown() {
     }
     localStorage.removeItem('authToken');
     localStorage.removeItem('refreshToken');
-    navigate('/');
+    // navigate('/');
   };
 
   return (
@@ -177,8 +177,14 @@ export default function UserDropdown() {
             </DropdownItem>
           </li>
         </ul>
-        <button
-          onClick={handleLogout}
+        <a
+          href="/profile"
+          onClick={async (e) => {
+            e.preventDefault();
+            await handleLogout();
+            navigate('/profile');
+            // window.location.reload();
+          }}
           className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300 w-full"
         >
           <svg
@@ -196,7 +202,7 @@ export default function UserDropdown() {
             />
           </svg>
           Logout
-        </button>
+        </a>
       </Dropdown>
     </div>
   );

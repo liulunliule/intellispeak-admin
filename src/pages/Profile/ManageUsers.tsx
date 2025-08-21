@@ -12,23 +12,23 @@ export default function ManageUsers() {
     const { isOpen, openModal, closeModal } = useModal();
 
     const handleCreateUser = () => {
-        // Xử lý logic tạo người dùng ở đây
-        console.log("Đang tạo người dùng mới...");
+        // Handle user creation logic here
+        console.log("Creating new user...");
         closeModal();
     };
 
     return (
         <>
             <PageMeta
-                title="Quản lý Người dùng"
-                description="Đây là trang Bảng điều khiển hồ sơ"
+                title="User Management"
+                description="This is the profile dashboard page."
             />
-            <PageBreadcrumb pageTitle="Quản lý Người dùng" />
+            <PageBreadcrumb pageTitle="User Management" />
 
             <div className="space-y-6">
                 <div className="flex justify-between items-center">
                     <h2 className="text-2xl font-semibold text-gray-800 dark:text-white/90">
-                        Quản lý Người dùng
+                        User Management
                     </h2>
                     <Button
                         onClick={openModal}
@@ -47,24 +47,24 @@ export default function ManageUsers() {
                                 fill=""
                             />
                         </svg>
-                        Tạo Người dùng
+                        Create User
                     </Button>
                 </div>
 
-                <ComponentCard title="Danh sách Người dùng">
+                <ComponentCard title="User List">
                     <TableAllUser />
                 </ComponentCard>
             </div>
 
-            {/* Modal Tạo Người dùng */}
+            {/* Create User Modal */}
             <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
                 <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
                     <div className="px-2 pr-14">
                         <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-                            Tạo Người dùng Mới
+                            Create New User
                         </h4>
                         <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-                            Điền thông tin chi tiết để tạo tài khoản người dùng mới.
+                            Fill in the details to create a new user account.
                         </p>
                     </div>
 
@@ -75,62 +75,62 @@ export default function ManageUsers() {
                                     <div className="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800 mb-4">
                                         <img
                                             src="/images/user/default-avatar.jpg"
-                                            alt="Ảnh đại diện mặc định"
+                                            alt="Default avatar"
                                             className="w-full h-full object-cover"
                                         />
                                     </div>
                                     <Button variant="outline" size="sm">
-                                        Tải ảnh lên
+                                        Upload Photo
                                     </Button>
                                 </div>
 
                                 <div>
-                                    <Label>Tên</Label>
-                                    <Input type="text" placeholder="Nhập tên" />
+                                    <Label>First Name</Label>
+                                    <Input type="text" placeholder="Enter first name" />
                                 </div>
 
                                 <div>
-                                    <Label>Họ</Label>
-                                    <Input type="text" placeholder="Nhập họ" />
+                                    <Label>Last Name</Label>
+                                    <Input type="text" placeholder="Enter last name" />
                                 </div>
 
                                 <div className="col-span-2 lg:col-span-1">
-                                    <Label>Địa chỉ Email</Label>
-                                    <Input type="email" placeholder="Nhập địa chỉ email" />
+                                    <Label>Email Address</Label>
+                                    <Input type="email" placeholder="Enter email address" />
                                 </div>
 
                                 <div className="col-span-2 lg:col-span-1">
-                                    <Label>Số điện thoại</Label>
-                                    <Input type="tel" placeholder="Nhập số điện thoại" />
+                                    <Label>Phone Number</Label>
+                                    <Input type="tel" placeholder="Enter phone number" />
                                 </div>
 
                                 <div className="col-span-2 lg:col-span-1">
-                                    <Label>Mật khẩu</Label>
-                                    <Input type="password" placeholder="Nhập mật khẩu" />
+                                    <Label>Password</Label>
+                                    <Input type="password" placeholder="Enter password" />
                                 </div>
 
                                 <div className="col-span-2 lg:col-span-1">
-                                    <Label>Xác nhận mật khẩu</Label>
-                                    <Input type="password" placeholder="Xác nhận mật khẩu" />
+                                    <Label>Confirm Password</Label>
+                                    <Input type="password" placeholder="Confirm password" />
                                 </div>
 
                                 <div className="col-span-2">
-                                    <Label>Vai trò</Label>
+                                    <Label>Role</Label>
                                     <select className="w-full px-4 py-2.5 text-theme-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
-                                        <option value="">Chọn vai trò</option>
-                                        <option value="admin">Quản trị viên</option>
-                                        <option value="manager">Quản lý</option>
-                                        <option value="editor">Biên tập viên</option>
-                                        <option value="viewer">Người xem</option>
+                                        <option value="">Select role</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="manager">Manager</option>
+                                        <option value="editor">Editor</option>
+                                        <option value="viewer">Viewer</option>
                                     </select>
                                 </div>
 
                                 <div className="col-span-2">
-                                    <Label>Tiểu sử</Label>
+                                    <Label>Bio</Label>
                                     <textarea
                                         className="w-full px-4 py-2.5 text-theme-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                         rows={3}
-                                        placeholder="Nhập tiểu sử"
+                                        placeholder="Enter bio"
                                     ></textarea>
                                 </div>
                             </div>
@@ -138,10 +138,10 @@ export default function ManageUsers() {
 
                         <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
                             <Button size="sm" variant="outline" onClick={closeModal}>
-                                Hủy
+                                Cancel
                             </Button>
                             <Button size="sm" onClick={handleCreateUser}>
-                                Tạo Người dùng
+                                Create User
                             </Button>
                         </div>
                     </form>

@@ -90,6 +90,8 @@ const ManageInterviewSessions: React.FC = () => {
             setError('');
             try {
                 const response = await api.get('/interview-sessions/sessions/get-all');
+                console.log('sessions/get-all', response.data);
+
                 if (response.data.code === 200) {
                     setSessions(response.data.data);
                     setFilteredSessions(response.data.data);
