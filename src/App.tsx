@@ -95,6 +95,9 @@ export default function App() {
           <Route path="/" element={
             localStorage.getItem("authToken") ? <Navigate to="/dashboard" replace /> : <SignIn />
           } />
+          <Route path="/dashboard" element={
+            !localStorage.getItem("authToken") ? <Navigate to="/" replace /> : <Navigate to="/dashboard" replace />
+          } />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />

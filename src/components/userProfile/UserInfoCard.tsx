@@ -60,11 +60,11 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({ user, refetchProfile }) => 
         closeModal();
         setError('');
       } else {
-        setError(response.data.message || 'Không thể cập nhật hồ sơ');
+        setError(response.data.message || 'Unable to update profile');
       }
     } catch (err) {
       console.error('Error updating profile:', err);
-      setError('Không thể cập nhật hồ sơ. Vui lòng thử lại.');
+      setError('Unable to update profile. Please try again.');
     }
   };
 
@@ -73,28 +73,28 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({ user, refetchProfile }) => 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 lg:mb-6">
-            Thông tin cá nhân
+            Personal Information
           </h4>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Tên
+                First Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                {user.firstName || 'Chưa cập nhật'}
+                {user.firstName || 'Not updated'}
               </p>
             </div>
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Họ
+                Last Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                {user.lastName || 'Chưa cập nhật'}
+                {user.lastName || 'Not updated'}
               </p>
             </div>
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Địa chỉ Email
+                Email Address
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
                 {user.email}
@@ -102,18 +102,18 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({ user, refetchProfile }) => 
             </div>
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Điện thoại
+                Phone
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                {user.phone || 'Chưa cập nhật'}
+                {user.phone || 'Not updated'}
               </p>
             </div>
             <div>
               <p className="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-                Tiểu sử
+                Bio
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                {user.bio || 'Chưa cập nhật'}
+                {user.bio || 'Not updated'}
               </p>
             </div>
           </div>
@@ -137,83 +137,83 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({ user, refetchProfile }) => 
               fill=""
             />
           </svg>
-          Chỉnh sửa
+          Edit
         </button>
       </div>
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
           <div className="px-2 pr-14">
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-gray-100">
-              Chỉnh sửa thông tin cá nhân
+              Edit Personal Information
             </h4>
             <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              Cập nhật chi tiết để giữ hồ sơ của bạn luôn mới nhất.
+              Update details to keep your profile up to date.
             </p>
           </div>
           <form className="flex flex-col" onSubmit={(e) => e.preventDefault()}>
             <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
               <div>
                 <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-gray-100 lg:mb-6">
-                  Thông tin cá nhân
+                  Personal Information
                 </h5>
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div className="col-span-2 lg:col-span-1">
-                    <Label className="text-gray-800 dark:text-gray-100">Tên</Label>
+                    <Label className="text-gray-800 dark:text-gray-100">First Name</Label>
                     <Input
                       type="text"
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                      placeholder="Nhập tên"
+                      placeholder="Enter first name"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
                   <div className="col-span-2 lg:col-span-1">
-                    <Label className="text-gray-800 dark:text-gray-100">Họ</Label>
+                    <Label className="text-gray-800 dark:text-gray-100">Last Name</Label>
                     <Input
                       type="text"
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                      placeholder="Nhập họ"
+                      placeholder="Enter last name"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
                   <div className="col-span-2 lg:col-span-1">
-                    <Label className="text-gray-800 dark:text-gray-100">Địa chỉ Email</Label>
+                    <Label className="text-gray-800 dark:text-gray-100">Email Address</Label>
                     <Input
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="Nhập email"
+                      placeholder="Enter email"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
                   <div className="col-span-2 lg:col-span-1">
-                    <Label className="text-gray-800 dark:text-gray-100">Điện thoại</Label>
+                    <Label className="text-gray-800 dark:text-gray-100">Phone</Label>
                     <Input
                       type="text"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="Nhập số điện thoại"
+                      placeholder="Enter phone number"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
                   <div className="col-span-2">
-                    <Label className="text-gray-800 dark:text-gray-100">Tiểu sử</Label>
+                    <Label className="text-gray-800 dark:text-gray-100">Bio</Label>
                     <Input
                       type="text"
                       value={formData.bio}
                       onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                      placeholder="Nhập tiểu sử"
+                      placeholder="Enter bio"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
                   <div className="col-span-2">
-                    <Label className="text-gray-800 dark:text-gray-100">Ảnh đại diện (URL)</Label>
+                    <Label className="text-gray-800 dark:text-gray-100">Avatar (URL)</Label>
                     <Input
                       type="text"
                       value={formData.avatar}
                       onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-                      placeholder="Nhập URL ảnh đại diện"
+                      placeholder="Enter avatar URL"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
@@ -227,10 +227,10 @@ const UserInfoCard: React.FC<UserInfoCardProps> = ({ user, refetchProfile }) => 
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" onClick={closeModal}>
-                Đóng
+                Close
               </Button>
               <Button size="sm" onClick={handleSave}>
-                Lưu thay đổi
+                Save Changes
               </Button>
             </div>
           </form>

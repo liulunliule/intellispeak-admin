@@ -73,7 +73,7 @@ export default function TableAllUser() {
     };
 
 
-    if (loading) return <div>Đang tải danh sách người dùng...</div>;
+    if (loading) return <div>Loading user list...</div>;
 
 
     // Get unique roles from users
@@ -98,7 +98,7 @@ export default function TableAllUser() {
     return (
         <>
             <div className="flex items-center mb-4 gap-4">
-                <span className="text-sm font-medium text-gray-700">Vai trò:</span>
+                <span className="text-sm font-medium text-gray-700">Role:</span>
                 {roles.map(role => (
                     <label key={role} className="flex items-center gap-1 text-sm text-black dark:text-gray-500">
                         <input
@@ -114,12 +114,12 @@ export default function TableAllUser() {
                     <Table>
                         <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                             <TableRow>
-                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ảnh đại diện</TableCell>
-                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Tên người dùng</TableCell>
+                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Avatar</TableCell>
+                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Username</TableCell>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Email</TableCell>
-                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Vai trò</TableCell>
-                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Ngày tạo</TableCell>
-                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Hành động</TableCell>
+                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Role</TableCell>
+                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Created At</TableCell>
+                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Actions</TableCell>
                             </TableRow>
                         </TableHeader>
                         <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
@@ -146,9 +146,9 @@ export default function TableAllUser() {
                                             {dropdownOpen === user.userId && (
                                                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 dark:bg-gray-800 dark:border dark:border-gray-700">
                                                     <div className="py-1">
-                                                        <button onClick={() => handleDetail(user.userId)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">Chi tiết</button>
-                                                        <button onClick={handleEdit} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">Chỉnh sửa</button>
-                                                        <button onClick={handleDelete} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700">Xóa</button>
+                                                        <button onClick={() => handleDetail(user.userId)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">Details</button>
+                                                        <button onClick={handleEdit} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">Edit</button>
+                                                        <button onClick={handleDelete} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700">Delete</button>
                                                     </div>
                                                 </div>
                                             )}
@@ -167,7 +167,7 @@ export default function TableAllUser() {
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                 >
-                    Trước
+                    Previous
                 </button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
@@ -183,7 +183,7 @@ export default function TableAllUser() {
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages || totalPages === 0}
                 >
-                    Sau
+                    Next
                 </button>
             </div>
         </>

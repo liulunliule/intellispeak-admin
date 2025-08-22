@@ -86,11 +86,11 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
               </h4>
               <div className="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {user.bio || 'Chưa có tiểu sử'}
+                  {user.bio || 'No bio yet'}
                 </p>
                 <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Hồ Chí Minh, Việt Nam
+                  Ho Chi Minh City, Vietnam
                 </p>
               </div>
             </div>
@@ -226,7 +226,7 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
                 fill=""
               />
             </svg>
-            Chỉnh sửa
+            Edit
           </button>
         </div>
       </div>
@@ -234,17 +234,17 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
         <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
           <div className="px-2 pr-14">
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-gray-100">
-              Chỉnh sửa thông tin cá nhân
+              Edit Personal Information
             </h4>
             <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              Cập nhật thông tin của bạn để giữ cho hồ sơ của bạn luôn mới nhất.
+              Update your information to keep your profile up to date.
             </p>
           </div>
           <form className="flex flex-col" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
             <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
               <div>
                 <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-gray-100 lg:mb-6">
-                  Liên kết mạng xã hội
+                  Social Links
                 </h5>
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div>
@@ -253,7 +253,7 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
                       type="text"
                       value={formData.facebook}
                       onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
-                      placeholder="Nhập URL Facebook"
+                      placeholder="Enter Facebook URL"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
@@ -263,7 +263,7 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
                       type="text"
                       value={formData.youtube}
                       onChange={(e) => setFormData({ ...formData, youtube: e.target.value })}
-                      placeholder="Nhập URL YouTube"
+                      placeholder="Enter YouTube URL"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
@@ -273,7 +273,7 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
                       type="text"
                       value={formData.linkedin}
                       onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-                      placeholder="Nhập URL LinkedIn"
+                      placeholder="Enter LinkedIn URL"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
@@ -283,7 +283,7 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
                       type="text"
                       value={formData.github}
                       onChange={(e) => setFormData({ ...formData, github: e.target.value })}
-                      placeholder="Nhập URL GitHub"
+                      placeholder="Enter GitHub URL"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
@@ -293,7 +293,7 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
                       type="text"
                       value={formData.website}
                       onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                      placeholder="Nhập URL Website"
+                      placeholder="Enter Website URL"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
@@ -301,16 +301,16 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
               </div>
               <div className="mt-7">
                 <h5 className="mb-5 text-lg font-medium text-gray-800 dark:text-gray-100 lg:mb-6">
-                  Thông tin cá nhân
+                  Personal Information
                 </h5>
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div className="col-span-2 lg:col-span-1">
-                    <Label className="text-gray-800 dark:text-gray-100">Tên người dùng</Label>
+                    <Label className="text-gray-800 dark:text-gray-100">Username</Label>
                     <Input
                       type="text"
                       value={formData.userName}
                       onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
-                      placeholder="Nhập tên người dùng"
+                      placeholder="Enter username"
                       className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
                   </div>
@@ -318,16 +318,16 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
               </div>
               {error && (
                 <div className="mt-4 text-sm text-red-500 dark:text-red-400">
-                  {error}
+                  {error === 'Không thể cập nhật hồ sơ' || error === 'Không thể cập nhật hồ sơ. Vui lòng thử lại.' ? 'Unable to update profile. Please try again.' : error}
                 </div>
               )}
             </div>
             <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
               <Button size="sm" variant="outline" onClick={closeModal}>
-                Đóng
+                Close
               </Button>
               <Button size="sm">
-                Lưu thay đổi
+                Save Changes
               </Button>
             </div>
           </form>

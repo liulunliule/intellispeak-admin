@@ -90,6 +90,8 @@ const ManageInterviewSessions: React.FC = () => {
             setError('');
             try {
                 const response = await api.get('/interview-sessions/sessions/get-all');
+                console.log('sessions/get-all', response.data);
+
                 if (response.data.code === 200) {
                     setSessions(response.data.data);
                     setFilteredSessions(response.data.data);
@@ -185,15 +187,15 @@ const ManageInterviewSessions: React.FC = () => {
 
     return (
         <>
-            <PageMeta title="Quản lý Phỏng vấn Session" description="Trang quản lý các session phỏng vấn trong hệ thống" />
-            <PageBreadcrumb pageTitle="Phỏng vấn Session" />
+            <PageMeta title="Interview Session Management" description="Manage interview sessions in the system" />
+            <PageBreadcrumb pageTitle="Interview Sessions" />
 
             <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Quản lý Phỏng vấn Session</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Interview Session Management</h3>
                         <div className="flex gap-2">
-                            <Button onClick={handleAdd}>Thêm Session mới</Button>
+                            <Button onClick={handleAdd}>Add New Session</Button>
                         </div>
                     </div>
 
@@ -201,7 +203,7 @@ const ManageInterviewSessions: React.FC = () => {
                         <div className="flex-1">
                             <Input
                                 type="text"
-                                placeholder="Tìm kiếm session theo tên, mô tả hoặc chủ đề..."
+                                placeholder="Search sessions by name, description, or topic..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
@@ -209,7 +211,7 @@ const ManageInterviewSessions: React.FC = () => {
                         </div>
                     </div>
 
-                    {loading && <div className="py-8 text-center text-gray-600 dark:text-gray-400">Đang tải danh sách sessions...</div>}
+                    {loading && <div className="py-8 text-center text-gray-600 dark:text-gray-400">Loading session list...</div>}
 
                     {error && <div className="py-8 text-center text-red-500 dark:text-red-400">{error}</div>}
 
@@ -236,26 +238,26 @@ const ManageInterviewSessions: React.FC = () => {
                                                 </div>
                                                 <div className="text-sm text-gray-600 dark:text-gray-400">{session.description}</div>
                                                 <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">Chủ đề: {session.topic.title}</span>
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">Topic: {session.topic.title}</span>
                                                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                        • Độ khó: <Badge variant="light" color={getDifficultyColor(session.difficulty)}>{session.difficulty}</Badge>
+                                                        • Difficulty: <Badge variant="light" color={getDifficultyColor(session.difficulty)}>{session.difficulty}</Badge>
                                                     </span>
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">• Số câu hỏi: {session.totalQuestion}</span>
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">• Tạo: {new Date(session.createAt).toLocaleDateString()}</span>
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">• Total Questions: {session.totalQuestion}</span>
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">• Created: {new Date(session.createAt).toLocaleDateString()}</span>
                                                     {session.updateAt && (
-                                                        <span className="text-xs text-gray-500 dark:text-gray-400">• Cập nhật: {new Date(session.updateAt).toLocaleDateString()}</span>
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400">• Updated: {new Date(session.updateAt).toLocaleDateString()}</span>
                                                     )}
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
                                                 <Button size="sm" variant="outline" onClick={() => handleEdit(session)}>
-                                                    Chỉnh sửa
+                                                    Edit
                                                 </Button>
                                             </div>
                                         </div>
                                         {expandedSessionId === session.interviewSessionId && (
                                             <div className="mt-4 border-t border-gray-200 dark:border-gray-800 pt-4">
-                                                <h5 className="text-md font-semibold text-gray-800 dark:text-gray-100 mb-3">Danh sách câu hỏi</h5>
+                                                <h5 className="text-md font-semibold text-gray-800 dark:text-gray-100 mb-3">Question List</h5>
                                                 {session.questions && session.questions.length > 0 ? (
                                                     <div className="space-y-3">
                                                         {session.questions.map((question) => (
@@ -266,7 +268,7 @@ const ManageInterviewSessions: React.FC = () => {
                                                                             <h6 className="text-sm font-medium text-gray-800 dark:text-gray-100">{question.title}</h6>
                                                                             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{question.content}</p>
                                                                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                                                                Độ khó: <Badge variant="light" color={getDifficultyColor(question.difficulty)}>{question.difficulty}</Badge>
+                                                                                Difficulty: <Badge variant="light" color={getDifficultyColor(question.difficulty)}>{question.difficulty}</Badge>
                                                                             </div>
                                                                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                                                                 Tags: {session.tags.map((t) => t.title).join(', ')}
@@ -279,82 +281,82 @@ const ManageInterviewSessions: React.FC = () => {
                                                         ))}
                                                     </div>
                                                 ) : (
-                                                    <div className="text-sm text-gray-600 dark:text-gray-400">Không có câu hỏi nào trong session này.</div>
+                                                    <div className="text-sm text-gray-600 dark:text-gray-400">There are no questions in this session.</div>
                                                 )}
                                             </div>
                                         )}
                                     </div>
                                 ))
                             ) : (
-                                <div className="py-8 text-center text-gray-600 dark:text-gray-400">Không tìm thấy session nào phù hợp với tiêu chí tìm kiếm.</div>
+                                <div className="py-8 text-center text-gray-600 dark:text-gray-400">No sessions found matching the search criteria.</div>
                             )}
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Modal thêm/chỉnh sửa session */}
+            {/* Add/Edit Session Modal */}
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-2xl">
                 <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900">
-                    <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-gray-100">{editingSession ? 'Chỉnh sửa Session' : 'Thêm Session mới'}</h3>
+                    <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-gray-100">{editingSession ? 'Edit Session' : 'Add New Session'}</h3>
                     <div className="space-y-4">
                         <div>
-                            <Label className="text-gray-800 dark:text-gray-100">Tên Session*</Label>
+                            <Label className="text-gray-800 dark:text-gray-100">Session Name*</Label>
                             <Input
                                 value={sessionData.title}
                                 onChange={(e) => setSessionData({ ...sessionData, title: e.target.value })}
-                                placeholder="Nhập tên session"
+                                placeholder="Enter session name"
 
                                 className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                             />
                         </div>
                         <div>
-                            <Label className="text-gray-800 dark:text-gray-100">Mô tả</Label>
+                            <Label className="text-gray-800 dark:text-gray-100">Description</Label>
                             <textarea
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                                 rows={4}
                                 value={sessionData.description}
                                 onChange={(e) => setSessionData({ ...sessionData, description: e.target.value })}
-                                placeholder="Nhập mô tả session"
+                                placeholder="Enter session description"
                             />
                         </div>
                         <div>
-                            <Label className="text-gray-800 dark:text-gray-100">Chủ đề (Topic ID)*</Label>
+                            <Label className="text-gray-800 dark:text-gray-100">Topic (Topic ID)*</Label>
                             <Input
                                 type="number"
                                 value={sessionData.topicId}
                                 onChange={(e) => setSessionData({ ...sessionData, topicId: e.target.value })}
-                                placeholder="Nhập ID chủ đề"
+                                placeholder="Enter topic ID"
                                 className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                             />
                         </div>
                         <div>
-                            <Label className="text-gray-800 dark:text-gray-100">Độ khó</Label>
+                            <Label className="text-gray-800 dark:text-gray-100">Difficulty</Label>
                             <select
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-gray-100"
                                 value={sessionData.difficulty}
                                 onChange={(e) => setSessionData({ ...sessionData, difficulty: e.target.value })}
                             >
-                                <option value="" className="text-gray-800 dark:text-gray-100">Chọn độ khó</option>
-                                <option value="EASY" className="text-gray-800 dark:text-gray-100">Dễ</option>
-                                <option value="MEDIUM" className="text-gray-800 dark:text-gray-100">Trung bình</option>
-                                <option value="HARD" className="text-gray-800 dark:text-gray-100">Khó</option>
+                                <option value="" className="text-gray-800 dark:text-gray-100">Select difficulty</option>
+                                <option value="EASY" className="text-gray-800 dark:text-gray-100">Easy</option>
+                                <option value="MEDIUM" className="text-gray-800 dark:text-gray-100">Medium</option>
+                                <option value="HARD" className="text-gray-800 dark:text-gray-100">Hard</option>
                             </select>
                         </div>
                         <div>
-                            <Label className="text-gray-800 dark:text-gray-100">Thời lượng ước tính</Label>
+                            <Label className="text-gray-800 dark:text-gray-100">Estimated Duration</Label>
                             <Input
                                 value={sessionData.durationEstimate}
                                 onChange={(e) => setSessionData({ ...sessionData, durationEstimate: e.target.value })}
-                                placeholder="Nhập thời lượng (e.g., PT0.00000009S)"
+                                placeholder="Enter duration (e.g., PT0.00000009S)"
                                 className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                             />
                         </div>
                         <div className="flex justify-end gap-3 pt-4">
                             <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-                                Hủy
+                                Cancel
                             </Button>
-                            <Button onClick={handleSave}>{editingSession ? 'Cập nhật' : 'Thêm'}</Button>
+                            <Button onClick={handleSave}>{editingSession ? 'Update' : 'Add'}</Button>
                         </div>
                     </div>
                 </div>

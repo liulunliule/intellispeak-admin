@@ -420,16 +420,16 @@ const ManageTopics: React.FC = () => {
                             <thead className="bg-gray-50 dark:bg-gray-800">
                                 <tr>
                                     <th className="px-3 py-3 font-medium text-gray-500 text-center text-xs dark:text-gray-400 w-20">
-                                        Ảnh
+                                        Image
                                     </th>
                                     <th className="px-5 py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
-                                        Tên chủ đề
+                                        Topic Name
                                     </th>
                                     <th className="px-5 py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
-                                        Mô tả
+                                        Description
                                     </th>
                                     <th className="px-5 py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
-                                        Thao tác
+                                        Actions
                                     </th>
                                 </tr>
                             </thead>
@@ -679,7 +679,7 @@ const ManageTopics: React.FC = () => {
                             </div>
                         )}
 
-                        <ModalFooter onCancel={() => setIsDetailModalOpen(false)} cancelText="Đóng" />
+                        <ModalFooter onCancel={() => setIsDetailModalOpen(false)} cancelText="Close" />
                     </div>
                 </Modal>
 

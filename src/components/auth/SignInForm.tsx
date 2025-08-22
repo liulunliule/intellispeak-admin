@@ -19,7 +19,7 @@ export default function SignInForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('Vui lòng nhập email và mật khẩu');
+      setError('Please enter email and password');
       return;
     }
 
@@ -36,11 +36,11 @@ export default function SignInForm() {
         // Redirect to dashboard
         navigate('/dashboard');
       } else {
-        setError(response.data.message || 'Đăng nhập thất bại');
+        setError(response.data.message || 'Login failed');
       }
     } catch (err) {
       console.error('Error logging in:', err);
-      setError('Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.');
+      setError('Login failed. Please check your email and password.');
     } finally {
       setLoading(false);
     }
@@ -54,17 +54,17 @@ export default function SignInForm() {
           className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
         >
           <ChevronLeftIcon className="size-5" />
-          Quay lại
+          Back
         </Link>
       </div>
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
             <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-gray-100 sm:text-title-md">
-              Đăng Nhập
+              Sign In
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Nhập email và mật khẩu để đăng nhập!
+              Enter your email and password to sign in!
             </p>
           </div>
           <form onSubmit={handleSubmit}>
@@ -82,12 +82,12 @@ export default function SignInForm() {
               </div>
               <div>
                 <Label className="text-gray-800 dark:text-gray-100">
-                  Mật khẩu <span className="text-red-500 dark:text-red-400">*</span>
+                  Password <span className="text-red-500 dark:text-red-400">*</span>
                 </Label>
                 <div className="relative">
                   <Input
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Nhập mật khẩu"
+                    placeholder="Enter password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
@@ -108,7 +108,7 @@ export default function SignInForm() {
                 <div className="flex items-center gap-3">
                   <Checkbox checked={isChecked} onChange={setIsChecked} />
                   <span className="block font-normal text-gray-700 dark:text-gray-400 text-theme-sm">
-                    Lưu đăng nhập
+                    Remember me
                   </span>
                 </div>
               </div>
@@ -123,7 +123,7 @@ export default function SignInForm() {
                   size="sm"
                   disabled={loading}
                 >
-                  {loading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
+                  {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
               </div>
             </div>
