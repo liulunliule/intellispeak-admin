@@ -62,11 +62,11 @@ const ManageForum: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleEdit = (topic: ForumTopic) => {
-        setEditingTopic(topic);
-        setTopicData({ title: topic.title });
-        setIsModalOpen(true);
-    };
+    // const handleEdit = (topic: ForumTopic) => {
+    //     setEditingTopic(topic);
+    //     setTopicData({ title: topic.title });
+    //     setIsModalOpen(true);
+    // };
 
     const handleDelete = (topic: ForumTopic) => {
         setDeletingTopic(topic);
