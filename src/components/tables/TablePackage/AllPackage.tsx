@@ -4,9 +4,7 @@ import { Modal } from "../../../components/ui/modal";
 import Button from "../../../components/ui/button/Button";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
-// import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
 import ComponentCard from "../../../components/common/ComponentCard";
-// import PageMeta from "../../../components/common/PageMeta";
 import api from "../../../services/api";
 import { toast } from "react-toastify";
 import Badge from "../../../components/ui/badge/Badge";
@@ -29,6 +27,7 @@ const ManagePackage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
     const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+    const { isOpen: isDetailModalOpen, openModal: openDetailModal, closeModal: closeDetailModal } = useModal();
 
     // Modal hooks
     const { isOpen: isCreateModalOpen, openModal: openCreateModal, closeModal: closeCreateModal } = useModal();
@@ -106,10 +105,7 @@ const ManagePackage: React.FC = () => {
                 cvAnalyzeCount: selectedPackage.cvAnalyzeCount,
                 jdAnalyzeCount: selectedPackage.jdAnalyzeCount,
             };
-            // console.log("PUT /package/" + selectedPackage.packageId, data);
             const response = await api.put(`/package/${selectedPackage.packageId}`, data);
-
-            // console.log("Update package:", response);
 
             if (response.data.code === 200) {
                 toast.success("Package updated successfully");
@@ -143,7 +139,7 @@ const ManagePackage: React.FC = () => {
     };
 
     const formatPrice = (price: number) => {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('vi-VN', {
             style: 'currency',
             currency: 'VND'
         }).format(price);
@@ -176,6 +172,12 @@ const ManagePackage: React.FC = () => {
         setDropdownOpen(dropdownOpen === packageId ? null : packageId);
     };
 
+    const handleDetailClick = (pkg: Package) => {
+        setSelectedPackage(pkg);
+        openDetailModal();
+        setDropdownOpen(null);
+    };
+
     const handleEditClick = (pkg: Package) => {
         setSelectedPackage(pkg);
         openEditModal();
@@ -187,7 +189,6 @@ const ManagePackage: React.FC = () => {
         openDeleteModal();
         setDropdownOpen(null);
     };
-
 
     return (
         <>
@@ -302,6 +303,12 @@ const ManagePackage: React.FC = () => {
                                                         {dropdownOpen === pkg.packageId && (
                                                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 dark:bg-gray-800 dark:border dark:border-gray-700">
                                                                 <div className="py-1">
+                                                                    <button
+                                                                        onClick={() => handleDetailClick(pkg)}
+                                                                        className="block w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-gray-100 dark:text-blue-400 dark:hover:bg-gray-700"
+                                                                    >
+                                                                        View Details
+                                                                    </button>
                                                                     <button
                                                                         onClick={() => handleEditClick(pkg)}
                                                                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -424,6 +431,81 @@ const ManagePackage: React.FC = () => {
                 </div>
             </Modal>
 
+            {/* Detail Package Modal */}
+            {selectedPackage && (
+                <Modal isOpen={isDetailModalOpen} onClose={closeDetailModal} className="max-w-[700px] m-4">
+                    <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
+                        <div className="px-2">
+                            <h2 className="mb-1 text-3xl font-semibold text-gray-800 dark:text-white/90">
+                                {selectedPackage.packageName}
+                            </h2>
+
+                            {/* ID và Status trên cùng 1 hàng */}
+                            <div className="mb-2 flex items-center gap-4 text-sm">
+                                <span className="text-gray-500 dark:text-gray-400">ID: {selectedPackage.packageId}</span>
+                                <Badge size="md" color={selectedPackage.status === "active" ? "success" : "error"}>
+                                    {selectedPackage.status === "active" ? "Active" : "Inactive"}
+                                </Badge>
+                            </div>
+
+                            {/* Created và Updated trên cùng 1 hàng */}
+                            <div className="mb-6 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                <span>Created: {formatDate(selectedPackage.createAt)}</span>
+                                <span>Updated: {formatDate(selectedPackage.updateAt)}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col">
+                            <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
+                                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+                                    <div className="col-span-2">
+                                        <Label>Interview Count</Label>
+                                        <div className="text-xl font-semibold text-gray-800 dark:text-white/90">
+                                            {selectedPackage.interviewCount}
+                                        </div>
+                                    </div>
+
+                                    <div className="col-span-2 lg:col-span-1">
+                                        <Label>CV Analyze Count</Label>
+                                        <div className="text-xl font-semibold text-gray-800 dark:text-white/90">
+                                            {selectedPackage.cvAnalyzeCount}
+                                        </div>
+                                    </div>
+
+                                    <div className="col-span-2 lg:col-span-1">
+                                        <Label>JD Analyze Count</Label>
+                                        <div className="text-xl font-semibold text-gray-800 dark:text-white/90">
+                                            {selectedPackage.jdAnalyzeCount}
+                                        </div>
+                                    </div>
+
+                                    <div className="col-span-2">
+                                        <Label>Price</Label>
+                                        <div className="text-lg font-medium text-gray-800 dark:text-white/90">
+                                            {formatPrice(selectedPackage.price)}
+                                        </div>
+                                    </div>
+
+                                    <div className="col-span-2">
+                                        <Label>Description</Label>
+                                        <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+                                            <p className="text-gray-800 dark:text-white/90">
+                                                {selectedPackage.description}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+                                <Button size="sm" variant="outline" onClick={closeDetailModal}>
+                                    Close
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </Modal>
+            )}
             {/* Edit Package Modal */}
             {selectedPackage && (
                 <Modal isOpen={isEditModalOpen} onClose={closeEditModal} className="max-w-[700px] m-4">
@@ -462,7 +544,7 @@ const ManagePackage: React.FC = () => {
                                         />
                                     </div>
 
-                                    <div className="col-span-2 lg:col-span-1">
+                                    <div className="col-span-2">
                                         <Label>Interview Count</Label>
                                         <Input
                                             type="number"
@@ -472,7 +554,6 @@ const ManagePackage: React.FC = () => {
                                             placeholder="Enter interview count"
                                         />
                                     </div>
-                                    <div className="col-span-2 lg:col-span-1"></div>
                                     <div className="col-span-2 lg:col-span-1">
                                         <Label>CV Analyze Count</Label>
                                         <Input

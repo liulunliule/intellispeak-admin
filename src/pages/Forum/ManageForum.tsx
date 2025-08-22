@@ -21,7 +21,9 @@ const ManageForum: React.FC = () => {
     const [filteredTopics, setFilteredTopics] = useState<ForumTopic[]>([]);
     const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingTopic, setEditingTopic] = useState<ForumTopic | null>(null);
+    const [deletingTopic, setDeletingTopic] = useState<ForumTopic | null>(null);
     const [topicData, setTopicData] = useState({
         title: '',
     });
@@ -64,6 +66,25 @@ const ManageForum: React.FC = () => {
         setEditingTopic(topic);
         setTopicData({ title: topic.title });
         setIsModalOpen(true);
+    };
+
+    const handleDelete = (topic: ForumTopic) => {
+        setDeletingTopic(topic);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingTopic) return;
+
+        try {
+            await api.delete(`/topic-type/${deletingTopic.id}`);
+            fetchTopics(); // Refresh topics after deletion
+            setIsDeleteModalOpen(false);
+            setDeletingTopic(null);
+        } catch (err) {
+            console.error('Error deleting topic:', err);
+            setError('Error deleting topic');
+        }
     };
 
     const handleSave = async () => {
@@ -169,12 +190,19 @@ const ManageForum: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
-                                                <Button
+                                                {/* <Button
                                                     size="sm"
                                                     variant="outline"
                                                     onClick={() => handleEdit(topic)}
                                                 >
                                                     Edit
+                                                </Button> */}
+                                                <Button
+                                                    size="sm"
+                                                    variant="danger"
+                                                    onClick={() => handleDelete(topic)}
+                                                >
+                                                    Delete
                                                 </Button>
                                             </div>
                                         </div>
@@ -225,6 +253,54 @@ const ManageForum: React.FC = () => {
                                 {editingTopic ? 'Update' : 'Add'}
                             </Button>
                         </div>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Modal xác nhận xóa */}
+            <Modal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                className="max-w-md"
+            >
+                <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900 text-center">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-16 w-16 mx-auto text-red-500 mb-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                    </svg>
+                    <h3 className="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-100">
+                        Confirm Deletion
+                    </h3>
+                    <p className="mb-6 text-gray-600 dark:text-gray-400">
+                        Are you sure you want to delete the topic{' '}
+                        <span className="font-semibold text-gray-800 dark:text-gray-100">
+                            {deletingTopic?.title}
+                        </span>
+                        ? This action cannot be undone.
+                    </p>
+                    <div className="flex justify-center gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsDeleteModalOpen(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={confirmDelete}
+                        >
+                            Delete
+                        </Button>
                     </div>
                 </div>
             </Modal>
