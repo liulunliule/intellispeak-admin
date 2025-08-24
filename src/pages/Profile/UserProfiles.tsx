@@ -34,11 +34,11 @@ const UserProfiles: React.FC = () => {
       if (response.data.code === 200) {
         setUser(response.data.data);
       } else {
-        setError(response.data.message || 'Không thể tải thông tin hồ sơ');
+        setError(response.data.message || 'Could not load profile information');
       }
     } catch (err) {
       console.error('Error fetching profile:', err);
-      setError('Không thể tải thông tin hồ sơ. Vui lòng thử lại.');
+      setError('Could not load profile information. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -51,18 +51,18 @@ const UserProfiles: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       <PageMeta
-        title="Hồ sơ Người dùng"
-        description="Trang quản lý hồ sơ người dùng"
+        title="User Profile"
+        description="User profile management page"
       />
-      <PageBreadcrumb pageTitle="Hồ sơ" />
+      <PageBreadcrumb pageTitle="Profile" />
       <div className="container mx-auto px-4 py-6">
         <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
           <h3 className="mb-5 text-lg font-semibold text-gray-800 dark:text-gray-100 lg:mb-7">
-            Hồ sơ
+            Profile
           </h3>
           {loading && (
             <div className="py-8 text-center text-gray-600 dark:text-gray-400">
-              Đang tải thông tin hồ sơ...
+              Loading profile information...
             </div>
           )}
           {error && (

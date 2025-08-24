@@ -5,7 +5,7 @@ import Input from '../../components/form/input/InputField';
 import Label from '../../components/form/Label';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
-import api from '../../services/api';
+import * as questionService from '../../services/question';
 import Badge from '../../components/ui/badge/Badge';
 import { CloseIcon } from '../../icons';
 
@@ -66,40 +66,31 @@ const ManageTags: React.FC = () => {
             setLoading(true);
             setError('');
             try {
-                const tagsResponse = await api.get('/tag');
-                if (tagsResponse.data.code === 200) {
-                    const tagsData = tagsResponse.data.data;
-                    const questionsResponse = await api.get('/tag/with-questions');
-                    if (questionsResponse.data.code === 200) {
-                        const tagsWithQuestions = questionsResponse.data.data;
-                        const tagsWithTopics = await Promise.all(
-                            tagsData.map(async (tag: Tag) => {
-                                try {
-                                    const topicsResponse = await api.get(`/tag/${tag.id}/topics`);
-                                    return {
-                                        ...tag,
-                                        questions: tagsWithQuestions.find((t: Tag) => t.id === tag.id)?.questions || [],
-                                        topics: topicsResponse.status === 200 ? topicsResponse.data : [],
-                                    };
-                                } catch (err) {
-                                    console.error(`Error fetching topics for tag ${tag.id}:`, err);
-                                    return {
-                                        ...tag,
-                                        questions: tagsWithQuestions.find((t: Tag) => t.id === tag.id)?.questions || [],
-                                        topics: [],
-                                    };
-                                }
-                            })
-                        );
-
-                        setTags(tagsWithTopics);
-                        setFilteredTags(tagsWithTopics);
-                    } else {
-                        setError(questionsResponse.data.message || 'Failed to fetch questions');
-                    }
-                } else {
-                    setError(tagsResponse.data.message || 'Failed to fetch tags');
-                }
+                const tagsResponse = await questionService.getTags();
+                const tagsData = tagsResponse.data.data;
+                const questionsResponse = await questionService.getTagsWithQuestions();
+                const tagsWithQuestions = questionsResponse.data.data;
+                const tagsWithTopics = await Promise.all(
+                    tagsData.map(async (tag: Tag) => {
+                        try {
+                            const topicsResponse = await questionService.getTagTopics(tag.id);
+                            return {
+                                ...tag,
+                                questions: tagsWithQuestions.find((t: Tag) => t.id === tag.id)?.questions || [],
+                                topics: topicsResponse.status === 200 ? topicsResponse.data : [],
+                            };
+                        } catch (err) {
+                            console.error(`Error fetching topics for tag ${tag.id}:`, err);
+                            return {
+                                ...tag,
+                                questions: tagsWithQuestions.find((t: Tag) => t.id === tag.id)?.questions || [],
+                                topics: [],
+                            };
+                        }
+                    })
+                );
+                setTags(tagsWithTopics);
+                setFilteredTags(tagsWithTopics);
             } catch (err) {
                 setError('Error fetching data');
                 console.error('Error fetching data:', err);
@@ -107,7 +98,6 @@ const ManageTags: React.FC = () => {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, []);
 
@@ -121,32 +111,28 @@ const ManageTags: React.FC = () => {
 
     const handleRemoveTopic = async (tagId: number, topicId: number) => {
         try {
-            const response = await api.delete(`/tag/${tagId}/topics/${topicId}`);
-            if (response.status === 200) {
-                setTags(tags.map(tag => {
-                    if (tag.id === tagId) {
-                        return {
-                            ...tag,
-                            topics: tag.topics?.filter(t => t.topicId !== topicId) || []
-                        };
-                    }
-                    return tag;
-                }));
-                setFilteredTags(filteredTags.map(tag => {
-                    if (tag.id === tagId) {
-                        return {
-                            ...tag,
-                            topics: tag.topics?.filter(t => t.topicId !== topicId) || []
-                        };
-                    }
-                    return tag;
-                }));
-            } else {
-                setError(response.data.message || 'Failed to remove topic from tag');
-            }
+            await questionService.removeTopicFromTag(tagId, topicId);
+            setTags(tags.map(tag => {
+                if (tag.id === tagId) {
+                    return {
+                        ...tag,
+                        topics: tag.topics?.filter(t => t.topicId !== topicId) || []
+                    };
+                }
+                return tag;
+            }));
+            setFilteredTags(filteredTags.map(tag => {
+                if (tag.id === tagId) {
+                    return {
+                        ...tag,
+                        topics: tag.topics?.filter(t => t.topicId !== topicId) || []
+                    };
+                }
+                return tag;
+            }));
         } catch (err) {
-            console.error('Error removing topic from tag:', err);
             setError('Error removing topic from tag');
+            console.error('Error removing topic from tag:', err);
         }
     };
 
@@ -188,12 +174,12 @@ const ManageTags: React.FC = () => {
     const confirmDelete = async () => {
         if (deleteId) {
             try {
-                await api.delete(`/tag/${deleteId}`);
+                await questionService.deleteTag(deleteId);
                 setTags(tags.filter(tag => tag.id !== deleteId));
                 setFilteredTags(filteredTags.filter(tag => tag.id !== deleteId));
             } catch (err) {
-                console.error('Error deleting tag:', err);
                 setError('Failed to delete tag');
+                console.error('Error deleting tag:', err);
             } finally {
                 setShowDeleteConfirm(false);
                 setDeleteId(null);
@@ -219,15 +205,10 @@ const ManageTags: React.FC = () => {
                     updateAt: currentDate,
                     isDeleted: false
                 };
-
-                const response = await api.put(`/tag/${editingTag.id}`, updateData);
-                if (response.data.code === 200) {
-                    const updatedTag = response.data.data;
-                    setTags(tags.map(tag => tag.id === editingTag.id ? { ...updatedTag, questions: tag.questions, topics: tag.topics } : tag));
-                    setFilteredTags(filteredTags.map(tag => tag.id === editingTag.id ? { ...updatedTag, questions: tag.questions, topics: tag.topics } : tag));
-                } else {
-                    setError(response.data.message || 'Failed to update tag');
-                }
+                const response = await questionService.updateTag(editingTag.id, updateData);
+                const updatedTag = response.data.data;
+                setTags(tags.map(tag => tag.id === editingTag.id ? { ...updatedTag, questions: tag.questions, topics: tag.topics } : tag));
+                setFilteredTags(filteredTags.map(tag => tag.id === editingTag.id ? { ...updatedTag, questions: tag.questions, topics: tag.topics } : tag));
             } else {
                 const newTagData = {
                     id: 0,
@@ -237,21 +218,16 @@ const ManageTags: React.FC = () => {
                     updateAt: currentDate,
                     isDeleted: false
                 };
-
-                const response = await api.post('/tag', newTagData);
-                if (response.data.code === 200) {
-                    const newTag = response.data.data;
-                    setTags([...tags, { ...newTag, questions: [], topics: [] }]);
-                    setFilteredTags([...filteredTags, { ...newTag, questions: [], topics: [] }]);
-                } else {
-                    setError(response.data.message || 'Failed to create tag');
-                }
+                const response = await questionService.createTag(newTagData);
+                const newTag = response.data.data;
+                setTags([...tags, { ...newTag, questions: [], topics: [] }]);
+                setFilteredTags([...filteredTags, { ...newTag, questions: [], topics: [] }]);
             }
             setIsModalOpen(false);
             setError('');
         } catch (err) {
-            console.error('Error saving tag:', err);
             setError('Error saving tag');
+            console.error('Error saving tag:', err);
         }
     };
 
@@ -271,44 +247,14 @@ const ManageTags: React.FC = () => {
         if (!selectedTagIdForAssignment || selectedQuestionIds.length === 0) return;
 
         try {
-            const response = await api.put(`/tag/${selectedTagIdForAssignment}/questions`, selectedQuestionIds);
-            if (response.data.code === 200) {
-                const updatedTags = tags.map(tag => {
-                    if (tag.id === selectedTagIdForAssignment) {
-                        const updatedQuestions = tag.questions ? [...tag.questions] : [];
-                        selectedQuestionIds.forEach(qId => {
-                            const question = tags
-                                .flatMap(t => t.questions || [])
-                                .find(q => q.questionId === qId);
-                            if (question && !updatedQuestions.some(q => q.questionId === qId)) {
-                                updatedQuestions.push({
-                                    ...question,
-                                    tags: [...question.tags, {
-                                        tagId: tag.id,
-                                        title: tag.title,
-                                        description: tag.description,
-                                        createAt: tag.createAt,
-                                        updateAt: tag.updateAt,
-                                        isDeleted: tag.isDeleted
-                                    }]
-                                });
-                            }
-                        });
-                        return { ...tag, questions: updatedQuestions };
-                    }
-                    return tag;
-                });
-                setTags(updatedTags);
-                setFilteredTags(updatedTags);
-                setSelectedQuestionIds([]);
-                setSelectedTagIdForAssignment(null);
-                setIsSelectingQuestions(false);
-            } else {
-                setError(response.data.message || 'Failed to assign tag to questions');
-            }
+            await questionService.assignTagToQuestions(selectedTagIdForAssignment, selectedQuestionIds);
+            // Optionally, you may want to refresh tags/questions here
+            setSelectedQuestionIds([]);
+            setSelectedTagIdForAssignment(null);
+            setIsSelectingQuestions(false);
         } catch (err) {
-            console.error('Error assigning tag to questions:', err);
             setError('Error assigning tag to questions');
+            console.error('Error assigning tag to questions:', err);
         }
     };
 

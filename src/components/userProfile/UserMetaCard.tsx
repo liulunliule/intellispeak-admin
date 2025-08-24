@@ -60,11 +60,11 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
         closeModal();
         setError('');
       } else {
-        setError(response.data.message || 'Không thể cập nhật hồ sơ');
+        setError(response.data.message || 'Unable to update profile');
       }
     } catch (err) {
       console.error('Error updating profile:', err);
-      setError('Không thể cập nhật hồ sơ. Vui lòng thử lại.');
+      setError('Unable to update profile. Please try again.');
     }
   };
 
@@ -318,7 +318,7 @@ const UserMetaCard: React.FC<UserMetaCardProps> = ({ user, refetchProfile }) => 
               </div>
               {error && (
                 <div className="mt-4 text-sm text-red-500 dark:text-red-400">
-                  {error === 'Không thể cập nhật hồ sơ' || error === 'Không thể cập nhật hồ sơ. Vui lòng thử lại.' ? 'Unable to update profile. Please try again.' : error}
+                  {error === 'Unable to update profile' || error === 'Unable to update profile. Please try again.' ? error : error}
                 </div>
               )}
             </div>

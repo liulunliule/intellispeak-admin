@@ -6,7 +6,7 @@ import Label from '../../components/form/Label';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
 import Badge, { BadgeColor } from '../../components/ui/badge/Badge';
-import api from '../../services/api';
+import * as questionService from '../../services/question';
 
 interface Topic {
     topicId: number;
@@ -89,15 +89,9 @@ const ManageInterviewSessions: React.FC = () => {
             setLoading(true);
             setError('');
             try {
-                const response = await api.get('/interview-sessions/sessions/get-all');
-                console.log('sessions/get-all', response.data);
-
-                if (response.data.code === 200) {
-                    setSessions(response.data.data);
-                    setFilteredSessions(response.data.data);
-                } else {
-                    setError(response.data.message || 'Failed to fetch sessions');
-                }
+                const response = await questionService.getInterviewSessions();
+                setSessions(response.data.data);
+                setFilteredSessions(response.data.data);
             } catch (err) {
                 setError('Error fetching sessions');
                 console.error('Error fetching sessions:', err);
@@ -105,7 +99,6 @@ const ManageInterviewSessions: React.FC = () => {
                 setLoading(false);
             }
         };
-
         fetchSessions();
     }, []);
 
@@ -160,7 +153,7 @@ const ManageInterviewSessions: React.FC = () => {
             };
 
             if (editingSession) {
-                const response = await api.put(`/interview-sessions/sessions/${editingSession.interviewSessionId}`, payload);
+                const response = await questionService.updateInterviewSession(editingSession.interviewSessionId, payload);
                 const updatedSession = response.data.data;
                 setSessions(
                     sessions.map((session) =>
@@ -170,14 +163,14 @@ const ManageInterviewSessions: React.FC = () => {
                     )
                 );
             } else {
-                const response = await api.post('/interview-sessions/sessions', payload);
+                const response = await questionService.createInterviewSession(payload);
                 const newSession = response.data.data;
                 setSessions([...sessions, { ...newSession, topic: { topicId: Number(sessionData.topicId), title: '', description: '', createAt: currentDate, updateAt: null, isDeleted: false }, tags: [], questions: [] }]);
             }
             setIsModalOpen(false);
         } catch (err) {
-            console.error('Error saving session:', err);
             setError('Error saving session');
+            console.error('Error saving session:', err);
         }
     };
 

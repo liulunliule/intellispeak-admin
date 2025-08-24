@@ -1,3 +1,4 @@
+// MyQuestions.tsx
 import { useState } from "react";
 import { Button } from "../../../components/ui/button";
 import QuestionTable from "../../../components/questions/QuestionTable";
@@ -19,6 +20,9 @@ interface MyQuestionsProps {
     onAddTag: (questionId: number) => void;
     onDeleteTag: (questionId: number, tagId: number) => void;
     onCreateQuestion: () => void;
+    onViewDetails: (questionId: number) => void;
+    onUpdateQuestion: (questionId: number) => void;
+    onDeleteQuestion: (questionId: number) => void;
 }
 
 export default function MyQuestions({
@@ -35,13 +39,15 @@ export default function MyQuestions({
     onAddTag,
     onDeleteTag,
     onCreateQuestion,
+    onViewDetails,
+    onUpdateQuestion,
+    onDeleteQuestion,
 }: MyQuestionsProps) {
-    const [isExpanded, setIsExpanded] = useState(true); // State để điều khiển hiển thị
+    const [isExpanded, setIsExpanded] = useState(true);
 
     return (
         <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6 mb-6">
             <div className="flex flex-col gap-6">
-                {/* Phần tiêu đề với mũi tên toggle */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div
                         className="flex items-center cursor-pointer"
@@ -68,7 +74,6 @@ export default function MyQuestions({
                     </div>
                 </div>
 
-                {/* Phần nội dung sẽ ẩn/hiện theo trạng thái isExpanded */}
                 {isExpanded && (
                     <>
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -128,6 +133,9 @@ export default function MyQuestions({
                                 questionSets={filteredSets}
                                 onAddTag={onAddTag}
                                 onDeleteTag={onDeleteTag}
+                                onViewDetails={onViewDetails}
+                                onUpdateQuestion={onUpdateQuestion}
+                                onDeleteQuestion={onDeleteQuestion}
                             />
                         )}
                     </>

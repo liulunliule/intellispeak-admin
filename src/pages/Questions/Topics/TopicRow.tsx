@@ -1,7 +1,7 @@
 import React from "react";
 import Input from "../../../components/form/input/InputField";
 import Button from "../../../components/ui/button/Button";
-import { FiEdit2, FiTrash2, FiMoreVertical, FiTag } from "react-icons/fi";
+import { FiEdit2, FiMoreVertical, FiTag } from "react-icons/fi";
 import { squarelogo } from '../../../assets';
 import { Topic } from "./types";
 
@@ -30,7 +30,6 @@ const TopicRow: React.FC<TopicRowProps> = ({
     handleEdit,
     handleUpdate,
     handleCancelEdit,
-    handleDeleteClick,
     handleDetailClick,
     updating,
 }) => {
@@ -115,10 +114,10 @@ const TopicRow: React.FC<TopicRowProps> = ({
                 {editingId === topic.topicId ? (
                     <div className="flex gap-2">
                         <Button size="sm" onClick={handleUpdate} disabled={updating}>
-                            {updating ? "Đang lưu..." : "Lưu"}
+                            {updating ? "Saving..." : "Save"}
                         </Button>
                         <Button size="sm" variant="outline" onClick={handleCancelEdit}>
-                            Hủy
+                            Cancel
                         </Button>
                     </div>
                 ) : (
@@ -140,7 +139,7 @@ const TopicRow: React.FC<TopicRowProps> = ({
                                         }}
                                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
                                     >
-                                        <FiTag className="mr-2" /> Chi tiết & Tags
+                                        <FiTag className="mr-2" /> Details & Tags
                                     </button>
                                     <button
                                         onClick={() => {
@@ -149,17 +148,17 @@ const TopicRow: React.FC<TopicRowProps> = ({
                                         }}
                                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
                                     >
-                                        <FiEdit2 className="mr-2" /> Sửa
+                                        <FiEdit2 className="mr-2" /> Edit
                                     </button>
-                                    <button
+                                    {/* <button
                                         onClick={() => {
                                             handleDeleteClick(topic.topicId);
                                             setIsDropdownOpen(false);
                                         }}
                                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
                                     >
-                                        <FiTrash2 className="mr-2" /> Xóa
-                                    </button>
+                                        <FiTrash2 className="mr-2" /> Delete
+                                    </button> */}
                                 </div>
                             </div>
                         )}

@@ -55,22 +55,22 @@ export default function HRApplicationTable({
                     <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
                         <TableRow>
                             <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                                Họ và tên
+                                Full Name
                             </TableCell>
                             <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                                 Email
                             </TableCell>
                             <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                                Điện thoại
+                                Phone
                             </TableCell>
                             <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                                Số năm kinh nghiệm
+                                Years of Experience
                             </TableCell>
                             <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                                Trạng thái
+                                Status
                             </TableCell>
                             <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                                Hành động
+                                Actions
                             </TableCell>
                         </TableRow>
                     </TableHeader>
@@ -97,28 +97,28 @@ export default function HRApplicationTable({
                                     {app.phone}
                                 </TableCell>
                                 <TableCell className="py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                                    {app.experienceYears} năm
+                                    {app.experienceYears} years
                                 </TableCell>
                                 <TableCell className="py-3">
                                     <Badge size="sm" color={getStatusColor(app.status)}>
-                                        {app.status === "PENDING" && "Đang chờ"}
-                                        {app.status === "APPROVED" && "Đã duyệt"}
-                                        {app.status === "REJECTED" && "Đã từ chối"}
+                                        {app.status === "PENDING" && "Pending"}
+                                        {app.status === "APPROVED" && "Approved"}
+                                        {app.status === "REJECTED" && "Rejected"}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="py-3 space-x-2">
                                     {app.status === "PENDING" && (
                                         <>
                                             <Button size="sm" onClick={() => onApprove(app.hrId)}>
-                                                Duyệt
+                                                Approve
                                             </Button>
                                             <Button size="sm" variant="outline" onClick={() => onReject(app.hrId)}>
-                                                Từ chối
+                                                Reject
                                             </Button>
                                         </>
                                     )}
                                     {app.status !== "PENDING" && (
-                                        <span className="text-gray-500 text-sm">Đã xử lý</span>
+                                        <span className="text-gray-500 text-sm">Processed</span>
                                     )}
                                 </TableCell>
                             </TableRow>

@@ -387,7 +387,7 @@ const ManageTopics: React.FC = () => {
 
     return (
         <>
-            <PageMeta title="Manage Topics" description="Topic management page: add, edit, delete, and assign tags to topics." />
+            <PageMeta title="Manage Topics" description="Topic management page" />
             <div className="p-6 bg-white dark:bg-gray-900 rounded-3xl shadow-md w-full max-w-6xl mx-auto">
                 <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Manage Topics</h1>
 
@@ -557,7 +557,7 @@ const ManageTopics: React.FC = () => {
                 </Modal>
 
                 {/* Topic Detail Modal with Tag Management */}
-                <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} className="max-w-2xl m-4">
+                <Modal isOpen={isDetailModalOpen} onClose={() => setIsDetailModalOpen(false)} className="max-w-2xl my-4 mx-auto">
                     <div className="no-scrollbar relative w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
                         <ModalHeader title="Topic details" onClose={() => setIsDetailModalOpen(false)} />
 
@@ -684,7 +684,7 @@ const ManageTopics: React.FC = () => {
                 </Modal>
 
                 {/* Add Tag Modal */}
-                <Modal isOpen={isAddTagModalOpen} onClose={() => setIsAddTagModalOpen(false)} className="max-w-md m-4">
+                <Modal isOpen={isAddTagModalOpen} onClose={() => setIsAddTagModalOpen(false)} className="max-w-md  my-4 mx-auto">
                     <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
                         <ModalHeader title="Add Tag to topic" onClose={() => setIsAddTagModalOpen(false)} />
 

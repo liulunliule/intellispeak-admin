@@ -62,11 +62,11 @@ const ManageForum: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    // const handleEdit = (topic: ForumTopic) => {
-    //     setEditingTopic(topic);
-    //     setTopicData({ title: topic.title });
-    //     setIsModalOpen(true);
-    // };
+    const handleEdit = (topic: ForumTopic) => {
+        setEditingTopic(topic);
+        setTopicData({ title: topic.title });
+        setIsModalOpen(true);
+    };
 
     const handleDelete = (topic: ForumTopic) => {
         setDeletingTopic(topic);
@@ -190,13 +190,13 @@ const ManageForum: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
-                                                {/* <Button
+                                                <Button
                                                     size="sm"
                                                     variant="outline"
                                                     onClick={() => handleEdit(topic)}
                                                 >
                                                     Edit
-                                                </Button> */}
+                                                </Button>
                                                 <Button
                                                     size="sm"
                                                     variant="danger"

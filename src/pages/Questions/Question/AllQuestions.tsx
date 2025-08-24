@@ -1,7 +1,8 @@
+// AllQuestions.tsx
 import { useState } from "react";
 import QuestionTable from "../../../components/questions/QuestionTable";
 import { QuestionSet } from "./ManageQuestions";
-import { ChevronDown, ChevronUp } from "react-feather"; // Import icon mũi tên
+import { ChevronDown, ChevronUp } from "react-feather";
 
 interface AllQuestionsProps {
     loading: boolean;
@@ -17,6 +18,9 @@ interface AllQuestionsProps {
     onSortChange: (sortBy: string) => void;
     onAddTag: (questionId: number) => void;
     onDeleteTag: (questionId: number, tagId: number) => void;
+    onViewDetails: (questionId: number) => void;
+    onUpdateQuestion: (questionId: number) => void;
+    onDeleteQuestion: (questionId: number) => void;
 }
 
 export default function AllQuestions({
@@ -32,13 +36,15 @@ export default function AllQuestions({
     onSortChange,
     onAddTag,
     onDeleteTag,
+    onViewDetails,
+    onUpdateQuestion,
+    onDeleteQuestion,
 }: AllQuestionsProps) {
-    const [isExpanded, setIsExpanded] = useState(true); // State để điều khiển hiển thị
+    const [isExpanded, setIsExpanded] = useState(true);
 
     return (
         <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6 mb-6">
             <div className="flex flex-col gap-6">
-                {/* Phần tiêu đề với mũi tên toggle */}
                 <div
                     className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between cursor-pointer"
                     onClick={() => setIsExpanded(!isExpanded)}
@@ -55,7 +61,6 @@ export default function AllQuestions({
                     </h3>
                 </div>
 
-                {/* Phần nội dung sẽ ẩn/hiện theo trạng thái isExpanded */}
                 {isExpanded && (
                     <>
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -115,6 +120,9 @@ export default function AllQuestions({
                                 questionSets={filteredSets}
                                 onAddTag={onAddTag}
                                 onDeleteTag={onDeleteTag}
+                                onViewDetails={onViewDetails}
+                                onUpdateQuestion={onUpdateQuestion}
+                                onDeleteQuestion={onDeleteQuestion}
                             />
                         )}
                     </>

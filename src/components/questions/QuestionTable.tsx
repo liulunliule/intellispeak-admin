@@ -1,5 +1,6 @@
+// components/questions/QuestionTable.tsx
+import { useState } from "react";
 import Badge from "../../components/ui/badge/Badge";
-import Button from "../../components/ui/button/Button";
 import {
     Table,
     TableBody,
@@ -7,6 +8,7 @@ import {
     TableHeader,
     TableRow,
 } from "../../components/ui/table";
+import { MoreDotIcon } from "../../icons";
 
 interface Tag {
     tagId: number;
@@ -30,9 +32,24 @@ interface QuestionTableProps {
     questionSets: QuestionSet[];
     onAddTag: (questionId: number) => void;
     onDeleteTag: (questionId: number, tagId: number) => void;
+    onViewDetails: (questionId: number) => void;
+    onUpdateQuestion: (questionId: number) => void;
+    onDeleteQuestion: (questionId: number) => void;
 }
 
-export default function QuestionTable({ questionSets, onAddTag, onDeleteTag }: QuestionTableProps) {
+export default function QuestionTable({
+    questionSets,
+    onAddTag,
+    onDeleteTag,
+    onViewDetails,
+    onUpdateQuestion,
+    onDeleteQuestion
+}: QuestionTableProps) {
+    const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+    const handleDropdown = (id: number) => {
+        setDropdownOpen(dropdownOpen === id ? null : id);
+    };
+
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             <div className="max-w-full overflow-x-auto">
@@ -111,13 +128,53 @@ export default function QuestionTable({ questionSets, onAddTag, onDeleteTag }: Q
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-start text-theme-sm">
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => onAddTag(set.id)}
-                                        >
-                                            Add Tag
-                                        </Button>
+                                        <div className="relative">
+                                            <button onClick={() => handleDropdown(set.id)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                                                <MoreDotIcon className="w-5 h-5 text-gray-500" />
+                                            </button>
+                                            {dropdownOpen === set.id && (
+                                                <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-10 dark:bg-gray-800 dark:border dark:border-gray-700">
+                                                    <div className="py-1">
+                                                        <button
+                                                            onClick={() => {
+                                                                onViewDetails(set.id);
+                                                                setDropdownOpen(null);
+                                                            }}
+                                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                                                        >
+                                                            Details
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                onUpdateQuestion(set.id);
+                                                                setDropdownOpen(null);
+                                                            }}
+                                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                                                        >
+                                                            Update
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                onAddTag(set.id);
+                                                                setDropdownOpen(null);
+                                                            }}
+                                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                                                        >
+                                                            Add Tag
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                onDeleteQuestion(set.id);
+                                                                setDropdownOpen(null);
+                                                            }}
+                                                            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))

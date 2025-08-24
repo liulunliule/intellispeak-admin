@@ -4,10 +4,11 @@ import PageMeta from "../../../components/common/PageMeta";
 import { Modal } from "../../../components/ui/modal";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
-import api from "../../../services/api";
 import AllQuestions from "./AllQuestions";
+import ConfirmationDialog from "../../../components/questions/ConfirmationDialog";
 import MyQuestions from "./MyQuestions";
 import Button from "../../../components/ui/button/Button";
+import * as questionService from "../../../services/question";
 
 interface Tag {
     tagId: number;
@@ -38,7 +39,37 @@ export interface QuestionSet {
     sampleAnswer: string;
 }
 
+// Thêm interface cho dữ liệu chi tiết câu hỏi
+interface QuestionDetail {
+    questionId: number;
+    title: string;
+    content: string;
+    difficulty: "EASY" | "MEDIUM" | "HARD";
+    suitableAnswer1: string;
+    suitableAnswer2: string;
+    tags: Tag[];
+    deleted: boolean;
+    source?: string;
+}
+
 export default function ManageQuestions() {
+    // State for delete confirmation
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deleteQuestionId, setDeleteQuestionId] = useState<number | null>(null);
+
+    const handleDeleteQuestion = (questionId: number) => {
+        setDeleteQuestionId(questionId);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDeleteQuestion = async () => {
+        if (!deleteQuestionId) return;
+        await questionService.deleteQuestion(deleteQuestionId);
+        await fetchQuestions();
+        await fetchMyQuestions();
+        setIsDeleteModalOpen(false);
+        setDeleteQuestionId(null);
+    };
     const [loadingQuestions, setLoadingQuestions] = useState(false);
     const [loadingMyQuestions, setLoadingMyQuestions] = useState(false);
     const [errorQuestions, setErrorQuestions] = useState("");
@@ -63,6 +94,11 @@ export default function ManageQuestions() {
     const [newTag, setNewTag] = useState("");
     const [newTagDesc, setNewTagDesc] = useState("");
     const [newQuestion, setNewQuestion] = useState("");
+    const [csvFile, setCsvFile] = useState<File | null>(null);
+    const [csvImporting, setCsvImporting] = useState(false);
+    const [csvImportError, setCsvImportError] = useState("");
+    const [csvImportSuccess, setCsvImportSuccess] = useState("");
+    const [createTab, setCreateTab] = useState<'manual' | 'csv'>('manual');
     const [questionContent, setQuestionContent] = useState("");
     const [questionDifficulty, setQuestionDifficulty] = useState("");
     const [suitableAnswer1, setSuitableAnswer1] = useState("");
@@ -74,6 +110,24 @@ export default function ManageQuestions() {
     const [deleteTagInfo, setDeleteTagInfo] = useState<{ questionId: number; tagId: number } | null>(null);
     const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
 
+    // Thêm state mới cho modal chi tiết
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [questionDetail, setQuestionDetail] = useState<QuestionDetail | null>(null);
+    const [loadingDetail, setLoadingDetail] = useState(false);
+    const [errorDetail, setErrorDetail] = useState("");
+
+    // Thêm state mới cho modal update
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [updateQuestionId, setUpdateQuestionId] = useState<number | null>(null);
+    const [updateTitle, setUpdateTitle] = useState("");
+    const [updateContent, setUpdateContent] = useState("");
+    const [updateDifficulty, setUpdateDifficulty] = useState("");
+    const [updateSuitableAnswer1, setUpdateSuitableAnswer1] = useState("");
+    const [updateSuitableAnswer2, setUpdateSuitableAnswer2] = useState("");
+    const [updateSource, setUpdateSource] = useState("");
+    const [loadingUpdate, setLoadingUpdate] = useState(false);
+    const [errorUpdate, setErrorUpdate] = useState("");
+
     useEffect(() => {
         fetchQuestions();
         fetchMyQuestions();
@@ -82,47 +136,89 @@ export default function ManageQuestions() {
     const fetchQuestions = async () => {
         setLoadingQuestions(true);
         setErrorQuestions("");
-        try {
-            const response = await api.get("/question");
-            const convertedSets = response.data.map((q: Question) => ({
-                id: q.questionId,
-                title: q.title,
-                content: q.content,
-                tags: q.tags,
-                difficulty: convertDifficulty(q.difficulty),
-                sampleAnswer: q.suitableAnswer1,
-            }));
-            setQuestionSets(convertedSets);
-            setFilteredSets(convertedSets);
-        } catch (error) {
-            setErrorQuestions("Failed to load question list");
-            console.error("Error fetching questions:", error);
-        } finally {
-            setLoadingQuestions(false);
-        }
+        const response = await questionService.getQuestions();
+        const convertedSets = response.data.map((q: Question) => ({
+            id: q.questionId,
+            title: q.title,
+            content: q.content,
+            tags: q.tags,
+            difficulty: convertDifficulty(q.difficulty),
+            sampleAnswer: q.suitableAnswer1,
+        }));
+        setQuestionSets(convertedSets);
+        setFilteredSets(convertedSets);
+        setLoadingQuestions(false);
     };
 
     const fetchMyQuestions = async () => {
         setLoadingMyQuestions(true);
         setErrorMyQuestions("");
-        try {
-            const response = await api.get("/question/my-questions");
-            const convertedSets = response.data.data.map((q: Question) => ({
-                id: q.questionId,
-                title: q.title,
-                content: q.content,
-                tags: q.tags,
-                difficulty: convertDifficulty(q.difficulty),
-                sampleAnswer: q.suitableAnswer1,
-            }));
-            setMyQuestionSets(convertedSets);
-            setFilteredMySets(convertedSets);
-        } catch (error) {
-            setErrorMyQuestions("Failed to load your question list");
-            console.error("Error fetching my questions:", error);
-        } finally {
-            setLoadingMyQuestions(false);
-        }
+        const response = await questionService.getMyQuestions();
+        const convertedSets = response.data.data.map((q: Question) => ({
+            id: q.questionId,
+            title: q.title,
+            content: q.content,
+            tags: q.tags,
+            difficulty: convertDifficulty(q.difficulty),
+            sampleAnswer: q.suitableAnswer1,
+        }));
+        setMyQuestionSets(convertedSets);
+        setFilteredMySets(convertedSets);
+        setLoadingMyQuestions(false);
+    };
+
+    // Thêm hàm fetch chi tiết câu hỏi
+    const fetchQuestionDetail = async (questionId: number) => {
+        setLoadingDetail(true);
+        setErrorDetail("");
+        const response = await questionService.getQuestionDetail(questionId);
+        setQuestionDetail(response.data);
+        setIsDetailModalOpen(true);
+        setLoadingDetail(false);
+    };
+
+    // Thêm hàm xử lý xem chi tiết
+    const handleViewDetails = (questionId: number) => {
+        fetchQuestionDetail(questionId);
+    };
+
+    // Thêm hàm mở modal update
+    const handleOpenUpdateModal = async (questionId: number) => {
+        setLoadingUpdate(true);
+        setErrorUpdate("");
+        const response = await questionService.getQuestionDetail(questionId);
+        const question = response.data;
+        setUpdateQuestionId(questionId);
+        setUpdateTitle(question.title);
+        setUpdateContent(question.content);
+        setUpdateDifficulty(question.difficulty);
+        setUpdateSuitableAnswer1(question.suitableAnswer1);
+        setUpdateSuitableAnswer2(question.suitableAnswer2 || "");
+        setUpdateSource(question.source || "");
+        setIsUpdateModalOpen(true);
+        setLoadingUpdate(false);
+    };
+
+    // Thêm hàm xử lý update câu hỏi
+    const handleUpdateQuestion = async () => {
+        if (!updateQuestionId || !updateTitle || !updateContent || !updateDifficulty || !updateSuitableAnswer1) return;
+
+        setLoadingUpdate(true);
+        setErrorUpdate("");
+        await questionService.updateQuestion(updateQuestionId, {
+            title: updateTitle,
+            content: updateContent,
+            suitableAnswer1: updateSuitableAnswer1,
+            suitableAnswer2: updateSuitableAnswer2,
+            difficulty: updateDifficulty,
+            source: updateSource
+        });
+
+        await fetchQuestions();
+        await fetchMyQuestions();
+        setIsUpdateModalOpen(false);
+        setUpdateQuestionId(null);
+        setLoadingUpdate(false);
     };
 
     const convertDifficulty = (difficulty: string): "Easy" | "Medium" | "Hard" => {
@@ -135,17 +231,17 @@ export default function ManageQuestions() {
     };
 
     useEffect(() => {
-        if (isCreateModalOpen || isAddTagModalOpen || isDeleteTagModalOpen) {
+        if (isCreateModalOpen || isAddTagModalOpen || isDeleteTagModalOpen || isUpdateModalOpen) {
             fetchTopics();
             fetchTags();
         }
-    }, [isCreateModalOpen, isAddTagModalOpen, isDeleteTagModalOpen]);
+    }, [isCreateModalOpen, isAddTagModalOpen, isDeleteTagModalOpen, isUpdateModalOpen]);
 
     const fetchTopics = async () => {
         setLoadingTags(true);
         setErrorTags("");
         try {
-            const response = await api.get("/topic");
+            const response = await questionService.getTopics();
             setTopics(response.data);
         } catch (error) {
             setErrorTags("Failed to load topics");
@@ -158,27 +254,13 @@ export default function ManageQuestions() {
     const fetchTags = async () => {
         setLoadingTags(true);
         setErrorTags("");
-        try {
-            const response = await api.get("/tag");
-            setTags(response.data.data || []);
-        } catch (error) {
-            setErrorTags("Failed to load tags");
-            console.error("Error fetching tags:", error);
-        } finally {
-            setLoadingTags(false);
-        }
+        const response = await questionService.getTags();
+        setTags(response.data.data || []);
     };
 
     const connectTagToTopic = async (topicId: number, tagId: number) => {
         try {
-            const response = await api.get(`/topic/${topicId}/tags`);
-            const existingTags = response.data;
-
-            const tagExists = existingTags.some((tag: any) => tag.tagId === tagId);
-            if (!tagExists) {
-                await api.put(`/topic/${topicId}/tags/${tagId}`);
-                console.log(`Connected tag ${tagId} to topic ${topicId}`);
-            }
+            await questionService.connectTagToTopic(topicId, tagId);
         } catch (error) {
             console.error("Error connecting tag to topic:", error);
         }
@@ -187,7 +269,7 @@ export default function ManageQuestions() {
     const handleAddTopic = async () => {
         if (!newTopic || !newTopicDesc) return;
         try {
-            const response = await api.post("/topic", {
+            const response = await questionService.createTopic({
                 title: newTopic,
                 description: newTopicDesc,
             });
@@ -206,7 +288,7 @@ export default function ManageQuestions() {
     const handleAddTag = async () => {
         if (!newTag || !newTagDesc) return;
         try {
-            await api.post("/tag", {
+            await questionService.createTagForQuestion({
                 title: newTag,
                 description: newTagDesc,
             });
@@ -230,7 +312,7 @@ export default function ManageQuestions() {
                 return;
             }
 
-            await api.post("/question", {
+            await questionService.createQuestion({
                 title: newQuestion,
                 content: questionContent,
                 difficulty: questionDifficulty,
@@ -255,7 +337,7 @@ export default function ManageQuestions() {
         try {
             const selectedTagObj = tags.find((tag) => tag.title === selectedAddTag);
             if (selectedTagObj) {
-                await api.put(`/tag/${selectedQuestionId}/tags/${selectedTagObj.id}`);
+                await questionService.addTagToQuestion(selectedQuestionId, selectedTagObj.id);
                 await fetchQuestions();
                 await fetchMyQuestions();
                 setIsAddTagModalOpen(false);
@@ -270,7 +352,7 @@ export default function ManageQuestions() {
     const handleDeleteTagFromQuestion = async () => {
         if (!deleteTagInfo) return;
         try {
-            await api.delete(`/tag/${deleteTagInfo.questionId}/tags/${deleteTagInfo.tagId}`);
+            await questionService.deleteTagFromQuestion(deleteTagInfo.questionId, deleteTagInfo.tagId);
             await fetchQuestions();
             await fetchMyQuestions();
             setIsDeleteTagModalOpen(false);
@@ -384,6 +466,7 @@ export default function ManageQuestions() {
             />
             <PageBreadcrumb pageTitle="Questions" />
 
+
             <MyQuestions
                 loading={loadingMyQuestions}
                 error={errorMyQuestions}
@@ -399,6 +482,9 @@ export default function ManageQuestions() {
                 onAddTag={openAddTagModal}
                 onDeleteTag={requestDeleteTag}
                 onCreateQuestion={() => setIsCreateModalOpen(true)}
+                onViewDetails={handleViewDetails}
+                onUpdateQuestion={handleOpenUpdateModal}
+                onDeleteQuestion={handleDeleteQuestion}
             />
 
             <AllQuestions
@@ -415,7 +501,209 @@ export default function ManageQuestions() {
                 onSortChange={handleSortChange}
                 onAddTag={openAddTagModal}
                 onDeleteTag={requestDeleteTag}
+                onViewDetails={handleViewDetails}
+                onUpdateQuestion={handleOpenUpdateModal}
+                onDeleteQuestion={handleDeleteQuestion}
             />
+            <ConfirmationDialog
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={confirmDeleteQuestion}
+                title="Delete Question"
+                message="Are you sure you want to delete this question? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+            />
+
+            {/* Modal chi tiết câu hỏi */}
+            <Modal
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                className="max-w-2xl"
+            >
+                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    {loadingDetail && (
+                        <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+                            Loading question details...
+                        </div>
+                    )}
+                    {errorDetail && (
+                        <div className="py-8 text-center text-red-500 dark:text-red-400">
+                            {errorDetail}
+                        </div>
+                    )}
+                    {questionDetail && !loadingDetail && !errorDetail && (
+                        <>
+                            <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
+                                Question Details
+                            </h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <Label>Title</Label>
+                                    <p className="mt-1 text-gray-800 dark:text-white/90">
+                                        {questionDetail.title}
+                                    </p>
+                                </div>
+                                <div>
+                                    <Label>Content</Label>
+                                    <p className="mt-1 text-gray-800 dark:text-white/90">
+                                        {questionDetail.content}
+                                    </p>
+                                </div>
+                                <div>
+                                    <Label>Difficulty</Label>
+                                    <p className="mt-1 text-gray-800 dark:text-white/90 capitalize">
+                                        {questionDetail.difficulty.toLowerCase()}
+                                    </p>
+                                </div>
+                                <div>
+                                    <Label>Tags</Label>
+                                    <div className="mt-1 flex flex-wrap gap-2">
+                                        {questionDetail.tags.map((tag) => (
+                                            <span
+                                                key={tag.tagId}
+                                                className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                            >
+                                                {tag.title}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label>Suitable Answer 1</Label>
+                                    <p className="mt-1 text-gray-800 dark:text-white/90">
+                                        {questionDetail.suitableAnswer1}
+                                    </p>
+                                </div>
+                                {questionDetail.suitableAnswer2 && (
+                                    <div>
+                                        <Label>Suitable Answer 2</Label>
+                                        <p className="mt-1 text-gray-800 dark:text-white/90">
+                                            {questionDetail.suitableAnswer2}
+                                        </p>
+                                    </div>
+                                )}
+                                {questionDetail.source && (
+                                    <div>
+                                        <Label>Source</Label>
+                                        <p className="mt-1 text-gray-800 dark:text-white/90">
+                                            {questionDetail.source}
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="mt-6 flex justify-end">
+                                <Button onClick={() => setIsDetailModalOpen(false)}>
+                                    Close
+                                </Button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </Modal>
+
+            {/* Modal update câu hỏi */}
+            <Modal
+                isOpen={isUpdateModalOpen}
+                onClose={() => setIsUpdateModalOpen(false)}
+                className="max-w-2xl"
+            >
+                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
+                        Update Question
+                    </h3>
+                    {loadingUpdate && (
+                        <div className="py-4 text-center text-gray-500 dark:text-gray-400">
+                            Loading question data...
+                        </div>
+                    )}
+                    {errorUpdate && (
+                        <div className="py-4 text-center text-red-500 dark:text-red-400">
+                            {errorUpdate}
+                        </div>
+                    )}
+                    {!loadingUpdate && (
+                        <div className="space-y-4">
+                            <div>
+                                <Label>Question title</Label>
+                                <Input
+                                    value={updateTitle}
+                                    onChange={(e) => setUpdateTitle(e.target.value)}
+                                    placeholder="Enter question title"
+                                />
+                            </div>
+                            <div>
+                                <Label>Question content</Label>
+                                <textarea
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                    rows={4}
+                                    value={updateContent}
+                                    onChange={(e) => setUpdateContent(e.target.value)}
+                                    placeholder="Enter detailed question content"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div>
+                                    <Label>Difficulty</Label>
+                                    <select
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                        value={updateDifficulty}
+                                        onChange={(e) => setUpdateDifficulty(e.target.value)}
+                                    >
+                                        <option value="">-- Select difficulty --</option>
+                                        <option value="EASY">Easy</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="HARD">Hard</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <Label>Source (optional)</Label>
+                                    <Input
+                                        value={updateSource}
+                                        onChange={(e) => setUpdateSource(e.target.value)}
+                                        placeholder="Enter source"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <Label>Suitable answer 1</Label>
+                                <textarea
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                    rows={2}
+                                    value={updateSuitableAnswer1}
+                                    onChange={(e) => setUpdateSuitableAnswer1(e.target.value)}
+                                    placeholder="Enter sample answer"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <Label>Suitable answer 2</Label>
+                                <textarea
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                    rows={2}
+                                    value={updateSuitableAnswer2}
+                                    onChange={(e) => setUpdateSuitableAnswer2(e.target.value)}
+                                    placeholder="Enter second sample answer"
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsUpdateModalOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleUpdateQuestion}
+                                    disabled={!updateTitle || !updateContent || !updateDifficulty || !updateSuitableAnswer1}
+                                >
+                                    Update Question
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </Modal>
 
             <Modal
                 isOpen={isAddTagModalOpen}
@@ -636,9 +924,24 @@ export default function ManageQuestions() {
                             )}
                             {createStep === 3 && selectedTag && (
                                 <div className="space-y-4">
-                                    <div>
-                                        <Label>3. Question information</Label>
-                                        <div className="space-y-4">
+                                    <div className="flex gap-2 border-b mb-4">
+                                        <button
+                                            className={`px-4 py-2 font-semibold border-b-2 transition-colors ${createTab === 'manual' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-600 dark:text-gray-300'}`}
+                                            onClick={() => setCreateTab('manual')}
+                                            type="button"
+                                        >
+                                            Input Question
+                                        </button>
+                                        <button
+                                            className={`px-4 py-2 font-semibold border-b-2 transition-colors ${createTab === 'csv' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-600 dark:text-gray-300'}`}
+                                            onClick={() => setCreateTab('csv')}
+                                            type="button"
+                                        >
+                                            Import CSV
+                                        </button>
+                                    </div>
+                                    {createTab === 'manual' && (
+                                        <>
                                             <div>
                                                 <Label>Question title</Label>
                                                 <Input
@@ -684,7 +987,7 @@ export default function ManageQuestions() {
                                                 />
                                             </div>
                                             <div>
-                                                <Label>Suitable answer 2 (optional)</Label>
+                                                <Label>Suitable answer 2</Label>
                                                 <textarea
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                                     rows={2}
@@ -693,22 +996,88 @@ export default function ManageQuestions() {
                                                     placeholder="Enter second sample answer"
                                                 />
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex justify-between pt-4">
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => setCreateStep(2)}
-                                        >
-                                            Back
-                                        </Button>
-                                        <Button
-                                            onClick={handleAddQuestion}
-                                            disabled={!questionContent || !questionDifficulty || !suitableAnswer1}
-                                        >
-                                            Create question
-                                        </Button>
-                                    </div>
+                                            <div className="flex justify-between pt-4">
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setCreateStep(2)}
+                                                >
+                                                    Back
+                                                </Button>
+                                                <Button
+                                                    onClick={handleAddQuestion}
+                                                    disabled={!questionContent || !questionDifficulty || !suitableAnswer1}
+                                                >
+                                                    Create question
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
+                                    {createTab === 'csv' && (
+                                        <>
+                                            <div>
+                                                <Label>Import CSV file</Label>
+                                                <input
+                                                    type="file"
+                                                    accept=".csv"
+                                                    onChange={e => {
+                                                        setCsvImportError("");
+                                                        setCsvImportSuccess("");
+                                                        if (e.target.files && e.target.files[0]) {
+                                                            setCsvFile(e.target.files[0]);
+                                                        } else {
+                                                            setCsvFile(null);
+                                                        }
+                                                    }}
+                                                    className="block w-full text-sm text-gray-500"
+                                                />
+                                            </div>
+                                            {csvImportError && (
+                                                <div className="text-red-500 text-sm">{csvImportError}</div>
+                                            )}
+                                            {csvImportSuccess && (
+                                                <div className="text-green-600 text-sm">{csvImportSuccess}</div>
+                                            )}
+                                            <div className="flex justify-between pt-4">
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => setCreateStep(2)}
+                                                >
+                                                    Back
+                                                </Button>
+                                                <Button
+                                                    onClick={async () => {
+                                                        setCsvImportError("");
+                                                        setCsvImportSuccess("");
+                                                        if (!csvFile) {
+                                                            setCsvImportError("Please select a CSV file.");
+                                                            return;
+                                                        }
+                                                        const selectedTagObj = tags.find((tag) => tag.title === selectedTag);
+                                                        if (!selectedTagObj) {
+                                                            setCsvImportError("Please select a tag before importing.");
+                                                            return;
+                                                        }
+                                                        setCsvImporting(true);
+                                                        try {
+                                                            await questionService.importCsvQuestions(selectedTagObj.id, csvFile);
+                                                            setCsvImportSuccess("CSV imported successfully.");
+                                                            await fetchQuestions();
+                                                            await fetchMyQuestions();
+                                                            setIsCreateModalOpen(false);
+                                                            resetCreateFlow();
+                                                        } catch (error) {
+                                                            setCsvImportError((error as any).message || "Failed to import CSV.");
+                                                        } finally {
+                                                            setCsvImporting(false);
+                                                        }
+                                                    }}
+                                                    disabled={csvImporting || !csvFile}
+                                                >
+                                                    {csvImporting ? "Importing..." : "Import CSV"}
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </div>

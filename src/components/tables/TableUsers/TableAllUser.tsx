@@ -7,10 +7,10 @@ import {
 } from "../../ui/table";
 // import Badge from "../../ui/badge/Badge";
 import { useState, useEffect } from "react";
-import api from '../../../services/api';
-import { useModal } from "../../../hooks/useModal";
+import * as userService from '../../../services/user';
+// import { useModal } from "../../../hooks/useModal";
 // Removed unused modal, button, label, input imports
-import { useNavigate } from "react-router";
+// import { useNavigate } from "react-router";
 
 
 interface User {
@@ -20,12 +20,16 @@ interface User {
     role: string;
     avatar: string;
     createAt: string;
+    isDeleted: boolean;
 }
 
 
-export default function TableAllUser() {
-    const navigate = useNavigate();
-    const { openModal } = useModal();
+interface TableAllUserProps {
+    onShowDetail?: (user: any) => void;
+    refreshKey?: number;
+}
+
+const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
     const [users, setUsers] = useState<User[]>([]);
     const [roleFilter, setRoleFilter] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,38 +37,59 @@ export default function TableAllUser() {
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const usersPerPage = 5;
+    // Ban confirmation modal state
+    const [banUserId, setBanUserId] = useState<string | null>(null);
+    const [isBanModalOpen, setIsBanModalOpen] = useState(false);
     // Removed unused selectedUser state
 
     useEffect(() => {
         async function fetchUsers() {
-            try {
-                const res = await api.get('/admin/all-users');
-                if (res.data && res.data.code === 200) {
-                    setUsers(res.data.data);
-                }
-                console.log('Fetched users:', res.data.data);
-            } catch {
-                // handle error
-            } finally {
-                setLoading(false);
-            }
+            const data = await userService.getAllUsers();
+            setUsers(data);
+            setLoading(false);
         }
         fetchUsers();
-    }, []);
+    }, [refreshKey]);
 
 
-    const handleEdit = () => {
-        openModal();
+
+    // Remove edit logic
+
+
+    const handleBan = async (userId: string) => {
+        try {
+            await userService.banUser(userId);
+            setUsers(prev => prev.map(u => u.userId === userId ? { ...u, isDeleted: true } : u));
+        } catch (error) {
+            // Optionally show error to user
+            console.error(error);
+        } finally {
+            setDropdownOpen(null);
+            setBanUserId(null);
+            setIsBanModalOpen(false);
+        }
+    };
+
+    const handleUnban = async (userId: string) => {
+        try {
+            await userService.unbanUser(userId);
+            setUsers(prev => prev.map(u => u.userId === userId ? { ...u, isDeleted: false } : u));
+        } catch (error) {
+            // Optionally show error to user
+            console.error(error);
+        } finally {
+            setDropdownOpen(null);
+        }
+    };
+
+    const openBanModal = (userId: string) => {
+        setBanUserId(userId);
+        setIsBanModalOpen(true);
         setDropdownOpen(null);
     };
 
-    const handleDelete = () => {
-        // TODO: implement delete logic
-        setDropdownOpen(null);
-    };
-
-    const handleDetail = (userId: string) => {
-        navigate(`/profile?id=${userId}`);
+    const handleDetail = (user: User) => {
+        if (onShowDetail) onShowDetail(user);
         setDropdownOpen(null);
     };
 
@@ -134,21 +159,41 @@ export default function TableAllUser() {
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-gray-800 text-theme-sm dark:text-white/90">{user.userName}</TableCell>
                                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">{user.email}</TableCell>
-                                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">{user.role}</TableCell>
+                                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                                        {user.isDeleted ? (
+                                            <span className="inline-block px-2 py-1 text-xs font-semibold text-white bg-red-500 rounded">Banned</span>
+                                        ) : (
+                                            user.role
+                                        )}
+                                    </TableCell>
                                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">{new Date(user.createAt).toLocaleString()}</TableCell>
                                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         <div className="relative">
                                             <button onClick={() => toggleDropdown(user.userId)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
                                                 </svg>
                                             </button>
                                             {dropdownOpen === user.userId && (
                                                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 dark:bg-gray-800 dark:border dark:border-gray-700">
                                                     <div className="py-1">
-                                                        <button onClick={() => handleDetail(user.userId)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">Details</button>
-                                                        <button onClick={handleEdit} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">Edit</button>
-                                                        <button onClick={handleDelete} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700">Delete</button>
+                                                        <button onClick={() => handleDetail(user)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">Details</button>
+                                                        {user.isDeleted ? (
+                                                            <button
+                                                                onClick={() => handleUnban(user.userId)}
+                                                                className="block w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-gray-100 dark:text-green-400 dark:hover:bg-gray-700"
+                                                            >
+                                                                Unban
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => openBanModal(user.userId)}
+                                                                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
+                                                                disabled={user.isDeleted}
+                                                                style={user.isDeleted ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                                                            >
+                                                                Ban
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
@@ -160,6 +205,49 @@ export default function TableAllUser() {
                     </Table>
                 </div>
             </div>
+
+            {/* Ban User Confirmation Modal (moved outside dropdown) */}
+            {isBanModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-md w-full shadow-lg text-center">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-16 w-16 mx-auto text-red-500 mb-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                        </svg>
+                        <h3 className="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-100">
+                            Confirm Ban
+                        </h3>
+                        <p className="mb-6 text-gray-600 dark:text-gray-400">
+                            Are you sure you want to ban this user? This action cannot be undone.
+                        </p>
+                        <div className="flex justify-center gap-3">
+                            <button
+                                className="px-4 py-2 rounded border border-gray-300 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                onClick={() => { setIsBanModalOpen(false); setBanUserId(null); }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                                onClick={() => banUserId && handleBan(banUserId)}
+                            >
+                                Ban
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Pagination controls */}
             <div className="flex justify-center items-center gap-2 mt-4">
                 <button
@@ -188,4 +276,6 @@ export default function TableAllUser() {
             </div>
         </>
     );
-}
+};
+
+export default TableAllUser;

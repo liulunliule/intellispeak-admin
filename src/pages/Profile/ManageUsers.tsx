@@ -1,20 +1,106 @@
+import { useState } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
 import { useModal } from "../../hooks/useModal";
+import * as userService from '../../services/user';
 import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import TableAllUser from "../../components/tables/TableUsers/TableAllUser";
 
+interface UserDetail {
+    userId: string;
+    userName: string;
+    email: string;
+    role: string;
+    avatar: string;
+    createAt: string;
+    isDeleted: boolean;
+}
+
+
+
 export default function ManageUsers() {
     const { isOpen, openModal, closeModal } = useModal();
+    const [form, setForm] = useState({
+        email: '',
+        firstName: '',
+        lastName: '',
+        password: '',
+        confirmPassword: '',
+        role: '',
+    });
+    const [error, setError] = useState('');
 
-    const handleCreateUser = () => {
-        // Handle user creation logic here
-        console.log("Creating new user...");
-        closeModal();
+    // User detail modal state
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [detailUser, setDetailUser] = useState<UserDetail | null>(null);
+    // For refreshing user list
+    const [userListRefreshKey, setUserListRefreshKey] = useState(0);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setForm((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleCreateUser = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setError('');
+        if (form.password !== form.confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+        if (!form.email || !form.firstName || !form.lastName || !form.password || !form.role) {
+            setError('Please fill in all required fields');
+            return;
+        }
+        try {
+            await userService.createUser({
+                email: form.email,
+                firstName: form.firstName,
+                lastName: form.lastName,
+                password: form.password,
+                role: form.role,
+            });
+            closeModal();
+            setForm({ email: '', firstName: '', lastName: '', password: '', confirmPassword: '', role: '' });
+        } catch (err: any) {
+            setError(err.message || 'Failed to create user');
+        }
+    };
+
+    // Callback for TableAllUser to open detail modal
+    const handleShowDetail = (user: UserDetail) => {
+        setDetailUser(user);
+        setDetailModalOpen(true);
+    };
+
+    const closeDetailModal = () => {
+        setDetailModalOpen(false);
+        setDetailUser(null);
+    };
+
+    // Ban/Unban user from detail modal
+    const handleBanUnban = async () => {
+        if (!detailUser) return;
+        try {
+            if (detailUser.isDeleted) {
+                // Unban user
+                await userService.unbanUser(detailUser.userId);
+                setDetailUser({ ...detailUser, isDeleted: false });
+            } else {
+                // Ban user
+                await userService.banUser(detailUser.userId);
+                setDetailUser({ ...detailUser, isDeleted: true });
+            }
+            // Refresh user list in table
+            setUserListRefreshKey(k => k + 1);
+        } catch (err) {
+            // Optionally show error
+            alert((err as Error).message || 'Failed to update user status');
+        }
     };
 
     return (
@@ -52,8 +138,62 @@ export default function ManageUsers() {
                 </div>
 
                 <ComponentCard title="User List">
-                    <TableAllUser />
+                    <TableAllUser onShowDetail={handleShowDetail} refreshKey={userListRefreshKey} />
                 </ComponentCard>
+                {/* User Detail Modal */}
+                <Modal isOpen={detailModalOpen} onClose={closeDetailModal} className="max-w-[700px] m-4">
+                    <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
+                        <div className="px-2 pr-14">
+                            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+                                User Details
+                            </h4>
+                            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
+                                View user account information.
+                            </p>
+                        </div>
+                        {detailUser && (
+                            <div className="flex flex-col gap-6">
+                                <div className="flex flex-col items-center gap-2 mb-4">
+                                    <img src={detailUser.avatar} alt={detailUser.userName} className="w-24 h-24 rounded-full object-cover border" />
+                                    <div className="text-lg font-semibold text-gray-800 dark:text-white/90">{detailUser.userName}</div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">{detailUser.email}</div>
+                                </div>
+                                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+                                    <div>
+                                        <Label>User ID</Label>
+                                        <Input value={detailUser.userId} disabled />
+                                    </div>
+                                    <div>
+                                        <Label>Role</Label>
+                                        <Input value={detailUser.role} disabled />
+                                    </div>
+                                    <div>
+                                        <Label>Created At</Label>
+                                        <Input value={new Date(detailUser.createAt).toLocaleString()} disabled />
+                                    </div>
+                                    <div>
+                                        <Label>Status</Label>
+                                        <Input value={detailUser.isDeleted ? 'Banned' : 'Active'} disabled />
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 mt-4">
+                                    <Button
+                                        size="sm"
+                                        variant={detailUser.isDeleted ? 'primary' : 'danger'}
+                                        onClick={handleBanUnban}
+                                    >
+                                        {detailUser.isDeleted ? 'Unban User' : 'Ban User'}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                        <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+                            <Button size="sm" variant="outline" onClick={closeDetailModal}>
+                                Close
+                            </Button>
+                        </div>
+                    </div>
+                </Modal>
             </div>
 
             {/* Create User Modal */}
@@ -68,60 +208,45 @@ export default function ManageUsers() {
                         </p>
                     </div>
 
-                    <form className="flex flex-col">
+                    <form className="flex flex-col" onSubmit={handleCreateUser}>
                         <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
+                            {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
                             <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                                <div className="col-span-2 flex flex-col items-center">
-                                    <div className="w-20 h-20 overflow-hidden border border-gray-200 rounded-full dark:border-gray-800 mb-4">
-                                        <img
-                                            src="/images/user/default-avatar.jpg"
-                                            alt="Default avatar"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-                                    <Button variant="outline" size="sm">
-                                        Upload Photo
-                                    </Button>
-                                </div>
+
+
 
                                 <div>
                                     <Label>First Name</Label>
-                                    <Input type="text" placeholder="Enter first name" />
+                                    <Input name="firstName" type="text" placeholder="Enter first name" value={form.firstName} onChange={handleInputChange} />
                                 </div>
 
                                 <div>
                                     <Label>Last Name</Label>
-                                    <Input type="text" placeholder="Enter last name" />
+                                    <Input name="lastName" type="text" placeholder="Enter last name" value={form.lastName} onChange={handleInputChange} />
                                 </div>
 
                                 <div className="col-span-2 lg:col-span-1">
                                     <Label>Email Address</Label>
-                                    <Input type="email" placeholder="Enter email address" />
-                                </div>
-
-                                <div className="col-span-2 lg:col-span-1">
-                                    <Label>Phone Number</Label>
-                                    <Input type="tel" placeholder="Enter phone number" />
+                                    <Input name="email" type="email" placeholder="Enter email address" value={form.email} onChange={handleInputChange} />
                                 </div>
 
                                 <div className="col-span-2 lg:col-span-1">
                                     <Label>Password</Label>
-                                    <Input type="password" placeholder="Enter password" />
+                                    <Input name="password" type="password" placeholder="Enter password" value={form.password} onChange={handleInputChange} />
                                 </div>
 
                                 <div className="col-span-2 lg:col-span-1">
                                     <Label>Confirm Password</Label>
-                                    <Input type="password" placeholder="Confirm password" />
+                                    <Input name="confirmPassword" type="password" placeholder="Confirm password" value={form.confirmPassword} onChange={handleInputChange} />
                                 </div>
 
                                 <div className="col-span-2">
                                     <Label>Role</Label>
-                                    <select className="w-full px-4 py-2.5 text-theme-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                    <select name="role" value={form.role} onChange={handleInputChange} className="w-full px-4 py-2.5 text-theme-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                         <option value="">Select role</option>
-                                        <option value="admin">Admin</option>
-                                        <option value="manager">Manager</option>
-                                        <option value="editor">Editor</option>
-                                        <option value="viewer">Viewer</option>
+                                        <option value="ADMIN">Admin</option>
+                                        <option value="HR">HR</option>
+                                        <option value="USER">User</option>
                                     </select>
                                 </div>
 
@@ -140,7 +265,7 @@ export default function ManageUsers() {
                             <Button size="sm" variant="outline" onClick={closeModal}>
                                 Cancel
                             </Button>
-                            <Button size="sm" onClick={handleCreateUser}>
+                            <Button size="sm">
                                 Create User
                             </Button>
                         </div>
