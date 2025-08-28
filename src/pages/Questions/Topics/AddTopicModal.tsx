@@ -34,7 +34,7 @@ const AddTopicModal: React.FC<AddTopicModalProps> = ({
     setNewDesc,
     newLongDesc,
     setNewLongDesc,
-    newThumbnailFile,
+    // newThumbnailFile,
     setNewThumbnailFile,
     newThumbnailPreview,
     setNewThumbnailPreview,

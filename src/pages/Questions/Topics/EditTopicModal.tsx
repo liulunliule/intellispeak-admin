@@ -4,6 +4,7 @@ import ModalHeader from "./ModalHeader";
 import ModalFooter from "./ModalFooter";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
+import Button from "../../../components/ui/button/Button";
 
 interface EditTopicModalProps {
     isOpen: boolean;
@@ -34,7 +35,6 @@ const EditTopicModal: React.FC<EditTopicModalProps> = ({
     setEditedDesc,
     editedLongDesc,
     setEditedLongDesc,
-    editedThumbnailFile,
     setEditedThumbnailFile,
     editedThumbnailPreview,
     setEditedThumbnailPreview,
@@ -46,38 +46,39 @@ const EditTopicModal: React.FC<EditTopicModalProps> = ({
             <div className="space-y-4">
                 <div>
                     <Label>Thumbnail image</Label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleEditedThumbnailChange}
-                        className="block w-full text-sm text-gray-500
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-md file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-blue-50 file:text-blue-700
-                        hover:file:bg-blue-100
-                        dark:file:bg-blue-900/50 dark:file:text-blue-300
-                        dark:hover:file:bg-blue-900/70
-                        cursor-pointer"
-                    />
-                    {editedThumbnailPreview && (
-                        <div className="mt-2 flex flex-col items-center">
-                            <img
-                                src={editedThumbnailPreview}
-                                alt="Preview"
-                                className="h-32 object-contain rounded border border-gray-200 dark:border-gray-700"
-                            />
-                            <button
-                                onClick={() => {
-                                    setEditedThumbnailFile(null);
-                                    setEditedThumbnailPreview(null);
-                                }}
-                                className="mt-2 text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                            >
-                                Remove image
-                            </button>
-                        </div>
-                    )}
+                    <div className="relative">
+                        <Button
+                            variant="outline"
+                            onClick={() => document.getElementById('edit-thumbnail-input')?.click()}
+                        >
+                            Choose Thumbnail
+                        </Button>
+                        <input
+                            id="edit-thumbnail-input"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleEditedThumbnailChange}
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                        {editedThumbnailPreview && (
+                            <div className="mt-2 flex flex-col items-center">
+                                <img
+                                    src={editedThumbnailPreview}
+                                    alt="Preview"
+                                    className="h-32 object-contain rounded border border-gray-200 dark:border-gray-700"
+                                />
+                                <button
+                                    onClick={() => {
+                                        setEditedThumbnailFile(null);
+                                        setEditedThumbnailPreview(null);
+                                    }}
+                                    className="mt-2 text-sm text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                >
+                                    Remove image
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <div>
                     <Label>Topic name*</Label>

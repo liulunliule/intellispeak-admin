@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/ui/modal';
 import Button from '../../components/ui/button/Button';
-import Input from '../../components/form/input/InputField';
 import Label from '../../components/form/Label';
 import Badge, { BadgeColor } from '../../components/ui/badge/Badge';
 import * as questionService from '../../services/question';
 import * as topicService from '../../services/topic';
+import * as templateService from '../../services/template';
 
 interface Topic {
     topicId: number;
@@ -17,7 +17,7 @@ interface Topic {
 }
 
 interface Tag {
-    id: number;
+    tagId: number;
     title: string;
     description?: string;
     createAt?: string;
@@ -35,7 +35,7 @@ interface Question {
     difficulty: string;
     questionStatus: string;
     source: string;
-    _deleted: boolean;
+    is_deleted: boolean;
 }
 
 interface Session {
@@ -85,10 +85,12 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
         thumbnail: '',
     });
     const [topics, setTopics] = useState<{ topicId: number; title: string }[]>([]);
-    const [tags, setTags] = useState<Tag[]>([]);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [selectedQuestionIds, setSelectedQuestionIds] = useState<number[]>([]);
     const [isAddQuestionModalOpen, setIsAddQuestionModalOpen] = useState(false);
+    const [isImportCsvModalOpen, setIsImportCsvModalOpen] = useState(false);
+    const [csvFile, setCsvFile] = useState<File | null>(null);
+    const [selectedTagId, setSelectedTagId] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
@@ -114,7 +116,7 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
                         totalQuestion: fetchedSession.totalQuestion.toString(),
                         difficulty: fetchedSession.difficulty,
                         topicId: fetchedSession.topic.topicId.toString(),
-                        tagIds: fetchedSession.tags.map((tag: Tag) => tag.id),
+                        tagIds: fetchedSession.tags.map((tag: Tag) => tag.tagId),
                         thumbnail: fetchedSession.interviewSessionThumbnail || '',
                     });
                     setThumbnailPreview(fetchedSession.interviewSessionThumbnail || null);
@@ -136,29 +138,12 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
                 const topicRes = await questionService.getTopics();
                 console.log('API response for getTopics:', topicRes.data);
                 setTopics(topicRes.data.data || topicRes.data);
-                const tagRes = await questionService.getTags();
-                console.log('Tags list:', tagRes.data.data || tagRes.data);
-                const fetchedTags = tagRes.data.data || tagRes.data;
-                const validTags = fetchedTags
-                    .filter((tag: any) => tag.id !== undefined && tag.id !== null)
-                    .map((tag: any) => ({
-                        id: tag.id,
-                        title: tag.title,
-                        description: tag.description,
-                        createAt: tag.createAt,
-                        updateAt: tag.updateAt,
-                        isDeleted: tag.isDeleted,
-                    }));
-                if (validTags.length < fetchedTags.length) {
-                    setError('Warning: Some tags have invalid IDs and were skipped');
-                }
-                setTags(validTags);
                 const questionRes = await questionService.getQuestions();
                 console.log('API response for getQuestions:', questionRes.data);
                 setQuestions(questionRes.data.data || questionRes.data);
             } catch (err) {
                 console.error('Error fetching data:', err);
-                setError('Error fetching topics, tags, or questions');
+                setError('Error fetching topics or questions');
             }
         };
         if (isOpen) {
@@ -166,25 +151,21 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
         }
     }, [isOpen]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
-
-    const handleTagChange = (id: number, checked: boolean) => {
-        setForm((prev) => {
-            const newTagIds = checked
-                ? [...prev.tagIds, id].filter((id, index, self) => self.indexOf(id) === index)
-                : prev.tagIds.filter((tagId) => tagId !== id);
-            console.log('Selected tagIds:', newTagIds);
-            return { ...prev, tagIds: newTagIds };
-        });
-    };
-
     const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
             setThumbnailFile(file);
             setThumbnailPreview(URL.createObjectURL(file));
+            console.log('Selected thumbnail file:', file.name);
+        }
+    };
+
+    const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setCsvFile(file);
+            console.log('Selected CSV file:', file.name);
+            setIsImportCsvModalOpen(true); // Open tag selection modal
         }
     };
 
@@ -221,7 +202,8 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
             if (!thumbnailUrl) {
                 throw new Error('Failed to upload thumbnail');
             }
-            await questionService.updateInterviewSessionThumbnail(currentSession.interviewSessionId, thumbnailUrl);
+            const response = await questionService.updateInterviewSessionThumbnail(currentSession.interviewSessionId, thumbnailUrl);
+            console.log('updateInterviewSessionThumbnail response:', response.data);
             console.log('Thumbnail updated successfully for session:', currentSession.interviewSessionId);
 
             const updatedSession = {
@@ -231,6 +213,7 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
             setCurrentSession(updatedSession);
             setForm({ ...form, thumbnail: thumbnailUrl });
             setThumbnailFile(null);
+            setThumbnailPreview(thumbnailUrl);
             onSave(updatedSession);
         } catch (err: any) {
             const errorMessage = err.message || 'Error saving thumbnail';
@@ -241,25 +224,56 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
         }
     };
 
-    const handleSave = async () => {
-        if (!form.title || !form.topicId) {
-            setError('Title and Topic are required');
+    const handleImportCsv = async () => {
+        if (!csvFile) {
+            setError('No CSV file selected');
             return;
         }
+        if (!currentSession) {
+            setError('No session loaded');
+            return;
+        }
+        if (!selectedTagId) {
+            setError('No tag selected for CSV import');
+            return;
+        }
+        setLoading(true);
+        setError('');
+        try {
+            await templateService.importCsvQuestionsToSession(selectedTagId, currentSession.interviewSessionId, csvFile);
+            console.log('Imported questions from CSV for session:', currentSession.interviewSessionId, 'with tag:', selectedTagId);
+
+            // Fetch updated session data to ensure consistency
+            const response = await questionService.getInterviewSession(currentSession.interviewSessionId);
+            const updatedSession = response.data.data;
+            if (!updatedSession) {
+                throw new Error('Failed to fetch updated session');
+            }
+
+            setCurrentSession(updatedSession);
+            setForm({ ...form, totalQuestion: updatedSession.totalQuestion.toString() });
+            setCsvFile(null);
+            setSelectedTagId(null);
+            setIsImportCsvModalOpen(false);
+            onSave(updatedSession);
+        } catch (err: any) {
+            const errorMessage = err.message || 'Error importing questions from CSV';
+            console.error('CSV import failed:', errorMessage);
+            setError(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSave = async () => {
         if (!currentSession) return;
         setLoading(true);
         setError('');
         try {
-            const now = new Date().toISOString();
             const updatedSession = {
                 ...currentSession,
-                title: form.title,
-                description: form.description,
-                totalQuestion: Number(form.totalQuestion) || 0,
-                difficulty: form.difficulty,
-                topic: { ...currentSession.topic, topicId: Number(form.topicId) },
-                tags: tags.filter((tag) => form.tagIds.includes(tag.id)),
-                updateAt: now,
+                questions: currentSession.questions,
+                totalQuestion: currentSession.questions.length,
             };
             console.log('Updated session before saving:', updatedSession);
             setCurrentSession(updatedSession);
@@ -280,27 +294,24 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
         setLoading(true);
         setError('');
         try {
-            const updatedQuestionIds = [
-                ...new Set([...(currentSession.questions.map((q) => q.questionId) || []), ...selectedIds]),
-            ];
-            const payload = {
-                ...currentSession,
-                questionIds: updatedQuestionIds,
-                totalQuestion: updatedQuestionIds.length,
-            };
-            console.log('Payload before adding questions:', payload);
-            const response = await questionService.updateInterviewSession(currentSession.interviewSessionId, payload);
-            console.log('API response:', response.data);
-            const updatedSession = {
-                ...currentSession,
-                questions: [
-                    ...currentSession.questions,
-                    ...questions.filter((q) => selectedIds.includes(q.questionId)),
-                ],
-                totalQuestion: updatedQuestionIds.length,
-            };
+            // Filter out question IDs that are already in the session
+            const newQuestionIds = selectedIds.filter((id) => !currentSession.questions.some((q) => q.questionId === id));
+
+            // Call API to add each new question to the session
+            for (const questionId of newQuestionIds) {
+                await templateService.addQuestionToSession(currentSession.interviewSessionId, questionId);
+                console.log('Added question:', questionId, 'to session:', currentSession.interviewSessionId);
+            }
+
+            // Fetch updated session data to ensure consistency
+            const response = await questionService.getInterviewSession(currentSession.interviewSessionId);
+            const updatedSession = response.data.data;
+            if (!updatedSession) {
+                throw new Error('Failed to fetch updated session');
+            }
+
             setCurrentSession(updatedSession);
-            setForm({ ...form, totalQuestion: updatedQuestionIds.length.toString() });
+            setForm({ ...form, totalQuestion: updatedSession.totalQuestion.toString() });
             setSelectedQuestionIds([]);
             setIsAddQuestionModalOpen(false);
             onSave(updatedSession);
@@ -319,13 +330,14 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
         setError('');
         try {
             await questionService.removeQuestionFromSession(currentSession.interviewSessionId, questionId);
+            console.log('Removed question:', questionId, 'from session:', currentSession.interviewSessionId);
             const updatedQuestions = currentSession.questions.filter((q) => q.questionId !== questionId);
             const updatedSession = { ...currentSession, questions: updatedQuestions, totalQuestion: updatedQuestions.length };
             setCurrentSession(updatedSession);
             setForm({ ...form, totalQuestion: updatedQuestions.length.toString() });
             onSave(updatedSession);
         } catch (err) {
-            console.error('Failed to remove question from session', err);
+            console.error('Failed to remove question from session:', err);
             setError('Error removing question');
         } finally {
             setLoading(false);
@@ -350,12 +362,14 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
                     setThumbnailFile(null);
                     setThumbnailPreview(null);
                     setSelectedQuestionIds([]);
+                    setCsvFile(null);
+                    setSelectedTagId(null);
                     setError('');
                     setCurrentSession(null);
                 }}
-                className="max-w-2xl"
+                className="max-w-3xl w-full"
             >
-                <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900">
+                <div className="relative w-full overflow-y-auto rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl">
                     {loading && !currentSession && (
                         <div className="py-8 text-center text-gray-600 dark:text-gray-400">Loading template details...</div>
                     )}
@@ -364,132 +378,93 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
                     )}
                     {currentSession && (
                         <>
-                            <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-gray-100">Template Details</h3>
-                            {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
-                            <div className="space-y-6">
+                            <h3 className="mb-6 text-2xl font-bold text-gray-800 dark:text-gray-100">Template Details</h3>
+                            {error && <div className="text-red-500 text-sm mb-6 bg-red-50 dark:bg-red-900/50 p-3 rounded-lg">{error}</div>}
+                            <div className="space-y-8">
                                 {/* Thumbnail */}
                                 <div>
-                                    <Label className="text-gray-800 dark:text-gray-100">Thumbnail</Label>
-                                    <div className="flex items-center gap-3">
-                                        <Input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleThumbnailChange}
-                                            className="text-gray-800 dark:text-gray-100"
-                                        />
-                                        <Button
-                                            onClick={handleSaveThumbnail}
-                                            disabled={loading || !thumbnailFile}
-                                            variant="outline"
-                                        >
-                                            Save Thumbnail
-                                        </Button>
-                                    </div>
-                                    {thumbnailPreview && (
-                                        <div className="mt-2">
+                                    <Label className="text-gray-800 dark:text-gray-100 text-base font-medium">Thumbnail</Label>
+                                    <div className="mt-2">
+                                        {thumbnailPreview && (
                                             <img
                                                 src={thumbnailPreview}
                                                 alt="Thumbnail Preview"
-                                                className="w-1/2 h-auto rounded-lg"
+                                                className="w-1/2 h-auto rounded-lg border border-gray-200 dark:border-gray-700 mb-3"
                                             />
-                                        </div>
-                                    )}
+                                        )}
+                                        <Button
+                                            variant="outline"
+                                            className="relative"
+                                            onClick={() => document.getElementById('thumbnail-input')?.click()}
+                                        >
+                                            Choose Thumbnail
+                                            <input
+                                                id="thumbnail-input"
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleThumbnailChange}
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                            />
+                                        </Button>
+                                        {thumbnailFile && (
+                                            <Button
+                                                onClick={handleSaveThumbnail}
+                                                disabled={loading}
+                                                variant="primary"
+                                                className="ml-3"
+                                            >
+                                                Save Thumbnail
+                                            </Button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Title */}
                                 <div>
-                                    <Label className="text-gray-800 dark:text-gray-100">Title*</Label>
-                                    <Input
-                                        name="title"
-                                        value={form.title}
-                                        onChange={handleChange}
-                                        placeholder="Enter template title"
-                                        className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                                    />
+                                    <Label className="text-gray-800 dark:text-gray-100 text-base font-medium">Title</Label>
+                                    <p className="mt-1 text-gray-800 dark:text-gray-100 text-sm">{form.title || 'N/A'}</p>
                                 </div>
 
                                 {/* Description */}
                                 <div>
-                                    <Label className="text-gray-800 dark:text-gray-100">Description</Label>
-                                    <textarea
-                                        name="description"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                                        rows={4}
-                                        value={form.description}
-                                        onChange={handleChange}
-                                        placeholder="Enter template description"
-                                    />
+                                    <Label className="text-gray-800 dark:text-gray-100 text-base font-medium">Description</Label>
+                                    <p className="mt-1 text-gray-800 dark:text-gray-100 text-sm whitespace-pre-wrap">{form.description || 'N/A'}</p>
                                 </div>
 
                                 {/* Total Questions */}
                                 <div>
-                                    <Label className="text-gray-800 dark:text-gray-100">Total Questions</Label>
-                                    <Input
-                                        type="number"
-                                        name="totalQuestion"
-                                        value={form.totalQuestion}
-                                        readOnly
-                                        className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                                    />
+                                    <Label className="text-gray-800 dark:text-gray-100 text-base font-medium">Total Questions</Label>
+                                    <p className="mt-1 text-gray-800 dark:text-gray-100 text-sm">{form.totalQuestion || '0'}</p>
                                 </div>
 
                                 {/* Difficulty */}
                                 <div>
-                                    <Label className="text-gray-800 dark:text-gray-100">Difficulty</Label>
-                                    <select
-                                        name="difficulty"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-gray-100"
-                                        value={form.difficulty}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="">Select difficulty</option>
-                                        <option value="EASY">Easy</option>
-                                        <option value="MEDIUM">Medium</option>
-                                        <option value="HARD">Hard</option>
-                                    </select>
+                                    <Label className="text-gray-800 dark:text-gray-100 text-base font-medium">Difficulty</Label>
+                                    <Badge variant="light" color={getDifficultyColor(form.difficulty)} >
+                                        {form.difficulty || 'N/A'}
+                                    </Badge>
                                 </div>
 
                                 {/* Topic */}
                                 <div>
-                                    <Label className="text-gray-800 dark:text-gray-100">Topic*</Label>
-                                    <select
-                                        name="topicId"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-gray-100"
-                                        value={form.topicId}
-                                        onChange={handleChange}
-                                    >
-                                        <option value="">Select topic</option>
-                                        {topics.map((t) => (
-                                            <option key={t.topicId} value={t.topicId}>{t.title}</option>
-                                        ))}
-                                    </select>
+                                    <Label className="text-gray-800 dark:text-gray-100 text-base font-medium">Topic</Label>
+                                    <p className="mt-1 text-gray-800 dark:text-gray-100 text-sm">
+                                        {topics.find((t) => t.topicId.toString() === form.topicId)?.title || 'N/A'}
+                                    </p>
                                 </div>
 
                                 {/* Tags */}
                                 <div>
-                                    <Label className="text-gray-800 dark:text-gray-100">Tags</Label>
-                                    <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-lg dark:border-gray-700 p-2">
-                                        {tags.length > 0 ? (
-                                            tags.map((tag) => (
-                                                <div key={tag.id} className="flex items-center gap-2 py-1">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`tag-${tag.id}`}
-                                                        value={tag.id}
-                                                        checked={form.tagIds.includes(tag.id)}
-                                                        onChange={(e) => handleTagChange(tag.id, e.target.checked)}
-                                                        className="h-4 w-4 text-blue-600 border-gray-300 rounded dark:bg-gray-800 dark:border-gray-700"
-                                                    />
-                                                    <label
-                                                        htmlFor={`tag-${tag.id}`}
-                                                        className="text-gray-800 dark:text-gray-100"
-                                                    >
-                                                        {tag.title}
-                                                    </label>
-                                                </div>
+                                    <Label className="text-gray-800 dark:text-gray-100 text-base font-medium">Tags</Label>
+                                    <div className="mt-1 flex flex-wrap gap-2">
+                                        {currentSession && currentSession.tags.length > 0 ? (
+                                            currentSession.tags.map((tag) => (
+                                                <Badge key={tag.tagId} variant="light" color="primary">
+                                                    {tag.title}
+                                                </Badge>
                                             ))
                                         ) : (
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">No tags available</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">No tags</p>
                                         )}
                                     </div>
                                 </div>
@@ -497,13 +472,31 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
                                 {/* Questions */}
                                 <div>
                                     <div className="flex justify-between items-center">
-                                        <Label className="text-gray-800 dark:text-gray-100">Questions</Label>
-                                        <Button onClick={() => setIsAddQuestionModalOpen(true)}>Add Questions</Button>
+                                        <Label className="text-gray-800 dark:text-gray-100 text-base font-medium">Questions</Label>
+                                        <div className="flex gap-3">
+                                            <Button onClick={() => setIsAddQuestionModalOpen(true)} variant="outline">
+                                                Add Questions
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="relative"
+                                                onClick={() => document.getElementById('csv-input')?.click()}
+                                            >
+                                                Import Questions from CSV
+                                                <input
+                                                    id="csv-input"
+                                                    type="file"
+                                                    accept=".csv"
+                                                    onChange={handleCsvFileChange}
+                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                />
+                                            </Button>
+                                        </div>
                                     </div>
                                     {currentSession.questions.length > 0 ? (
                                         <div className="space-y-3 mt-4">
                                             {currentSession.questions.map((question) => (
-                                                <div key={question.questionId} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-start gap-3">
+                                                <div key={question.questionId} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-start gap-3">
                                                     <div className="flex-1">
                                                         <div className="flex justify-between items-start">
                                                             <div>
@@ -533,7 +526,7 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
                                 </div>
 
                                 {/* Buttons */}
-                                <div className="flex justify-end gap-3 pt-4">
+                                <div className="flex justify-end gap-3 pt-6">
                                     <Button
                                         variant="outline"
                                         onClick={() => {
@@ -550,11 +543,14 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
                                             setThumbnailFile(null);
                                             setThumbnailPreview(null);
                                             setSelectedQuestionIds([]);
+                                            setCsvFile(null);
+                                            setSelectedTagId(null);
+                                            setError('');
                                             setCurrentSession(null);
                                         }}
                                         disabled={loading}
                                     >
-                                        Cancel
+                                        Close
                                     </Button>
                                     <Button onClick={handleSave} disabled={loading}>
                                         Save Changes
@@ -571,13 +567,13 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
                 setIsAddQuestionModalOpen(false);
                 setSelectedQuestionIds([]);
             }} className="max-w-2xl">
-                <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900">
-                    <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-gray-100">Add Questions</h3>
-                    <div className="space-y-4">
+                <div className="relative w-full overflow-y-auto rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl">
+                    <h3 className="mb-6 text-2xl font-bold text-gray-800 dark:text-gray-100">Add Questions</h3>
+                    <div className="space-y-6">
                         {questions.length > 0 ? (
-                            <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-lg dark:border-gray-700 p-2">
+                            <div className="max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                 {questions.map((question) => (
-                                    <div key={question.questionId} className="flex items-center gap-2 py-1">
+                                    <div key={question.questionId} className="flex items-center gap-3 py-2">
                                         <input
                                             type="checkbox"
                                             id={`question-${question.questionId}`}
@@ -595,7 +591,7 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
                                         />
                                         <label
                                             htmlFor={`question-${question.questionId}`}
-                                            className="text-gray-800 dark:text-gray-100"
+                                            className="text-gray-800 dark:text-gray-100 text-sm"
                                         >
                                             {question.title}
                                         </label>
@@ -613,10 +609,63 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
                                 Cancel
                             </Button>
                             <Button
-                                onClick={() => handleAddQuestions(selectedQuestionIds.filter((id) => !currentSession?.questions.some((q) => q.questionId === id)))}
+                                onClick={() => handleAddQuestions(selectedQuestionIds)}
                                 disabled={loading || selectedQuestionIds.length === 0}
+                                variant="primary"
                             >
                                 Add Selected
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Import CSV Modal */}
+            <Modal isOpen={isImportCsvModalOpen} onClose={() => {
+                setIsImportCsvModalOpen(false);
+                setCsvFile(null);
+                setSelectedTagId(null);
+            }} className="max-w-2xl">
+                <div className="relative w-full overflow-y-auto rounded-2xl bg-white dark:bg-gray-900 p-8 shadow-xl">
+                    <h3 className="mb-6 text-2xl font-bold text-gray-800 dark:text-gray-100">Import Questions from CSV</h3>
+                    <div className="space-y-6">
+                        <div>
+                            <Label className="text-gray-800 dark:text-gray-100 text-base font-medium">Select Tag</Label>
+                            {currentSession && currentSession.tags.length > 0 ? (
+                                <select
+                                    value={selectedTagId || ''}
+                                    onChange={(e) => setSelectedTagId(Number(e.target.value) || null)}
+                                    className="mt-2 w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100"
+                                >
+                                    <option value="">Select a tag</option>
+                                    {currentSession.tags.map((tag) => (
+                                        <option key={tag.tagId} value={tag.tagId}>
+                                            {tag.title}
+                                        </option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">No tags available</p>
+                            )}
+                        </div>
+                        <div className="flex justify-end gap-3 pt-4">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setIsImportCsvModalOpen(false);
+                                    setCsvFile(null);
+                                    setSelectedTagId(null);
+                                }}
+                                disabled={loading}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleImportCsv}
+                                disabled={loading || !csvFile || !selectedTagId}
+                                variant="primary"
+                            >
+                                Import CSV
                             </Button>
                         </div>
                     </div>

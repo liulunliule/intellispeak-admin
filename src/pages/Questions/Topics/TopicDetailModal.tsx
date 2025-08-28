@@ -6,7 +6,7 @@ import Button from "../../../components/ui/button/Button";
 import Label from "../../../components/form/Label";
 import { squarelogo } from '../../../assets';
 import { FiPlus, FiTrash2 } from "react-icons/fi";
-import type { Topic, Tag } from "./types";
+import type { Topic } from "./types";
 
 interface TopicDetailModalProps {
     isOpen: boolean;
@@ -28,8 +28,8 @@ const TopicDetailModal: React.FC<TopicDetailModalProps> = ({
     isOpen,
     onClose,
     selectedTopic,
-    setSelectedTopic,
-    detailThumbnailFile,
+    // setSelectedTopic,
+    // detailThumbnailFile,
     setDetailThumbnailFile,
     detailThumbnailPreview,
     setDetailThumbnailPreview,

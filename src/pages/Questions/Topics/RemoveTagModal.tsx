@@ -2,7 +2,6 @@ import React from "react";
 import { Modal } from "../../../components/ui/modal";
 import ModalFooter from "./ModalFooter";
 import { FiTrash2 } from "react-icons/fi";
-import ModalHeader from "./ModalHeader";
 
 interface RemoveTagModalProps {
     isOpen: boolean;

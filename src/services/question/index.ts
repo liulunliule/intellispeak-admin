@@ -1,11 +1,4 @@
-// Create new interview session (template) with full body
-export const createInterviewSessionV2 = async (data: any) => {
-  try {
-    return await api.post('/interview-sessions/create', data);
-  } catch (error) {
-    throw new Error(`Failed to create interview template (v2): ${error}`);
-  }
-};
+
 // Remove a question from an interview session (template)
 export const removeQuestionFromSession = async (sessionId: number, questionId: number) => {
   try {
@@ -156,13 +149,6 @@ export const getInterviewSession = async (sessionId: number) => {
   }
 };
 
-export const createInterviewSession = async (data: any) => {
-  try {
-    return await api.post('/interview-sessions/sessions', data);
-  } catch (error) {
-    throw new Error(`Failed to create interview Template: ${error}`);
-  }
-};
 
 export const updateInterviewSessionThumbnail = async (sessionId: number, thumbnailUrl: string) => {
   try {

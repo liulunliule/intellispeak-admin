@@ -19,7 +19,7 @@ interface Topic {
 }
 
 interface Tag {
-    id: number;
+    tagId: number;
     title: string;
     description?: string;
     createAt?: string;
@@ -37,7 +37,7 @@ interface Question {
     difficulty: string;
     questionStatus: string;
     source: string;
-    _deleted: boolean;
+    is_deleted: boolean; // Sửa từ _deleted thành is_deleted để đồng bộ với TemplateDetailModal
 }
 
 interface Session {

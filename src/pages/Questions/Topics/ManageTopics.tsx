@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import PageMeta from '../../../components/common/PageMeta';
 import Input from "../../../components/form/input/InputField";
 import Button from "../../../components/ui/button/Button";
-import { FiPlus, FiTrash2 } from "react-icons/fi";
+import { FiPlus } from "react-icons/fi";
 import type { Topic, Tag } from "./types";
 import AddTopicModal from "./AddTopicModal";
 import TopicDetailModal from "./TopicDetailModal";
@@ -33,6 +33,8 @@ const ManageTopics: React.FC = () => {
     const [editedTitle, setEditedTitle] = useState("");
     const [editedDesc, setEditedDesc] = useState("");
     const [editedLongDesc, setEditedLongDesc] = useState("");
+    const [editedThumbnailFile, setEditedThumbnailFile] = useState<File | null>(null);
+    const [editedThumbnailPreview, setEditedThumbnailPreview] = useState<string | null>(null);
     const [updating, setUpdating] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -54,8 +56,6 @@ const ManageTopics: React.FC = () => {
     const [isAddTagModalOpen, setIsAddTagModalOpen] = useState(false);
     const [isRemoveTagModalOpen, setIsRemoveTagModalOpen] = useState(false);
     const [tagToRemove, setTagToRemove] = useState<number | null>(null);
-
-    const detailThumbnailInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         fetchTopics();
@@ -162,6 +162,8 @@ const ManageTopics: React.FC = () => {
         setEditedTitle(topic.title);
         setEditedDesc(topic.description);
         setEditedLongDesc(topic.longDescription ?? "");
+        setEditedThumbnailFile(null);
+        setEditedThumbnailPreview(topic.thumbnail || null);
         setIsEditModalOpen(true);
     };
 
@@ -174,10 +176,18 @@ const ManageTopics: React.FC = () => {
                 description: editedDesc,
                 longDescription: editedLongDesc,
             });
+            if (editedThumbnailFile) {
+                const thumbnailUrl = await handleImageUpload(editedThumbnailFile);
+                if (thumbnailUrl) {
+                    await topicService.updateTopicThumbnail(editingId, thumbnailUrl);
+                }
+            }
             setEditingId(null);
             setEditedTitle("");
             setEditedDesc("");
             setEditedLongDesc("");
+            setEditedThumbnailFile(null);
+            setEditedThumbnailPreview(null);
             setIsEditModalOpen(false);
             fetchTopics();
         } catch (err: any) {
@@ -192,6 +202,8 @@ const ManageTopics: React.FC = () => {
         setEditedTitle("");
         setEditedDesc("");
         setEditedLongDesc("");
+        setEditedThumbnailFile(null);
+        setEditedThumbnailPreview(null);
         setIsEditModalOpen(false);
     };
 
@@ -302,6 +314,14 @@ const ManageTopics: React.FC = () => {
         }
     };
 
+    const handleEditedThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setEditedThumbnailFile(file);
+            setEditedThumbnailPreview(URL.createObjectURL(file));
+        }
+    };
+
     const filteredTopics = topics.filter(t =>
         t.title.toLowerCase().includes(search.toLowerCase()) ||
         t.description.toLowerCase().includes(search.toLowerCase()) ||
@@ -387,6 +407,11 @@ const ManageTopics: React.FC = () => {
                     setEditedDesc={setEditedDesc}
                     editedLongDesc={editedLongDesc}
                     setEditedLongDesc={setEditedLongDesc}
+                    editedThumbnailFile={editedThumbnailFile}
+                    setEditedThumbnailFile={setEditedThumbnailFile}
+                    editedThumbnailPreview={editedThumbnailPreview}
+                    setEditedThumbnailPreview={setEditedThumbnailPreview}
+                    handleEditedThumbnailChange={handleEditedThumbnailChange}
                 />
 
                 {/* Topic Detail Modal with Tag Management */}
