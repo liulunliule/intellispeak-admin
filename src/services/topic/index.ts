@@ -72,7 +72,8 @@ export const updateTopic = async (
     data: { title: string; description: string; longDescription?: string; thumbnail?: string }
 ) => {
     try {
-        await api.put(`/topic/${topicId}`, data);
+        const res = await api.put(`/topic/${topicId}`, data);
+        return res.data; // Trả về response để log
     } catch (error: any) {
         throw new Error(error.response?.data?.message || "Error updating topic");
     }

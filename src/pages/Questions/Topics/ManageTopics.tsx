@@ -171,10 +171,21 @@ const ManageTopics: React.FC = () => {
         if (!editingId || !editedTitle || !editedDesc) return;
         setUpdating(true);
         try {
+            // Log data before updating topic
+            console.log("Topic data before update:", {
+                editingId,
+                editedTitle,
+                editedDesc,
+                editedLongDesc,
+                thumbnailFileName: editedThumbnailFile ? editedThumbnailFile.name : "none",
+            });
+
+            // Include thumbnail in the update request, use existing preview or empty string
             await topicService.updateTopic(editingId, {
                 title: editedTitle,
                 description: editedDesc,
                 longDescription: editedLongDesc,
+                thumbnail: editedThumbnailPreview ?? "", // Send existing thumbnail URL or empty string
             });
             if (editedThumbnailFile) {
                 const thumbnailUrl = await handleImageUpload(editedThumbnailFile);
