@@ -1,3 +1,19 @@
+// Create new interview session (template) with full body
+export const createInterviewSessionV2 = async (data: any) => {
+  try {
+    return await api.post('/interview-sessions/create', data);
+  } catch (error) {
+    throw new Error(`Failed to create interview template (v2): ${error}`);
+  }
+};
+// Remove a question from an interview session (template)
+export const removeQuestionFromSession = async (sessionId: number, questionId: number) => {
+  try {
+    return await api.post(`/question/${sessionId}/questions/${questionId}/remove`);
+  } catch (error) {
+    throw new Error(`Failed to remove question from session: ${error}`);
+  }
+};
 export const importCsvQuestions = async (tagId: number, file: File) => {
   try {
     const formData = new FormData();
@@ -121,9 +137,22 @@ export const assignTagToQuestions = async (tagId: number, questionIds: number[])
 // INTERVIEW SESSIONS
 export const getInterviewSessions = async () => {
   try {
-    return await api.get('/interview-sessions/sessions/get-all');
+    const res = await api.get('/interview-sessions/sessions/get-all');
+    console.log('getInterviewSessions response:', res); // Log the response data
+    return res;
   } catch (error) {
-    throw new Error(`Failed to get interview sessions: ${error}`);
+    throw new Error(`Failed to get interview Template: ${error}`);
+  }
+};
+
+// Get interview session by ID
+export const getInterviewSession = async (sessionId: number) => {
+  try {
+    const res = await api.get(`/interview-sessions/sessions/${sessionId}`);
+    console.log('getInterviewSession response:', res); // Log the response data
+    return res;
+  } catch (error) {
+    throw new Error(`Failed to get interview session: ${error}`);
   }
 };
 
@@ -131,17 +160,22 @@ export const createInterviewSession = async (data: any) => {
   try {
     return await api.post('/interview-sessions/sessions', data);
   } catch (error) {
-    throw new Error(`Failed to create interview session: ${error}`);
+    throw new Error(`Failed to create interview Template: ${error}`);
   }
 };
 
-export const updateInterviewSession = async (sessionId: number, data: any) => {
+export const updateInterviewSessionThumbnail = async (sessionId: number, thumbnailUrl: string) => {
   try {
-    return await api.put(`/interview-sessions/sessions/${sessionId}`, data);
+    const res = await api.put(`/interview-sessions/thumbnail/${sessionId}`, thumbnailUrl, {
+      headers: { 'Content-Type': 'text/plain' },
+    });
+    console.log('updateInterviewSessionThumbnail response:', res); // Log the response data
+    return res;
   } catch (error) {
-    throw new Error(`Failed to update interview session: ${error}`);
+    throw new Error(`Failed to update interview session thumbnail: ${error}`);
   }
 };
+
 import api from '../api';
 
 export const deleteQuestion = async (questionId: number) => {

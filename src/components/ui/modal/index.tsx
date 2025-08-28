@@ -63,8 +63,9 @@ export const Modal: React.FC<ModalProps> = ({
       )}
       <div
         ref={modalRef}
-        className={`${contentClasses}  ${className}`}
+        className={`${contentClasses} ${className} max-h-[90vh] flex flex-col justify-center`}
         onClick={(e) => e.stopPropagation()}
+        style={{ maxHeight: '90vh' }}
       >
         {showCloseButton && (
           <button
@@ -87,7 +88,7 @@ export const Modal: React.FC<ModalProps> = ({
             </svg>
           </button>
         )}
-        <div>{children}</div>
+        <div className="overflow-y-auto scrollbar-hide" style={{ maxHeight: '80vh' }}>{children}</div>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import {
 // import Badge from "../../ui/badge/Badge";
 import { useState, useEffect } from "react";
 import * as userService from '../../../services/user';
+import { MoreDotIcon } from "../../../icons";
 // import { useModal } from "../../../hooks/useModal";
 // Removed unused modal, button, label, input imports
 // import { useNavigate } from "react-router";
@@ -170,8 +171,7 @@ const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
                                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                                         <div className="relative">
                                             <button onClick={() => toggleDropdown(user.userId)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                                                </svg>
+                                                <MoreDotIcon className="h-5 w-5 text-gray-500" />
                                             </button>
                                             {dropdownOpen === user.userId && (
                                                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 dark:bg-gray-800 dark:border dark:border-gray-700">

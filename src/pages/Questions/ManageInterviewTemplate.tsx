@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/ui/modal';
 import Button from '../../components/ui/button/Button';
 import Input from '../../components/form/input/InputField';
-import Label from '../../components/form/Label';
-import PageBreadcrumb from '../../components/common/PageBreadCrumb';
-import PageMeta from '../../components/common/PageMeta';
 import Badge, { BadgeColor } from '../../components/ui/badge/Badge';
 import * as questionService from '../../services/question';
+import AddTemplateModal from './AddTemplateModal';
+import TemplateDetailModal from './TemplateDetailModal';
+import PageBreadcrumb from '../../components/common/PageBreadCrumb';
+import PageMeta from '../../components/common/PageMeta';
 
 interface Topic {
     topicId: number;
@@ -18,12 +19,12 @@ interface Topic {
 }
 
 interface Tag {
-    tagId: number;
+    id: number;
     title: string;
-    description: string;
-    createAt: string;
-    updateAt: string | null;
-    isDeleted: boolean;
+    description?: string;
+    createAt?: string;
+    updateAt?: string | null;
+    isDeleted?: boolean;
 }
 
 interface Question {
@@ -44,6 +45,7 @@ interface Session {
     topic: Topic;
     title: string;
     description: string;
+    interviewSessionThumbnail: string | null;
     totalQuestion: number;
     difficulty: string;
     durationEstimate: string;
@@ -67,21 +69,16 @@ const getDifficultyColor = (difficulty: string): BadgeColor => {
     }
 };
 
-const ManageInterviewSessions: React.FC = () => {
+const ManageInterviewTemplate: React.FC = () => {
     const [sessions, setSessions] = useState<Session[]>([]);
     const [filteredSessions, setFilteredSessions] = useState<Session[]>([]);
     const [search, setSearch] = useState('');
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingSession, setEditingSession] = useState<Session | null>(null);
-    const [sessionData, setSessionData] = useState({
-        title: '',
-        description: '',
-        topicId: '',
-        difficulty: '',
-        durationEstimate: '',
-    });
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [selectedSession, setSelectedSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [confirmDelete, setConfirmDelete] = useState<{ sessionId: number; questionId: number } | null>(null);
     const [expandedSessionId, setExpandedSessionId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -90,11 +87,16 @@ const ManageInterviewSessions: React.FC = () => {
             setError('');
             try {
                 const response = await questionService.getInterviewSessions();
-                setSessions(response.data.data);
-                setFilteredSessions(response.data.data);
+                console.log('getInterviewSessions response:', response.data);
+                const normalizedSessions = response.data.data.map((session: Session) => ({
+                    ...session,
+                    questions: session.questions || [],
+                }));
+                setSessions(normalizedSessions);
+                setFilteredSessions(normalizedSessions);
             } catch (err) {
-                setError('Error fetching sessions');
-                console.error('Error fetching sessions:', err);
+                setError('Error fetching templates');
+                console.error('Error fetching templates:', err);
             } finally {
                 setLoading(false);
             }
@@ -113,65 +115,63 @@ const ManageInterviewSessions: React.FC = () => {
     }, [search, sessions]);
 
     const handleAdd = () => {
-        setEditingSession(null);
-        setSessionData({
-            title: '',
-            description: '',
-            topicId: '',
-            difficulty: '',
-            durationEstimate: '',
-        });
-        setIsModalOpen(true);
+        setIsAddModalOpen(true);
     };
 
     const handleEdit = (session: Session) => {
-        setEditingSession(session);
-        setSessionData({
-            title: session.title,
-            description: session.description,
-            topicId: session.topic.topicId.toString(),
-            difficulty: session.difficulty,
-            durationEstimate: session.durationEstimate,
-        });
-        setIsModalOpen(true);
+        console.log('Opening template with sessionId:', session.interviewSessionId);
+        setSelectedSession(session);
+        setIsDetailModalOpen(true);
     };
 
-    const handleSave = async () => {
-        if (!sessionData.title || !sessionData.topicId) return;
+    const handleSave = (newSession: Session) => {
+        console.log('Saving new session:', newSession);
+        setSessions([...sessions, { ...newSession, questions: newSession.questions || [] }]);
+        setFilteredSessions([...filteredSessions, { ...newSession, questions: newSession.questions || [] }]);
+        setIsAddModalOpen(false);
+    };
 
+    const handleDetailSave = (updatedSession: Session) => {
+        console.log('Saving updated session:', updatedSession);
+        setSessions(
+            sessions.map((session) =>
+                session.interviewSessionId === updatedSession.interviewSessionId ? updatedSession : session
+            )
+        );
+        setFilteredSessions(
+            filteredSessions.map((session) =>
+                session.interviewSessionId === updatedSession.interviewSessionId ? updatedSession : session
+            )
+        );
+        setIsDetailModalOpen(false);
+        setSelectedSession(null);
+    };
+
+    const handleRemoveQuestion = async () => {
+        if (!confirmDelete) return;
+        const { sessionId, questionId } = confirmDelete;
         try {
-            const currentDate = new Date().toISOString();
-            const payload = {
-                title: sessionData.title,
-                description: sessionData.description,
-                topicId: Number(sessionData.topicId),
-                difficulty: sessionData.difficulty,
-                durationEstimate: sessionData.durationEstimate,
-                createAt: editingSession ? editingSession.createAt : currentDate,
-                updateAt: editingSession ? currentDate : null,
-                isDeleted: false,
-            };
-
-            if (editingSession) {
-                const response = await questionService.updateInterviewSession(editingSession.interviewSessionId, payload);
-                const updatedSession = response.data.data;
-                setSessions(
-                    sessions.map((session) =>
-                        session.interviewSessionId === editingSession.interviewSessionId
-                            ? { ...updatedSession, topic: session.topic, tags: session.tags, questions: session.questions }
-                            : session
-                    )
-                );
-            } else {
-                const response = await questionService.createInterviewSession(payload);
-                const newSession = response.data.data;
-                setSessions([...sessions, { ...newSession, topic: { topicId: Number(sessionData.topicId), title: '', description: '', createAt: currentDate, updateAt: null, isDeleted: false }, tags: [], questions: [] }]);
-            }
-            setIsModalOpen(false);
+            await questionService.removeQuestionFromSession(sessionId, questionId);
+            console.log('Removed question:', questionId, 'from session:', sessionId);
+            setSessions((prev) =>
+                prev.map((session) =>
+                    session.interviewSessionId === sessionId
+                        ? { ...session, questions: session.questions.filter((q) => q.questionId !== questionId), totalQuestion: session.totalQuestion - 1 }
+                        : session
+                )
+            );
+            setFilteredSessions((prev) =>
+                prev.map((session) =>
+                    session.interviewSessionId === sessionId
+                        ? { ...session, questions: session.questions.filter((q) => q.questionId !== questionId), totalQuestion: session.totalQuestion - 1 }
+                        : session
+                )
+            );
         } catch (err) {
-            setError('Error saving session');
-            console.error('Error saving session:', err);
+            console.error('Failed to remove question from session:', err);
+            setError('Error removing question');
         }
+        setConfirmDelete(null);
     };
 
     const toggleSessionQuestions = (sessionId: number) => {
@@ -180,15 +180,15 @@ const ManageInterviewSessions: React.FC = () => {
 
     return (
         <>
-            <PageMeta title="Interview Session Management" description="Manage interview sessions in the system" />
-            <PageBreadcrumb pageTitle="Interview Sessions" />
+            <PageMeta title="Interview Session Management" description="Manage interview templates in the system" />
+            <PageBreadcrumb pageTitle="Interview Template" />
 
             <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Interview Session Management</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Interview Template Management</h3>
                         <div className="flex gap-2">
-                            <Button onClick={handleAdd}>Add New Session</Button>
+                            <Button onClick={handleAdd}>Add New Template</Button>
                         </div>
                     </div>
 
@@ -196,7 +196,7 @@ const ManageInterviewSessions: React.FC = () => {
                         <div className="flex-1">
                             <Input
                                 type="text"
-                                placeholder="Search sessions by name, description, or topic..."
+                                placeholder="Search templates by name, description, or topic..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
@@ -204,7 +204,7 @@ const ManageInterviewSessions: React.FC = () => {
                         </div>
                     </div>
 
-                    {loading && <div className="py-8 text-center text-gray-600 dark:text-gray-400">Loading session list...</div>}
+                    {loading && !sessions.length && <div className="py-8 text-center text-gray-600 dark:text-gray-400">Loading template list...</div>}
 
                     {error && <div className="py-8 text-center text-red-500 dark:text-red-400">{error}</div>}
 
@@ -231,7 +231,9 @@ const ManageInterviewSessions: React.FC = () => {
                                                 </div>
                                                 <div className="text-sm text-gray-600 dark:text-gray-400">{session.description}</div>
                                                 <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">Topic: {session.topic.title}</span>
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                        Topic: {session.topic.title}
+                                                    </span>
                                                     <span className="text-xs text-gray-500 dark:text-gray-400">
                                                         • Difficulty: <Badge variant="light" color={getDifficultyColor(session.difficulty)}>{session.difficulty}</Badge>
                                                     </span>
@@ -244,16 +246,16 @@ const ManageInterviewSessions: React.FC = () => {
                                             </div>
                                             <div className="flex gap-2">
                                                 <Button size="sm" variant="outline" onClick={() => handleEdit(session)}>
-                                                    Edit
+                                                    View & Edit
                                                 </Button>
                                             </div>
                                         </div>
                                         {expandedSessionId === session.interviewSessionId && (
                                             <div className="mt-4 border-t border-gray-200 dark:border-gray-800 pt-4">
                                                 <h5 className="text-md font-semibold text-gray-800 dark:text-gray-100 mb-3">Question List</h5>
-                                                {session.questions && session.questions.length > 0 ? (
+                                                {(session.questions?.length > 0) ? (
                                                     <div className="space-y-3">
-                                                        {session.questions.map((question) => (
+                                                        {(session.questions || []).map((question) => (
                                                             <div key={question.questionId} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-start gap-3">
                                                                 <div className="flex-1">
                                                                     <div className="flex justify-between items-start">
@@ -267,7 +269,18 @@ const ManageInterviewSessions: React.FC = () => {
                                                                                 Tags: {session.tags.map((t) => t.title).join(', ')}
                                                                             </div>
                                                                         </div>
-                                                                        <div className="text-xs text-gray-500 dark:text-gray-400">ID: {question.questionId}</div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-xs text-gray-500 dark:text-gray-400">ID: {question.questionId}</span>
+                                                                            <button
+                                                                                className="ml-2 text-gray-400 hover:text-red-500 transition-colors duration-150"
+                                                                                title="Remove question from template"
+                                                                                onClick={() => setConfirmDelete({ sessionId: session.interviewSessionId, questionId: question.questionId })}
+                                                                            >
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                                                </svg>
+                                                                            </button>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -281,76 +294,66 @@ const ManageInterviewSessions: React.FC = () => {
                                     </div>
                                 ))
                             ) : (
-                                <div className="py-8 text-center text-gray-600 dark:text-gray-400">No sessions found matching the search criteria.</div>
+                                <div className="py-8 text-center text-gray-600 dark:text-gray-400">No templates found matching the search criteria.</div>
                             )}
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Add/Edit Session Modal */}
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-2xl">
-                <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900">
-                    <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-gray-100">{editingSession ? 'Edit Session' : 'Add New Session'}</h3>
-                    <div className="space-y-4">
-                        <div>
-                            <Label className="text-gray-800 dark:text-gray-100">Session Name*</Label>
-                            <Input
-                                value={sessionData.title}
-                                onChange={(e) => setSessionData({ ...sessionData, title: e.target.value })}
-                                placeholder="Enter session name"
+            {/* Add Template Modal */}
+            <AddTemplateModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSuccess={handleSave}
+                editingSession={null}
+            />
 
-                                className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                            />
-                        </div>
-                        <div>
-                            <Label className="text-gray-800 dark:text-gray-100">Description</Label>
-                            <textarea
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                                rows={4}
-                                value={sessionData.description}
-                                onChange={(e) => setSessionData({ ...sessionData, description: e.target.value })}
-                                placeholder="Enter session description"
-                            />
-                        </div>
-                        <div>
-                            <Label className="text-gray-800 dark:text-gray-100">Topic (Topic ID)*</Label>
-                            <Input
-                                type="number"
-                                value={sessionData.topicId}
-                                onChange={(e) => setSessionData({ ...sessionData, topicId: e.target.value })}
-                                placeholder="Enter topic ID"
-                                className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                            />
-                        </div>
-                        <div>
-                            <Label className="text-gray-800 dark:text-gray-100">Difficulty</Label>
-                            <select
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-gray-100"
-                                value={sessionData.difficulty}
-                                onChange={(e) => setSessionData({ ...sessionData, difficulty: e.target.value })}
-                            >
-                                <option value="" className="text-gray-800 dark:text-gray-100">Select difficulty</option>
-                                <option value="EASY" className="text-gray-800 dark:text-gray-100">Easy</option>
-                                <option value="MEDIUM" className="text-gray-800 dark:text-gray-100">Medium</option>
-                                <option value="HARD" className="text-gray-800 dark:text-gray-100">Hard</option>
-                            </select>
-                        </div>
-                        <div>
-                            <Label className="text-gray-800 dark:text-gray-100">Estimated Duration</Label>
-                            <Input
-                                value={sessionData.durationEstimate}
-                                onChange={(e) => setSessionData({ ...sessionData, durationEstimate: e.target.value })}
-                                placeholder="Enter duration (e.g., PT0.00000009S)"
-                                className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                            />
-                        </div>
-                        <div className="flex justify-end gap-3 pt-4">
-                            <Button variant="outline" onClick={() => setIsModalOpen(false)}>
-                                Cancel
-                            </Button>
-                            <Button onClick={handleSave}>{editingSession ? 'Update' : 'Add'}</Button>
-                        </div>
+            {/* Template Detail Modal */}
+            <TemplateDetailModal
+                isOpen={isDetailModalOpen}
+                onClose={() => {
+                    setIsDetailModalOpen(false);
+                    setSelectedSession(null);
+                }}
+                session={selectedSession}
+                onSave={handleDetailSave}
+            />
+
+            {/* Confirm Delete Question Modal */}
+            <Modal
+                isOpen={!!confirmDelete}
+                onClose={() => setConfirmDelete(null)}
+                className="max-w-md"
+            >
+                <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900 text-center">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-16 w-16 mx-auto text-red-500 mb-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                    </svg>
+                    <h3 className="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-100">
+                        Confirm Delete Question
+                    </h3>
+                    <p className="mb-6 text-gray-600 dark:text-gray-400">
+                        Are you sure you want to remove this question from the template?
+                    </p>
+                    <div className="flex justify-center gap-3">
+                        <Button variant="outline" onClick={() => setConfirmDelete(null)}>
+                            Cancel
+                        </Button>
+                        <Button variant="danger" onClick={handleRemoveQuestion}>
+                            Delete
+                        </Button>
                     </div>
                 </div>
             </Modal>
@@ -358,4 +361,4 @@ const ManageInterviewSessions: React.FC = () => {
     );
 };
 
-export default ManageInterviewSessions;
+export default ManageInterviewTemplate;

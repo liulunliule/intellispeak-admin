@@ -68,7 +68,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Question Management", path: "/questions", pro: false },
       { name: "Tag Management", path: "/manage-tags", pro: false },
-      { name: "Interview Session Management", path: "/manage-interview-sessions", pro: false },
+      { name: "Interview Template Management", path: "/manage-interview-template", pro: false },
       { name: "Topic Management", path: "/manage-topics", pro: false },
     ],
   },
@@ -414,7 +414,7 @@ const AppSidebar: React.FC = () => {
               </h2>
               {renderMenuItems(navItems, "main")}
             </div>
-            <div className="">
+            {/* <div className="">
               <h2
                 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded && !isHovered
                   ? "lg:justify-center"
@@ -428,7 +428,7 @@ const AppSidebar: React.FC = () => {
                 )}
               </h2>
               {renderMenuItems(othersItems, "others")}
-            </div>
+            </div> */}
           </div>
         </nav>
       </div>
