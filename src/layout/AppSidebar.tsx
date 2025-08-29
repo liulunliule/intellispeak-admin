@@ -19,6 +19,8 @@ import {
   ForumIcon,
   InterviewIcon,
   ManageHRIcon,
+  GroupIcon,
+  DollarLineIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 // import SidebarWidget from "./SidebarWidget";
@@ -38,6 +40,11 @@ const navItems: NavItem[] = [
     name: "Dashboard",
     path: "/dashboard",
     // subItems: [{ name: "Thương mại điện tử", path:  "/dashboard", pro: false }],
+  },
+  {
+    name: "Transaction Management",
+    icon: <DollarLineIcon />,
+    path: "/manage-transaction",
   },
   // {
   //   icon: <CalenderIcon />,
@@ -71,6 +78,11 @@ const navItems: NavItem[] = [
       { name: "Interview Template Management", path: "/manage-interview-template", pro: false },
       { name: "Topic Management", path: "/manage-topics", pro: false },
     ],
+  },
+  {
+    name: "Company Management",
+    icon: <GroupIcon />,
+    path: "/manage-company",
   },
   {
     name: "Forum Management",

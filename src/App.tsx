@@ -42,6 +42,8 @@ import ManageInterviewTemplate from "./pages/Questions/ManageInterviewTemplate";
 import ManageHR from "./pages/HR/ManageHR";
 import ManagePackage from "./pages/Package/ManagePackage";
 import ManageTopics from "./pages/Questions/Topics/ManageTopics";
+import ManageTransaction from "./pages/Transaction/Transaction";
+import ManageCompany from "./pages/Company/ManageCompany";
 
 export default function App() {
   return (
@@ -52,6 +54,11 @@ export default function App() {
           {/* Dashboard Layout - Protected by RequireAuth */}
           <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
             <Route path="/dashboard" element={<Home />} />
+            {/* Transaction Management */}
+            <Route path="/manage-transaction" element={<ManageTransaction />} />
+            {/* Company Management */}
+            <Route path="/manage-company" element={<ManageCompany />} />
+
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/manage_user" element={<ManageUsers />} />
