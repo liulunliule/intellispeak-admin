@@ -56,3 +56,17 @@ export const getTransactions = async (): Promise<Transaction[]> => {
     throw new Error(error.response?.data?.message || 'Error loading transactions');
   }
 };
+
+export const getTotalRevenue = async (): Promise<number> => {
+    try {
+        const res = await api.get('/transaction/total-revenue');
+        console.log(res);
+        if (res.data && res.status === 200) {
+            return res.data.data;
+        } else {
+            throw new Error(res.data?.message || 'Failed to fetch total revenue');
+        }
+    } catch (error) {
+        throw new Error(`Failed to fetch total revenue: ${error}`);
+    }
+};

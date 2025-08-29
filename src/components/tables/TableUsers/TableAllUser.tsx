@@ -5,14 +5,9 @@ import {
     TableHeader,
     TableRow,
 } from "../../ui/table";
-// import Badge from "../../ui/badge/Badge";
 import { useState, useEffect } from "react";
 import * as userService from '../../../services/user';
 import { MoreDotIcon } from "../../../icons";
-// import { useModal } from "../../../hooks/useModal";
-// Removed unused modal, button, label, input imports
-// import { useNavigate } from "react-router";
-
 
 interface User {
     userId: string;
@@ -24,7 +19,6 @@ interface User {
     isDeleted: boolean;
 }
 
-
 interface TableAllUserProps {
     onShowDetail?: (user: any) => void;
     refreshKey?: number;
@@ -35,34 +29,31 @@ const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
     const [roleFilter, setRoleFilter] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
-    // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const usersPerPage = 5;
-    // Ban confirmation modal state
     const [banUserId, setBanUserId] = useState<string | null>(null);
     const [isBanModalOpen, setIsBanModalOpen] = useState(false);
-    // Removed unused selectedUser state
 
     useEffect(() => {
         async function fetchUsers() {
-            const data = await userService.getAllUsers();
-            setUsers(data);
-            setLoading(false);
+            setLoading(true);
+            try {
+                const data = await userService.getAllUsers();
+                setUsers(data);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
         }
         fetchUsers();
     }, [refreshKey]);
-
-
-
-    // Remove edit logic
-
 
     const handleBan = async (userId: string) => {
         try {
             await userService.banUser(userId);
             setUsers(prev => prev.map(u => u.userId === userId ? { ...u, isDeleted: true } : u));
         } catch (error) {
-            // Optionally show error to user
             console.error(error);
         } finally {
             setDropdownOpen(null);
@@ -76,7 +67,6 @@ const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
             await userService.unbanUser(userId);
             setUsers(prev => prev.map(u => u.userId === userId ? { ...u, isDeleted: false } : u));
         } catch (error) {
-            // Optionally show error to user
             console.error(error);
         } finally {
             setDropdownOpen(null);
@@ -98,20 +88,13 @@ const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
         setDropdownOpen(dropdownOpen === userId ? null : userId);
     };
 
-
     if (loading) return <div>Loading user list...</div>;
 
-
-    // Get unique roles from users
     const roles = Array.from(new Set(users.map(u => u.role))).filter(Boolean);
-    // If no role is selected, show all
     const filteredUsers = roleFilter.length === 0 ? users : users.filter(u => roleFilter.includes(u.role));
-
-    // Pagination logic
     const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
     const paginatedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
-    // Checkbox handlers
     const handleRoleChange = (role: string) => {
         setRoleFilter(prev =>
             prev.includes(role)
@@ -119,7 +102,6 @@ const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
                 : [...prev, role]
         );
     };
-
 
     return (
         <>
@@ -206,7 +188,7 @@ const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
                 </div>
             </div>
 
-            {/* Ban User Confirmation Modal (moved outside dropdown) */}
+            {/* Ban User Confirmation Modal */}
             {isBanModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
                     <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-md w-full shadow-lg text-center">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
@@ -15,12 +15,24 @@ interface UserDetail {
     userName: string;
     email: string;
     role: string;
-    avatar: string;
+    avatar: string | null;
     createAt: string;
     isDeleted: boolean;
+    packageId: number | null;
+    packageName: string | null;
 }
 
-
+interface Package {
+    packageId: number;
+    packageName: string;
+    description: string;
+    price: number;
+    interviewCount: number;
+    cvAnalyzeCount: number;
+    jdAnalyzeCount: number;
+    createAt: string;
+    updateAt: string;
+}
 
 export default function ManageUsers() {
     const { isOpen, openModal, closeModal } = useModal();
@@ -33,12 +45,30 @@ export default function ManageUsers() {
         role: '',
     });
     const [error, setError] = useState('');
-
-    // User detail modal state
     const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [detailUser, setDetailUser] = useState<UserDetail | null>(null);
-    // For refreshing user list
     const [userListRefreshKey, setUserListRefreshKey] = useState(0);
+    const [packages, setPackages] = useState<Package[]>([]);
+    const [selectedPackageId, setSelectedPackageId] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (detailModalOpen) {
+            async function fetchPackages() {
+                try {
+                    const packageData = await userService.getAllPackages();
+                    setPackages(packageData);
+                    if (detailUser && detailUser.packageId) {
+                        setSelectedPackageId(detailUser.packageId);
+                    } else {
+                        setSelectedPackageId(null);
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch packages:', err);
+                }
+            }
+            fetchPackages();
+        }
+    }, [detailModalOpen, detailUser]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -66,12 +96,12 @@ export default function ManageUsers() {
             });
             closeModal();
             setForm({ email: '', firstName: '', lastName: '', password: '', confirmPassword: '', role: '' });
+            setUserListRefreshKey((k) => k + 1);
         } catch (err: any) {
             setError(err.message || 'Failed to create user');
         }
     };
 
-    // Callback for TableAllUser to open detail modal
     const handleShowDetail = (user: UserDetail) => {
         setDetailUser(user);
         setDetailModalOpen(true);
@@ -80,26 +110,50 @@ export default function ManageUsers() {
     const closeDetailModal = () => {
         setDetailModalOpen(false);
         setDetailUser(null);
+        setSelectedPackageId(null);
+        setPackages([]);
     };
 
-    // Ban/Unban user from detail modal
     const handleBanUnban = async () => {
         if (!detailUser) return;
         try {
             if (detailUser.isDeleted) {
-                // Unban user
                 await userService.unbanUser(detailUser.userId);
                 setDetailUser({ ...detailUser, isDeleted: false });
             } else {
-                // Ban user
                 await userService.banUser(detailUser.userId);
                 setDetailUser({ ...detailUser, isDeleted: true });
             }
-            // Refresh user list in table
-            setUserListRefreshKey(k => k + 1);
+            setUserListRefreshKey((k) => k + 1);
         } catch (err) {
-            // Optionally show error
             alert((err as Error).message || 'Failed to update user status');
+        }
+    };
+
+    const handleUpdateRole = async (newRole: string) => {
+        if (!detailUser) return;
+        try {
+            await userService.updateUserRoleAdmin(detailUser.userId, newRole);
+            setDetailUser({ ...detailUser, role: newRole });
+            setUserListRefreshKey((k) => k + 1);
+        } catch (err) {
+            alert((err as Error).message || 'Failed to update user role');
+        }
+    };
+
+    const handleUpgradePackage = async () => {
+        if (!detailUser || selectedPackageId === null) return;
+        try {
+            await userService.upgradeUserPackage(detailUser.userId, selectedPackageId);
+            const selectedPackage = packages.find(p => p.packageId === selectedPackageId);
+            setDetailUser({
+                ...detailUser,
+                packageId: selectedPackageId,
+                packageName: selectedPackage ? selectedPackage.packageName : null,
+            });
+            setUserListRefreshKey((k) => k + 1);
+        } catch (err) {
+            alert((err as Error).message || 'Failed to upgrade user package');
         }
     };
 
@@ -140,6 +194,7 @@ export default function ManageUsers() {
                 <ComponentCard title="User List">
                     <TableAllUser onShowDetail={handleShowDetail} refreshKey={userListRefreshKey} />
                 </ComponentCard>
+
                 {/* User Detail Modal */}
                 <Modal isOpen={detailModalOpen} onClose={closeDetailModal} className="max-w-[700px] m-4">
                     <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
@@ -148,13 +203,17 @@ export default function ManageUsers() {
                                 User Details
                             </h4>
                             <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-                                View user account information.
+                                View and update user account information.
                             </p>
                         </div>
                         {detailUser && (
                             <div className="flex flex-col gap-6">
                                 <div className="flex flex-col items-center gap-2 mb-4">
-                                    <img src={detailUser.avatar} alt={detailUser.userName} className="w-24 h-24 rounded-full object-cover border" />
+                                    <img
+                                        src={detailUser.avatar || 'https://via.placeholder.com/96'}
+                                        alt={detailUser.userName}
+                                        className="w-24 h-24 rounded-full object-cover border"
+                                    />
                                     <div className="text-lg font-semibold text-gray-800 dark:text-white/90">{detailUser.userName}</div>
                                     <div className="text-sm text-gray-500 dark:text-gray-400">{detailUser.email}</div>
                                 </div>
@@ -165,7 +224,24 @@ export default function ManageUsers() {
                                     </div>
                                     <div>
                                         <Label>Role</Label>
-                                        <Input value={detailUser.role} disabled />
+                                        <div className="flex items-center gap-2">
+                                            <select
+                                                value={detailUser.role}
+                                                onChange={(e) => setDetailUser({ ...detailUser, role: e.target.value })}
+                                                className="flex-1 px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                            >
+                                                <option value="USER">User</option>
+                                                <option value="HR">HR</option>
+                                                <option value="ADMIN">Admin</option>
+                                            </select>
+                                            <Button
+                                                size="sm"
+                                                variant="primary"
+                                                onClick={() => handleUpdateRole(detailUser.role)}
+                                            >
+                                                Save Role
+                                            </Button>
+                                        </div>
                                     </div>
                                     <div>
                                         <Label>Created At</Label>
@@ -174,6 +250,31 @@ export default function ManageUsers() {
                                     <div>
                                         <Label>Status</Label>
                                         <Input value={detailUser.isDeleted ? 'Banned' : 'Active'} disabled />
+                                    </div>
+                                    <div>
+                                        <Label>Package</Label>
+                                        <div className="flex items-center gap-2">
+                                            <select
+                                                value={selectedPackageId ?? ''}
+                                                onChange={(e) => setSelectedPackageId(Number(e.target.value) || null)}
+                                                className="flex-1 px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                            >
+                                                <option value="">None</option>
+                                                {packages.map((pkg) => (
+                                                    <option key={pkg.packageId} value={pkg.packageId}>
+                                                        {pkg.packageName}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <Button
+                                                size="sm"
+                                                variant="primary"
+                                                onClick={handleUpgradePackage}
+                                                disabled={selectedPackageId === null || selectedPackageId === detailUser.packageId}
+                                            >
+                                                Upgrade Package
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 mt-4">
@@ -212,55 +313,45 @@ export default function ManageUsers() {
                         <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
                             {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
                             <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-
-
-
                                 <div>
                                     <Label>First Name</Label>
                                     <Input name="firstName" type="text" placeholder="Enter first name" value={form.firstName} onChange={handleInputChange} />
                                 </div>
-
                                 <div>
                                     <Label>Last Name</Label>
                                     <Input name="lastName" type="text" placeholder="Enter last name" value={form.lastName} onChange={handleInputChange} />
                                 </div>
-
                                 <div className="col-span-2 lg:col-span-1">
                                     <Label>Email Address</Label>
                                     <Input name="email" type="email" placeholder="Enter email address" value={form.email} onChange={handleInputChange} />
                                 </div>
-
                                 <div className="col-span-2 lg:col-span-1">
                                     <Label>Password</Label>
                                     <Input name="password" type="password" placeholder="Enter password" value={form.password} onChange={handleInputChange} />
                                 </div>
-
                                 <div className="col-span-2 lg:col-span-1">
                                     <Label>Confirm Password</Label>
                                     <Input name="confirmPassword" type="password" placeholder="Confirm password" value={form.confirmPassword} onChange={handleInputChange} />
                                 </div>
-
                                 <div className="col-span-2">
                                     <Label>Role</Label>
-                                    <select name="role" value={form.role} onChange={handleInputChange} className="w-full px-4 py-2.5 text-theme-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
+                                    <select name="role" value={form.role} onChange={handleInputChange} className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white">
                                         <option value="">Select role</option>
-                                        <option value="ADMIN">Admin</option>
-                                        <option value="HR">HR</option>
                                         <option value="USER">User</option>
+                                        <option value="HR">HR</option>
+                                        <option value="ADMIN">Admin</option>
                                     </select>
                                 </div>
-
                                 <div className="col-span-2">
                                     <Label>Bio</Label>
                                     <textarea
-                                        className="w-full px-4 py-2.5 text-theme-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                        className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                         rows={3}
                                         placeholder="Enter bio"
                                     ></textarea>
                                 </div>
                             </div>
                         </div>
-
                         <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
                             <Button size="sm" variant="outline" onClick={closeModal}>
                                 Cancel

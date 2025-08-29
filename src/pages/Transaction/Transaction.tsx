@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Badge from "../../components/ui/badge/Badge";
 import { Modal } from "../../components/ui/modal";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "../../components/ui/table";
-import { getTransactions, Transaction } from "../../services/transaction";
+import { getTotalRevenue, getTransactions, Transaction } from "../../services/transaction";
 
 export default function ManageTransaction() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -31,6 +31,19 @@ export default function ManageTransaction() {
         }
     };
 
+    const fetchTotalRevenue = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await getTotalRevenue();
+            setTotalRevenue(data);
+        } catch (err: any) {
+            setError(err.message || "Error loading total revenue");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleViewDetails = (details: string) => {
         setSelectedTransactionDetails(details);
         setShowDetailsModal(true);
@@ -43,6 +56,7 @@ export default function ManageTransaction() {
 
     useEffect(() => {
         fetchTransactions();
+        fetchTotalRevenue();
     }, []);
 
     const getStatusColor = (status: Transaction['transactionStatus']) => {
@@ -93,6 +107,9 @@ export default function ManageTransaction() {
                                             Amount
                                         </TableCell>
                                         <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
+                                            Package
+                                        </TableCell>
+                                        <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
                                             Created At
                                         </TableCell>
                                         <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
@@ -113,6 +130,9 @@ export default function ManageTransaction() {
                                             </TableCell>
                                             <TableCell className="py-3 text-gray-500 text-sm dark:text-gray-400">
                                                 ${transaction.amount.toFixed(2)}
+                                            </TableCell>
+                                            <TableCell className="py-3 text-gray-500 text-sm dark:text-gray-400">
+                                                {transaction.apackage?.packageName || 'None'}
                                             </TableCell>
                                             <TableCell className="py-3 text-gray-500 text-sm dark:text-gray-400">
                                                 {new Date(transaction.createAt).toLocaleDateString()}
