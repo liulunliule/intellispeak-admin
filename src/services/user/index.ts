@@ -59,7 +59,7 @@ export const unbanUser = async (userId: string) => {
 
 export const updateUserRoleAdmin = async (userId: string, role: string) => {
   try {
-    const res = await api.patch(`/admin/users/${userId}/role`, { role });
+    const res = await api.put(`/admin/users/${userId}/role`, { role });
     if (res.data && res.data.code === 200) {
       return res.data.data;
     } else {
