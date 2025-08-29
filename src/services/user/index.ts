@@ -95,3 +95,17 @@ export const upgradeUserPackage = async (userId: string, targetPackageId: number
     throw new Error(`Failed to upgrade user package: ${error}`);
   }
 };
+
+// Có thể giữ lại hàm promoteToHR nếu có endpoint riêng cho việc này
+export const promoteToHR = async (userId: string) => {
+  try {
+    const res = await api.put(`/admin/users/${userId}/role`, { role: 'HR' });
+    if (res.data && res.data.code === 200) {
+      return res.data.data;
+    } else {
+      throw new Error(res.data?.message || 'Failed to promote user to HR');
+    }
+  } catch (error) {
+    throw new Error(`Failed to promote user to HR: ${error}`);
+  }
+};

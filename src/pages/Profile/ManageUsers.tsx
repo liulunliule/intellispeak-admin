@@ -130,14 +130,27 @@ export default function ManageUsers() {
         }
     };
 
-    const handleUpdateRole = async (newRole: string) => {
+    const handleMakeAdmin = async () => {
         if (!detailUser) return;
         try {
-            await userService.updateUserRoleAdmin(detailUser.userId, newRole);
-            setDetailUser({ ...detailUser, role: newRole });
+            await userService.updateUserRoleAdmin(detailUser.userId, 'ADMIN');
+            setDetailUser({ ...detailUser, role: 'ADMIN' });
             setUserListRefreshKey((k) => k + 1);
+            alert('User promoted to ADMIN successfully');
         } catch (err) {
-            alert((err as Error).message || 'Failed to update user role');
+            alert((err as Error).message || 'Failed to promote user to ADMIN');
+        }
+    };
+
+    const handlePromoteToHR = async () => {
+        if (!detailUser) return;
+        try {
+            await userService.updateUserRoleAdmin(detailUser.userId, 'HR');
+            setDetailUser({ ...detailUser, role: 'HR' });
+            setUserListRefreshKey((k) => k + 1);
+            alert('User promoted to HR successfully');
+        } catch (err) {
+            alert((err as Error).message || 'Failed to promote user to HR');
         }
     };
 
@@ -224,24 +237,7 @@ export default function ManageUsers() {
                                     </div>
                                     <div>
                                         <Label>Role</Label>
-                                        <div className="flex items-center gap-2">
-                                            <select
-                                                value={detailUser.role}
-                                                onChange={(e) => setDetailUser({ ...detailUser, role: e.target.value })}
-                                                className="flex-1 px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                            >
-                                                <option value="USER">User</option>
-                                                <option value="HR">HR</option>
-                                                <option value="ADMIN">Admin</option>
-                                            </select>
-                                            <Button
-                                                size="sm"
-                                                variant="primary"
-                                                onClick={() => handleUpdateRole(detailUser.role)}
-                                            >
-                                                Save Role
-                                            </Button>
-                                        </div>
+                                        <Input value={detailUser.role} disabled />
                                     </div>
                                     <div>
                                         <Label>Created At</Label>
@@ -277,7 +273,7 @@ export default function ManageUsers() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 mt-4">
+                                <div className="flex flex-wrap items-center gap-3 mt-4">
                                     <Button
                                         size="sm"
                                         variant={detailUser.isDeleted ? 'primary' : 'danger'}
@@ -285,6 +281,24 @@ export default function ManageUsers() {
                                     >
                                         {detailUser.isDeleted ? 'Unban User' : 'Ban User'}
                                     </Button>
+                                    {detailUser.role !== 'ADMIN' && (
+                                        <Button
+                                            size="sm"
+                                            variant="primary"
+                                            onClick={handleMakeAdmin}
+                                        >
+                                            Make Admin
+                                        </Button>
+                                    )}
+                                    {detailUser.role !== 'HR' && (
+                                        <Button
+                                            size="sm"
+                                            variant="primary"
+                                            onClick={handlePromoteToHR}
+                                        >
+                                            Promote to HR
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         )}

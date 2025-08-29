@@ -21,9 +21,6 @@ export default function ManageTransaction() {
         try {
             const data = await getTransactions();
             setTransactions(data);
-            // Tính tổng số tiền từ tất cả giao dịch
-            const total = data.reduce((sum, transaction) => sum + transaction.amount, 0);
-            setTotalRevenue(total);
         } catch (err: any) {
             setError(err.message || "Error loading transactions");
         } finally {
