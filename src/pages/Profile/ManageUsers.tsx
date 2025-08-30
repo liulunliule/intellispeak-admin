@@ -4,6 +4,7 @@ import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
 import { useModal } from "../../hooks/useModal";
 import * as userService from '../../services/user';
+import { Company, getCompanies } from '../../services/company'; // Import Company từ company.ts
 import { Modal } from "../../components/ui/modal";
 import Button from "../../components/ui/button/Button";
 import Label from "../../components/form/Label";
@@ -49,7 +50,22 @@ export default function ManageUsers() {
     const [detailUser, setDetailUser] = useState<UserDetail | null>(null);
     const [userListRefreshKey, setUserListRefreshKey] = useState(0);
     const [packages, setPackages] = useState<Package[]>([]);
+    const [companies, setCompanies] = useState<Company[]>([]);
     const [selectedPackageId, setSelectedPackageId] = useState<number | null>(null);
+    const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
+    const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
+
+    useEffect(() => {
+        async function fetchCompanies() {
+            try {
+                const response = await getCompanies();
+                setCompanies(response);
+            } catch (err) {
+                console.error('Failed to fetch companies:', err);
+            }
+        }
+        fetchCompanies();
+    }, []);
 
     useEffect(() => {
         if (detailModalOpen) {
@@ -111,6 +127,8 @@ export default function ManageUsers() {
         setDetailModalOpen(false);
         setDetailUser(null);
         setSelectedPackageId(null);
+        setSelectedCompanyId(null);
+        setShowCompanyDropdown(false);
         setPackages([]);
     };
 
@@ -133,7 +151,7 @@ export default function ManageUsers() {
     const handleMakeAdmin = async () => {
         if (!detailUser) return;
         try {
-            await userService.updateUserRoleAdmin(detailUser.userId, 'ADMIN');
+            await userService.updateUserRoleAdmin(detailUser.userId);
             setDetailUser({ ...detailUser, role: 'ADMIN' });
             setUserListRefreshKey((k) => k + 1);
             alert('User promoted to ADMIN successfully');
@@ -143,9 +161,12 @@ export default function ManageUsers() {
     };
 
     const handlePromoteToHR = async () => {
-        if (!detailUser) return;
+        if (!detailUser || selectedCompanyId === null) {
+            alert('Please select a company to promote the user to HR');
+            return;
+        }
         try {
-            await userService.updateUserRoleAdmin(detailUser.userId, 'HR');
+            await userService.promoteToHR(detailUser.userId, selectedCompanyId.toString());
             setDetailUser({ ...detailUser, role: 'HR' });
             setUserListRefreshKey((k) => k + 1);
             alert('User promoted to HR successfully');
@@ -168,6 +189,10 @@ export default function ManageUsers() {
         } catch (err) {
             alert((err as Error).message || 'Failed to upgrade user package');
         }
+    };
+
+    const handleShowCompanyDropdown = () => {
+        setShowCompanyDropdown(true);
     };
 
     return (
@@ -210,50 +235,50 @@ export default function ManageUsers() {
 
                 {/* User Detail Modal */}
                 <Modal isOpen={detailModalOpen} onClose={closeDetailModal} className="max-w-[700px] m-4">
-                    <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
-                        <div className="px-2 pr-14">
-                            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+                    <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-10 shadow-lg">
+                        <div className="px-4">
+                            <h4 className="mb-3 text-2xl font-bold text-gray-800 dark:text-white/90">
                                 User Details
                             </h4>
-                            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-                                View and update user account information.
+                            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400">
+                                View and manage user account information
                             </p>
                         </div>
                         {detailUser && (
-                            <div className="flex flex-col gap-6">
-                                <div className="flex flex-col items-center gap-2 mb-4">
+                            <div className="flex flex-col gap-8 px-4">
+                                <div className="flex flex-col items-center gap-3">
                                     <img
                                         src={detailUser.avatar || 'https://via.placeholder.com/96'}
                                         alt={detailUser.userName}
-                                        className="w-24 h-24 rounded-full object-cover border"
+                                        className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700 shadow-sm"
                                     />
-                                    <div className="text-lg font-semibold text-gray-800 dark:text-white/90">{detailUser.userName}</div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">{detailUser.email}</div>
+                                    <div className="text-xl font-semibold text-gray-800 dark:text-white/90">{detailUser.userName}</div>
+                                    <div className="text-sm text-gray-600 dark:text-gray-400">{detailUser.email}</div>
                                 </div>
-                                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+                                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                                     <div>
-                                        <Label>User ID</Label>
-                                        <Input value={detailUser.userId} disabled />
+                                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">User ID</Label>
+                                        <Input value={detailUser.userId} disabled className="mt-1 bg-gray-50 dark:bg-gray-800" />
                                     </div>
                                     <div>
-                                        <Label>Role</Label>
-                                        <Input value={detailUser.role} disabled />
+                                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Role</Label>
+                                        <Input value={detailUser.role} disabled className="mt-1 bg-gray-50 dark:bg-gray-800" />
                                     </div>
                                     <div>
-                                        <Label>Created At</Label>
-                                        <Input value={new Date(detailUser.createAt).toLocaleString()} disabled />
+                                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Created At</Label>
+                                        <Input value={new Date(detailUser.createAt).toLocaleString()} disabled className="mt-1 bg-gray-50 dark:bg-gray-800" />
                                     </div>
                                     <div>
-                                        <Label>Status</Label>
-                                        <Input value={detailUser.isDeleted ? 'Banned' : 'Active'} disabled />
+                                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</Label>
+                                        <Input value={detailUser.isDeleted ? 'Banned' : 'Active'} disabled className="mt-1 bg-gray-50 dark:bg-gray-800" />
                                     </div>
-                                    <div>
-                                        <Label>Package</Label>
-                                        <div className="flex items-center gap-2">
+                                    <div className="lg:col-span-2">
+                                        <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Package</Label>
+                                        <div className="flex items-center gap-3 mt-1">
                                             <select
                                                 value={selectedPackageId ?? ''}
                                                 onChange={(e) => setSelectedPackageId(Number(e.target.value) || null)}
-                                                className="flex-1 px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                                className="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-200"
                                             >
                                                 <option value="">None</option>
                                                 {packages.map((pkg) => (
@@ -267,17 +292,60 @@ export default function ManageUsers() {
                                                 variant="primary"
                                                 onClick={handleUpgradePackage}
                                                 disabled={selectedPackageId === null || selectedPackageId === detailUser.packageId}
+                                                className="px-4 py-2 text-sm font-medium"
                                             >
                                                 Upgrade Package
                                             </Button>
                                         </div>
                                     </div>
+                                    {detailUser.role !== 'HR' && (
+                                        <div className="lg:col-span-2">
+                                            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">HR Promotion</Label>
+                                            <div className="mt-1">
+                                                {!showCompanyDropdown ? (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="primary"
+                                                        onClick={handleShowCompanyDropdown}
+                                                        className="px-4 py-2 text-sm font-medium"
+                                                    >
+                                                        Become HR
+                                                    </Button>
+                                                ) : (
+                                                    <div className="flex items-center gap-3">
+                                                        <select
+                                                            value={selectedCompanyId ?? ''}
+                                                            onChange={(e) => setSelectedCompanyId(Number(e.target.value) || null)}
+                                                            className="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-200"
+                                                        >
+                                                            <option value="">Select company</option>
+                                                            {companies.map((company) => (
+                                                                <option key={company.companyId} value={company.companyId}>
+                                                                    {company.name} ({company.shortName})
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="primary"
+                                                            onClick={handlePromoteToHR}
+                                                            disabled={selectedCompanyId === null}
+                                                            className="px-4 py-2 text-sm font-medium"
+                                                        >
+                                                            Promote to HR
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="flex flex-wrap items-center gap-3 mt-4">
+                                <div className="flex flex-wrap items-center gap-3 mt-6">
                                     <Button
                                         size="sm"
                                         variant={detailUser.isDeleted ? 'primary' : 'danger'}
                                         onClick={handleBanUnban}
+                                        className="px-4 py-2 text-sm font-medium"
                                     >
                                         {detailUser.isDeleted ? 'Unban User' : 'Ban User'}
                                     </Button>
@@ -286,24 +354,21 @@ export default function ManageUsers() {
                                             size="sm"
                                             variant="primary"
                                             onClick={handleMakeAdmin}
+                                            className="px-4 py-2 text-sm font-medium"
                                         >
                                             Make Admin
-                                        </Button>
-                                    )}
-                                    {detailUser.role !== 'HR' && (
-                                        <Button
-                                            size="sm"
-                                            variant="primary"
-                                            onClick={handlePromoteToHR}
-                                        >
-                                            Promote to HR
                                         </Button>
                                     )}
                                 </div>
                             </div>
                         )}
-                        <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-                            <Button size="sm" variant="outline" onClick={closeDetailModal}>
+                        <div className="flex items-center justify-end gap-3 px-4 mt-8">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={closeDetailModal}
+                                className="px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                            >
                                 Close
                             </Button>
                         </div>

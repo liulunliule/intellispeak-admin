@@ -7,6 +7,7 @@ import {
 } from "../../ui/table";
 import { useState, useEffect } from "react";
 import * as userService from '../../../services/user';
+import * as companyService from "../../../services/company";
 import { MoreDotIcon } from "../../../icons";
 
 interface User {
@@ -47,6 +48,7 @@ const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
             }
         }
         fetchUsers();
+        companyService.getCompanies();
     }, [refreshKey]);
 
     const handleBan = async (userId: string) => {

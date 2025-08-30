@@ -9,7 +9,6 @@ import { getCompanies, getCompanyById, Company } from "../../services/company";
 
 export default function ManageCompany() {
     const [companies, setCompanies] = useState<Company[]>([]);
-    const [totalRevenue, setTotalRevenue] = useState<number>(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -21,9 +20,6 @@ export default function ManageCompany() {
         try {
             const data = await getCompanies();
             setCompanies(data);
-            // Giả định totalRevenue = 0 vì API không cung cấp
-            // TODO: Cập nhật logic nếu có API lấy totalRevenue
-            setTotalRevenue(0);
         } catch (err: any) {
             setError(err.message || "Error loading companies");
         } finally {
@@ -54,23 +50,11 @@ export default function ManageCompany() {
         return isDeleted ? "error" : "success";
     };
 
-    const getIndustry = (description: string) => {
-        // Cắt ngắn description để làm industry (giả định)
-        return description.split(" ")[0] || "N/A";
-    };
-
     return (
         <div>
             <PageMeta title="Manage Companies | Admin Dashboard" description="Page for managing companies." />
             <PageBreadcrumb pageTitle="Manage Companies" />
-            {!loading && !error && (
-                <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Revenue</h3>
-                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        ${totalRevenue.toFixed(2)}
-                    </p>
-                </div>
-            )}
+
             <ComponentCard title="Company List">
                 {loading && (
                     <div className="flex justify-center items-center py-4">
@@ -92,7 +76,7 @@ export default function ManageCompany() {
                                             Company Name
                                         </TableCell>
                                         <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
-                                            Industry
+                                            Short Name
                                         </TableCell>
                                         <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
                                             Created At
@@ -106,15 +90,22 @@ export default function ManageCompany() {
                                     {companies.map((company) => (
                                         <TableRow key={company.companyId} className="relative group">
                                             <TableCell className="py-3">
-                                                <p
-                                                    className="font-medium text-blue-600 text-sm dark:text-blue-400 cursor-pointer hover:underline"
-                                                    onClick={() => handleViewDetails(company.companyId)}
-                                                >
-                                                    {company.name}
-                                                </p>
+                                                <div className="flex items-center space-x-3">
+                                                    <img
+                                                        src={company.logoUrl}
+                                                        alt={`${company.name} logo`}
+                                                        className="h-8 w-8 object-contain"
+                                                    />
+                                                    <p
+                                                        className="font-medium text-blue-600 text-sm dark:text-blue-400 cursor-pointer hover:underline"
+                                                        onClick={() => handleViewDetails(company.companyId)}
+                                                    >
+                                                        {company.name}
+                                                    </p>
+                                                </div>
                                             </TableCell>
                                             <TableCell className="py-3 text-gray-500 text-sm dark:text-gray-400">
-                                                {getIndustry(company.description)}
+                                                {company.shortName || "N/A"}
                                             </TableCell>
                                             <TableCell className="py-3 text-gray-500 text-sm dark:text-gray-400">
                                                 {new Date(company.createAt).toLocaleDateString()}
@@ -152,6 +143,22 @@ export default function ManageCompany() {
                     {selectedCompany ? (
                         <div className="space-y-4">
                             <div>
+                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Logo</h4>
+                                <img
+                                    src={selectedCompany.logoUrl}
+                                    alt={`${selectedCompany.name} logo`}
+                                    className="h-16 w-16 object-contain"
+                                />
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Name</h4>
+                                <p className="text-gray-700 dark:text-gray-300">{selectedCompany.name}</p>
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Short Name</h4>
+                                <p className="text-gray-700 dark:text-gray-300">{selectedCompany.shortName || "N/A"}</p>
+                            </div>
+                            <div>
                                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Description</h4>
                                 <p className="text-gray-700 dark:text-gray-300">{selectedCompany.description}</p>
                             </div>
@@ -165,6 +172,16 @@ export default function ManageCompany() {
                                 >
                                     {selectedCompany.website}
                                 </a>
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Created At</h4>
+                                <p className="text-gray-700 dark:text-gray-300">{new Date(selectedCompany.createAt).toLocaleDateString()}</p>
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Updated At</h4>
+                                <p className="text-gray-700 dark:text-gray-300">
+                                    {selectedCompany.updateAt ? new Date(selectedCompany.updateAt).toLocaleDateString() : "N/A"}
+                                </p>
                             </div>
                             <div>
                                 <h4 className="text-lg font-semibold text-gray-900 dark:text-white">HR List</h4>

@@ -56,20 +56,6 @@ export const unbanUser = async (userId: string) => {
     throw new Error(`Failed to unban user: ${error}`);
   }
 };
-
-export const updateUserRoleAdmin = async (userId: string, role: string) => {
-  try {
-    const res = await api.put(`/admin/users/${userId}/role`, { role });
-    if (res.data && res.data.code === 200) {
-      return res.data.data;
-    } else {
-      throw new Error(res.data?.message || 'Failed to update user role');
-    }
-  } catch (error) {
-    throw new Error(`Failed to update user role: ${error}`);
-  }
-};
-
 export const getAllPackages = async (): Promise<Package[]> => {
   try {
     const res = await api.get('/package');
@@ -96,10 +82,26 @@ export const upgradeUserPackage = async (userId: string, targetPackageId: number
   }
 };
 
-// Có thể giữ lại hàm promoteToHR nếu có endpoint riêng cho việc này
-export const promoteToHR = async (userId: string) => {
+
+export const updateUserRoleAdmin = async (userId: string) => {
   try {
-    const res = await api.put(`/admin/users/${userId}/role`, { role: 'HR' });
+    const res = await api.put(`/admin/users/${userId}/role`, { role : 'ADMIN' });
+    if (res.data && res.data.code === 200) {
+      return res.data.data;
+    } else {
+      throw new Error(res.data?.message || 'Failed to update user role');
+    }
+  } catch (error) {
+    throw new Error(`Failed to update user role: ${error}`);
+  }
+};
+
+export const promoteToHR = async (userId: string, companyId: string) => {
+  try {
+    const res = await api.post(`/admin/users/${userId}/promote-hr`, { 
+      role: 'HR',
+      companyId: parseInt(companyId)
+    });
     if (res.data && res.data.code === 200) {
       return res.data.data;
     } else {
