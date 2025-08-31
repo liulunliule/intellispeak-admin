@@ -3,7 +3,7 @@ import api from '../api';
 export interface Transaction {
   id: number;
   orderCode: number;
-  transactionStatus: 'PENDING' | 'COMPLETED' | 'CANCELLED';
+  transactionStatus: 'PENDING' | 'PAID' | 'CANCELLED';
   amount: number;
   description: string;
   createAt: string;

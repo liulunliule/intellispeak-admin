@@ -14,6 +14,7 @@ export default function ManageTransaction() {
     const [error, setError] = useState<string | null>(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [selectedTransactionDetails, setSelectedTransactionDetails] = useState<string>("");
+    const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
     const fetchTransactions = async () => {
         setLoading(true);
@@ -58,7 +59,7 @@ export default function ManageTransaction() {
 
     const getStatusColor = (status: Transaction['transactionStatus']) => {
         switch (status) {
-            case "COMPLETED":
+            case "PAID":
                 return "success";
             case "CANCELLED":
                 return "error";
@@ -67,6 +68,10 @@ export default function ManageTransaction() {
                 return "warning";
         }
     };
+
+    const filteredTransactions = statusFilter === "ALL"
+        ? transactions
+        : transactions.filter(transaction => transaction.transactionStatus === statusFilter);
 
     return (
         <div>
@@ -81,6 +86,22 @@ export default function ManageTransaction() {
                 </div>
             )}
             <ComponentCard title="Transaction List">
+                <div className="mb-4">
+                    <label htmlFor="statusFilter" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Filter by Status:
+                    </label>
+                    <select
+                        id="statusFilter"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                    >
+                        <option value="ALL">All</option>
+                        <option value="PAID">Completed</option>
+                        <option value="CANCELLED">Cancelled</option>
+                        <option value="PENDING">Pending</option>
+                    </select>
+                </div>
                 {loading && (
                     <div className="flex justify-center items-center py-4">
                         <p className="text-gray-600 dark:text-gray-300">Loading transactions...</p>
@@ -91,7 +112,7 @@ export default function ManageTransaction() {
                         <p className="text-red-500 font-medium">Error: {error}</p>
                     </div>
                 )}
-                {!loading && !error && transactions.length > 0 ? (
+                {!loading && !error && filteredTransactions.length > 0 ? (
                     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
                         <div className="max-w-full overflow-x-auto">
                             <Table>
@@ -115,14 +136,14 @@ export default function ManageTransaction() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-                                    {transactions.map((transaction) => (
+                                    {filteredTransactions.map((transaction) => (
                                         <TableRow key={transaction.id} className="relative group">
                                             <TableCell className="py-3">
                                                 <p
                                                     className="font-medium text-blue-600 text-sm dark:text-blue-400 cursor-pointer hover:underline"
                                                     onClick={() => handleViewDetails(transaction.description)}
                                                 >
-                                                    {transaction.user.userName}
+                                                    {transaction.user.firstName ? transaction.user.firstName : transaction.user.userName}
                                                 </p>
                                             </TableCell>
                                             <TableCell className="py-3 text-gray-500 text-sm dark:text-gray-400">
@@ -137,7 +158,7 @@ export default function ManageTransaction() {
                                             <TableCell className="py-3">
                                                 <Badge size="sm" color={getStatusColor(transaction.transactionStatus)}>
                                                     {transaction.transactionStatus === "PENDING" && "Pending"}
-                                                    {transaction.transactionStatus === "COMPLETED" && "Completed"}
+                                                    {transaction.transactionStatus === "PAID" && "Completed"}
                                                     {transaction.transactionStatus === "CANCELLED" && "Cancelled"}
                                                 </Badge>
                                             </TableCell>
