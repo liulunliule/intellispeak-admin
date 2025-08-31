@@ -59,7 +59,7 @@ export default function QuestionSetForm({
             <div>
                 <Label>Difficulty</Label>
                 <select
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                     value={formData.difficulty}
                     onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
                     required
@@ -73,7 +73,7 @@ export default function QuestionSetForm({
             <div>
                 <Label>Sample Answer</Label>
                 <textarea
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                     rows={3}
                     value={formData.sampleAnswer}
                     onChange={(e) => setFormData({ ...formData, sampleAnswer: e.target.value })}

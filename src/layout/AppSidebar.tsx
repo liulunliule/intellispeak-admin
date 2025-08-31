@@ -92,11 +92,16 @@ const navItems: NavItem[] = [
   {
     name: "Complaints",
     icon: <FeedbackIcon />,
-    subItems: [
-      { name: "User Complaints", path: "/feedback", pro: false },
-      // { name: "Báo cáo hệ thống", path: "/reports", pro: false, new: true },
-    ],
+    path: "/feedback",
   },
+  // {
+  //   name: "Complaints",
+  //   icon: <FeedbackIcon />,
+  //   subItems: [
+  //     { name: "User Complaints", path: "/feedback", pro: false },
+  //     // { name: "Báo cáo hệ thống", path: "/reports", pro: false, new: true },
+  //   ],
+  // },
 
   {
     name: "Package Management",

@@ -9,6 +9,7 @@ import ConfirmationDialog from "../../../components/questions/ConfirmationDialog
 import MyQuestions from "./MyQuestions";
 import Button from "../../../components/ui/button/Button";
 import * as questionService from "../../../services/question";
+import TextArea from "../../../components/form/input/TextArea";
 
 interface Tag {
     tagId: number;
@@ -634,11 +635,11 @@ export default function ManageQuestions() {
                             </div>
                             <div>
                                 <Label>Question content</Label>
-                                <textarea
+                                <TextArea
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                     rows={4}
                                     value={updateContent}
-                                    onChange={(e) => setUpdateContent(e.target.value)}
+                                    onChange={setUpdateContent}
                                     placeholder="Enter detailed question content"
                                 />
                             </div>
@@ -646,7 +647,7 @@ export default function ManageQuestions() {
                                 <div>
                                     <Label>Difficulty</Label>
                                     <select
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                         value={updateDifficulty}
                                         onChange={(e) => setUpdateDifficulty(e.target.value)}
                                     >
@@ -667,22 +668,21 @@ export default function ManageQuestions() {
                             </div>
                             <div>
                                 <Label>Suitable answer 1</Label>
-                                <textarea
+                                <TextArea
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                     rows={2}
                                     value={updateSuitableAnswer1}
-                                    onChange={(e) => setUpdateSuitableAnswer1(e.target.value)}
+                                    onChange={setUpdateSuitableAnswer1}
                                     placeholder="Enter sample answer"
-                                    required
                                 />
                             </div>
                             <div>
                                 <Label>Suitable answer 2</Label>
-                                <textarea
+                                <TextArea
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                     rows={2}
                                     value={updateSuitableAnswer2}
-                                    onChange={(e) => setUpdateSuitableAnswer2(e.target.value)}
+                                    onChange={setUpdateSuitableAnswer2}
                                     placeholder="Enter second sample answer"
                                 />
                             </div>
@@ -721,7 +721,7 @@ export default function ManageQuestions() {
                                 <div className="py-2 text-gray-500">Loading tags...</div>
                             ) : (
                                 <select
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                     value={selectedAddTag || ""}
                                     onChange={(e) => setSelectedAddTag(e.target.value)}
                                 >
@@ -791,7 +791,7 @@ export default function ManageQuestions() {
                         </h3>
                         <div className="space-y-4">
                             {createStep === 1 && (
-                                <div className="space-y-4">
+                                <div className="space-y-4 ">
                                     <div>
                                         <Label>1. Select topic</Label>
                                         {loadingTags ? (
@@ -799,7 +799,7 @@ export default function ManageQuestions() {
                                         ) : (
                                             <>
                                                 <select
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                                     value={selectedTopic || ""}
                                                     onChange={(e) => {
                                                         const selected = topics.find(t => t.title === e.target.value);
@@ -808,7 +808,7 @@ export default function ManageQuestions() {
                                                         if (e.target.value) setCreateStep(2);
                                                     }}
                                                 >
-                                                    <option value="">-- Select available topic --</option>
+                                                    <option value="" className="text-gray-900 bg-white dark:bg-gray-800 dark:text-white">-- Select available topic --</option>
                                                     {topics.map((topic) => (
                                                         <option key={topic.topicId} value={topic.title}>
                                                             {topic.title}
@@ -826,12 +826,12 @@ export default function ManageQuestions() {
                                                             />
                                                         </div>
                                                         <div>
-                                                            <textarea
+                                                            <TextArea
                                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                                                 placeholder="Topic description"
                                                                 rows={3}
                                                                 value={newTopicDesc}
-                                                                onChange={(e) => setNewTopicDesc(e.target.value)}
+                                                                onChange={setNewTopicDesc}
                                                             />
                                                         </div>
                                                     </div>
@@ -859,7 +859,7 @@ export default function ManageQuestions() {
                                         ) : (
                                             <>
                                                 <select
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                                     value={selectedTag || ""}
                                                     onChange={(e) => {
                                                         setSelectedTag(e.target.value);
@@ -884,12 +884,12 @@ export default function ManageQuestions() {
                                                             />
                                                         </div>
                                                         <div>
-                                                            <textarea
+                                                            <TextArea
                                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                                                 placeholder="Tag description"
                                                                 rows={3}
                                                                 value={newTagDesc}
-                                                                onChange={(e) => setNewTagDesc(e.target.value)}
+                                                                onChange={setNewTagDesc}
                                                             />
                                                         </div>
                                                     </div>
@@ -952,11 +952,11 @@ export default function ManageQuestions() {
                                             </div>
                                             <div>
                                                 <Label>Question content</Label>
-                                                <textarea
+                                                <TextArea
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                                     rows={4}
                                                     value={questionContent}
-                                                    onChange={(e) => setQuestionContent(e.target.value)}
+                                                    onChange={setQuestionContent}
                                                     placeholder="Enter detailed question content"
                                                 />
                                             </div>
@@ -964,7 +964,7 @@ export default function ManageQuestions() {
                                                 <div>
                                                     <Label>Difficulty</Label>
                                                     <select
-                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                                         value={questionDifficulty}
                                                         onChange={(e) => setQuestionDifficulty(e.target.value)}
                                                     >
@@ -977,22 +977,21 @@ export default function ManageQuestions() {
                                             </div>
                                             <div>
                                                 <Label>Suitable answer 1</Label>
-                                                <textarea
+                                                <TextArea
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                                     rows={2}
                                                     value={suitableAnswer1}
-                                                    onChange={(e) => setSuitableAnswer1(e.target.value)}
+                                                    onChange={setSuitableAnswer1}
                                                     placeholder="Enter sample answer"
-                                                    required
                                                 />
                                             </div>
                                             <div>
                                                 <Label>Suitable answer 2</Label>
-                                                <textarea
+                                                <TextArea
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                                     rows={2}
                                                     value={suitableAnswer2}
-                                                    onChange={(e) => setSuitableAnswer2(e.target.value)}
+                                                    onChange={setSuitableAnswer2}
                                                     placeholder="Enter second sample answer"
                                                 />
                                             </div>
