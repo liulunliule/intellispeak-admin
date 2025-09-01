@@ -4,21 +4,20 @@ import { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { MoreDotIcon } from "../../icons";
-// Import configured api instance
-import api from '../../services/api'; // Adjust path if needed
+import { getMonthlyRevenue, getDailyRevenue } from "../../services/dashboard";
 
 export default function MonthlyTarget() {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1; // Month starts from 1-12
 
-  const [month] = useState(currentMonth); // Removed setMonth since it's unused
-  const [year] = useState(currentYear); // Removed setYear since it's unused
+  const [month] = useState(currentMonth);
+  const [year] = useState(currentYear);
   const [currentMonthRevenue, setCurrentMonthRevenue] = useState(0);
   const [prevMonthRevenue, setPrevMonthRevenue] = useState(0);
+  const [todayRevenue, setTodayRevenue] = useState('0');
   const [loading, setLoading] = useState(true);
   const [progressPercentage, setProgressPercentage] = useState(0);
-  const [target] = useState(20000); // Removed setTarget since it's unused
 
   // Calculate previous month
   const prevMonth = month === 1 ? 12 : month - 1;
@@ -31,46 +30,31 @@ export default function MonthlyTarget() {
   useEffect(() => {
     setLoading(true);
 
-    // Fetch data function
-    const fetchRevenue = async (year: number, month: number) => {
-      try {
-        // Use the pre-configured api instance
-        const response = await api.get(
-          `/admin/monthly-revenue?year=${year}&month=${month}`
-        );
-        if (response.data && typeof response.data.data === 'number') {
-          return response.data.data;
-        }
-        console.warn(`API returned unexpected data for ${year}-${month}:`, response.data);
-        return 0;
-      } catch (error) {
-        console.error(`Error fetching data for ${year}-${month}:`, error);
-        return 0;
-      }
-    };
-
-    // Fetch data for current and previous month
+    // Fetch data for current month, previous month, and today
     Promise.all([
-      fetchRevenue(year, month),
-      fetchRevenue(prevMonthYear, prevMonth)
-    ]).then(([current, prev]) => {
+      getMonthlyRevenue(year, month),
+      getMonthlyRevenue(prevMonthYear, prevMonth),
+      getDailyRevenue()
+    ]).then(([current, prev, today]) => {
       setCurrentMonthRevenue(current);
       setPrevMonthRevenue(prev);
+      setTodayRevenue(today);
 
-      // Calculate progress percentage
-      const percentage = target > 0 ? Math.min(Math.round((current / target) * 100), 100) : 0;
+      // Calculate progress percentage using prevMonthRevenue as target
+      const percentage = prev > 0 ? Math.min(Math.round((current / prev) * 100), 100) : 0;
       setProgressPercentage(percentage);
       setLoading(false);
     }).catch(err => {
-      console.error("Error fetching monthly revenue data:", err);
+      console.error("Error fetching revenue data:", err);
       setCurrentMonthRevenue(0);
       setPrevMonthRevenue(0);
+      setTodayRevenue('0');
       setProgressPercentage(0);
       setLoading(false);
     });
-  }, [year, month, prevMonth, prevMonthYear, target]);
+  }, [year, month, prevMonth, prevMonthYear]);
 
-  // Tính phần trăm tăng trưởng so với tháng trước
+  // Calculate growth percentage compared to previous month
   const growthPercentage = prevMonthRevenue > 0
     ? Math.round(((currentMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100)
     : currentMonthRevenue > 0 ? 100 : 0;
@@ -137,12 +121,13 @@ export default function MonthlyTarget() {
   }
 
   // Format currency
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: string | number) => {
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount.replace(/,/g, '')) : amount;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       maximumFractionDigits: 0
-    }).format(amount);
+    }).format(numericAmount);
   };
 
   return (
@@ -181,7 +166,7 @@ export default function MonthlyTarget() {
             </Dropdown>
           </div>
         </div>
-        <div className="relative ">
+        <div className="relative">
           {loading ? (
             <div className="flex items-center justify-center h-[330px]">
               <div className="text-gray-400">Loading data...</div>
@@ -198,8 +183,8 @@ export default function MonthlyTarget() {
               </div>
 
               <span className={`absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full px-3 py-1 text-xs font-medium ${growthPercentage >= 0
-                ? "bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500"
-                : "bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500"
+                  ? "bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500"
+                  : "bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500"
                 }`}>
                 {growthPercentage >= 0 ? '+' : ''}{growthPercentage}%
               </span>
@@ -221,7 +206,7 @@ export default function MonthlyTarget() {
             Target
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            {formatCurrency(target)}
+            {formatCurrency(prevMonthRevenue)}
           </p>
         </div>
 
@@ -274,7 +259,7 @@ export default function MonthlyTarget() {
             Today
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            {formatCurrency(3287)} {/* Giá trị cứng theo yêu cầu */}
+            {formatCurrency(todayRevenue)}
             <svg
               width="16"
               height="16"
