@@ -40,7 +40,6 @@ export interface QuestionSet {
     sampleAnswer: string;
 }
 
-// Thêm interface cho dữ liệu chi tiết câu hỏi
 interface QuestionDetail {
     questionId: number;
     title: string;
@@ -54,23 +53,8 @@ interface QuestionDetail {
 }
 
 export default function ManageQuestions() {
-    // State for delete confirmation
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [deleteQuestionId, setDeleteQuestionId] = useState<number | null>(null);
-
-    const handleDeleteQuestion = (questionId: number) => {
-        setDeleteQuestionId(questionId);
-        setIsDeleteModalOpen(true);
-    };
-
-    const confirmDeleteQuestion = async () => {
-        if (!deleteQuestionId) return;
-        await questionService.deleteQuestion(deleteQuestionId);
-        await fetchQuestions();
-        await fetchMyQuestions();
-        setIsDeleteModalOpen(false);
-        setDeleteQuestionId(null);
-    };
     const [loadingQuestions, setLoadingQuestions] = useState(false);
     const [loadingMyQuestions, setLoadingMyQuestions] = useState(false);
     const [errorQuestions, setErrorQuestions] = useState("");
@@ -82,6 +66,7 @@ export default function ManageQuestions() {
     const [currentTag, setCurrentTag] = useState("");
     const [currentDifficulty, setCurrentDifficulty] = useState("");
     const [currentSort, setCurrentSort] = useState("title");
+    const [searchTerm, setSearchTerm] = useState(""); // New state for search term
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [createStep, setCreateStep] = useState(1);
     const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -110,14 +95,10 @@ export default function ManageQuestions() {
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
     const [deleteTagInfo, setDeleteTagInfo] = useState<{ questionId: number; tagId: number } | null>(null);
     const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
-
-    // Thêm state mới cho modal chi tiết
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [questionDetail, setQuestionDetail] = useState<QuestionDetail | null>(null);
     const [loadingDetail, setLoadingDetail] = useState(false);
     const [errorDetail, setErrorDetail] = useState("");
-
-    // Thêm state mới cho modal update
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [updateQuestionId, setUpdateQuestionId] = useState<number | null>(null);
     const [updateTitle, setUpdateTitle] = useState("");
@@ -168,7 +149,6 @@ export default function ManageQuestions() {
         setLoadingMyQuestions(false);
     };
 
-    // Thêm hàm fetch chi tiết câu hỏi
     const fetchQuestionDetail = async (questionId: number) => {
         setLoadingDetail(true);
         setErrorDetail("");
@@ -178,12 +158,10 @@ export default function ManageQuestions() {
         setLoadingDetail(false);
     };
 
-    // Thêm hàm xử lý xem chi tiết
     const handleViewDetails = (questionId: number) => {
         fetchQuestionDetail(questionId);
     };
 
-    // Thêm hàm mở modal update
     const handleOpenUpdateModal = async (questionId: number) => {
         setLoadingUpdate(true);
         setErrorUpdate("");
@@ -200,7 +178,6 @@ export default function ManageQuestions() {
         setLoadingUpdate(false);
     };
 
-    // Thêm hàm xử lý update câu hỏi
     const handleUpdateQuestion = async () => {
         if (!updateQuestionId || !updateTitle || !updateContent || !updateDifficulty || !updateSuitableAnswer1) return;
 
@@ -220,6 +197,20 @@ export default function ManageQuestions() {
         setIsUpdateModalOpen(false);
         setUpdateQuestionId(null);
         setLoadingUpdate(false);
+    };
+
+    const handleDeleteQuestion = (questionId: number) => {
+        setDeleteQuestionId(questionId);
+        setIsDeleteModalOpen(true);
+    };
+
+    const confirmDeleteQuestion = async () => {
+        if (!deleteQuestionId) return;
+        await questionService.deleteQuestion(deleteQuestionId);
+        await fetchQuestions();
+        await fetchMyQuestions();
+        setIsDeleteModalOpen(false);
+        setDeleteQuestionId(null);
     };
 
     const convertDifficulty = (difficulty: string): "Easy" | "Medium" | "Hard" => {
@@ -257,6 +248,7 @@ export default function ManageQuestions() {
         setErrorTags("");
         const response = await questionService.getTags();
         setTags(response.data.data || []);
+        setLoadingTags(false);
     };
 
     const connectTagToTopic = async (topicId: number, tagId: number) => {
@@ -400,6 +392,16 @@ export default function ManageQuestions() {
         let filtered = [...questionSets];
         let filteredMy = [...myQuestionSets];
 
+        // Apply search filter
+        if (searchTerm) {
+            filtered = filtered.filter((set) =>
+                set.title.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            filteredMy = filteredMy.filter((set) =>
+                set.title.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+
         if (currentTag) {
             filtered = filtered.filter((set) =>
                 set.tags.some((tag) => tag.title === currentTag)
@@ -440,7 +442,7 @@ export default function ManageQuestions() {
 
     useEffect(() => {
         applyFiltersAndSort();
-    }, [currentTag, currentDifficulty, currentSort, questionSets, myQuestionSets]);
+    }, [searchTerm, currentTag, currentDifficulty, currentSort, questionSets, myQuestionSets]);
 
     const handleTagChange = (tag: string) => {
         setCurrentTag(tag);
@@ -467,6 +469,14 @@ export default function ManageQuestions() {
             />
             <PageBreadcrumb pageTitle="Questions" />
 
+            <div className="mb-6">
+                <Input
+                    placeholder="Search questions by title..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                />
+            </div>
 
             <MyQuestions
                 loading={loadingMyQuestions}
@@ -506,6 +516,7 @@ export default function ManageQuestions() {
                 onUpdateQuestion={handleOpenUpdateModal}
                 onDeleteQuestion={handleDeleteQuestion}
             />
+
             <ConfirmationDialog
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
@@ -516,7 +527,6 @@ export default function ManageQuestions() {
                 cancelText="Cancel"
             />
 
-            {/* Modal chi tiết câu hỏi */}
             <Modal
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
@@ -603,7 +613,6 @@ export default function ManageQuestions() {
                 </div>
             </Modal>
 
-            {/* Modal update câu hỏi */}
             <Modal
                 isOpen={isUpdateModalOpen}
                 onClose={() => setIsUpdateModalOpen(false)}
@@ -791,7 +800,7 @@ export default function ManageQuestions() {
                         </h3>
                         <div className="space-y-4">
                             {createStep === 1 && (
-                                <div className="space-y-4 ">
+                                <div className="space-y-4">
                                     <div>
                                         <Label>1. Select topic</Label>
                                         {loadingTags ? (

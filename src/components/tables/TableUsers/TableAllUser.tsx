@@ -90,7 +90,7 @@ const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
         setDropdownOpen(dropdownOpen === userId ? null : userId);
     };
 
-    if (loading) return <div>Loading user list...</div>;
+    if (loading) return <div className="dark:text-white">Loading user list...</div>;
 
     const roles = Array.from(new Set(users.map(u => u.role))).filter(Boolean);
     const filteredUsers = roleFilter.length === 0 ? users : users.filter(u => roleFilter.includes(u.role));
@@ -137,7 +137,7 @@ const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
                                 <TableRow key={user.userId}>
                                     <TableCell className="px-5 py-4 sm:px-6 text-start">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 overflow-hidden rounded-full">
+                                            <div className="w-10 h-10 overflow-hidden rounded-full dark:text-white">
                                                 <img width={40} height={40} src={user.avatar} alt={user.userName} />
                                             </div>
                                         </div>

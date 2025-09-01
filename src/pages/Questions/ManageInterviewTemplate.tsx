@@ -8,6 +8,8 @@ import AddTemplateModal from './AddTemplateModal';
 import TemplateDetailModal from './TemplateDetailModal';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
+import TextArea from '../../components/form/input/TextArea';
+import Label from '../../components/form/Label';
 
 interface Topic {
     topicId: number;
@@ -37,7 +39,7 @@ interface Question {
     difficulty: string;
     questionStatus: string;
     source: string;
-    is_deleted: boolean; // Sửa từ _deleted thành is_deleted để đồng bộ với TemplateDetailModal
+    is_deleted: boolean;
 }
 
 interface Session {
@@ -80,6 +82,17 @@ const ManageInterviewTemplate: React.FC = () => {
     const [error, setError] = useState('');
     const [confirmDelete, setConfirmDelete] = useState<{ sessionId: number; questionId: number } | null>(null);
     const [expandedSessionId, setExpandedSessionId] = useState<number | null>(null);
+    // New states for update question modal
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [updateQuestionId, setUpdateQuestionId] = useState<number | null>(null);
+    const [updateTitle, setUpdateTitle] = useState('');
+    const [updateContent, setUpdateContent] = useState('');
+    const [updateDifficulty, setUpdateDifficulty] = useState('');
+    const [updateSuitableAnswer1, setUpdateSuitableAnswer1] = useState('');
+    const [updateSuitableAnswer2, setUpdateSuitableAnswer2] = useState('');
+    const [updateSource, setUpdateSource] = useState('');
+    const [loadingUpdate, setLoadingUpdate] = useState(false);
+    const [errorUpdate, setErrorUpdate] = useState('');
 
     useEffect(() => {
         const fetchSessions = async () => {
@@ -174,6 +187,90 @@ const ManageInterviewTemplate: React.FC = () => {
         setConfirmDelete(null);
     };
 
+    const handleOpenUpdateModal = async (questionId: number) => {
+        setLoadingUpdate(true);
+        setErrorUpdate('');
+        try {
+            const response = await questionService.getQuestionDetail(questionId);
+            const question = response.data;
+            setUpdateQuestionId(questionId);
+            setUpdateTitle(question.title);
+            setUpdateContent(question.content);
+            setUpdateDifficulty(question.difficulty);
+            setUpdateSuitableAnswer1(question.suitableAnswer1);
+            setUpdateSuitableAnswer2(question.suitableAnswer2 || '');
+            setUpdateSource(question.source || '');
+            setIsUpdateModalOpen(true);
+        } catch (err) {
+            setErrorUpdate('Failed to load question details');
+            console.error('Error fetching question details:', err);
+        } finally {
+            setLoadingUpdate(false);
+        }
+    };
+
+    const handleUpdateQuestion = async () => {
+        if (!updateQuestionId || !updateTitle || !updateContent || !updateDifficulty || !updateSuitableAnswer1) return;
+
+        setLoadingUpdate(true);
+        setErrorUpdate('');
+        try {
+            await questionService.updateQuestion(updateQuestionId, {
+                title: updateTitle,
+                content: updateContent,
+                suitableAnswer1: updateSuitableAnswer1,
+                suitableAnswer2: updateSuitableAnswer2,
+                difficulty: updateDifficulty,
+                source: updateSource,
+            });
+
+            // Update the sessions state with the modified question
+            setSessions((prev) =>
+                prev.map((session) => ({
+                    ...session,
+                    questions: session.questions.map((q) =>
+                        q.questionId === updateQuestionId
+                            ? {
+                                ...q,
+                                title: updateTitle,
+                                content: updateContent,
+                                difficulty: updateDifficulty,
+                                suitableAnswer1: updateSuitableAnswer1,
+                                suitableAnswer2: updateSuitableAnswer2,
+                                source: updateSource,
+                            }
+                            : q
+                    ),
+                }))
+            );
+            setFilteredSessions((prev) =>
+                prev.map((session) => ({
+                    ...session,
+                    questions: session.questions.map((q) =>
+                        q.questionId === updateQuestionId
+                            ? {
+                                ...q,
+                                title: updateTitle,
+                                content: updateContent,
+                                difficulty: updateDifficulty,
+                                suitableAnswer1: updateSuitableAnswer1,
+                                suitableAnswer2: updateSuitableAnswer2,
+                                source: updateSource,
+                            }
+                            : q
+                    ),
+                }))
+            );
+            setIsUpdateModalOpen(false);
+            setUpdateQuestionId(null);
+        } catch (err) {
+            setErrorUpdate('Failed to update question');
+            console.error('Error updating question:', err);
+        } finally {
+            setLoadingUpdate(false);
+        }
+    };
+
     const toggleSessionQuestions = (sessionId: number) => {
         setExpandedSessionId(expandedSessionId === sessionId ? null : sessionId);
     };
@@ -204,7 +301,7 @@ const ManageInterviewTemplate: React.FC = () => {
                         </div>
                     </div>
 
-                    {loading && !sessions.length && <div className="py-8 text-center text-gray-600 dark:text-gray-400">Loading template list...</div>}
+                    {loading && !sessions.length && <div className="py-8 text-center text-gray Akhila is a brilliant and talented girl who is studying to become a software engineer. She is passionate about coding and always eager to learn new technologies. Her determination and curiosity make her stand out, and she’s already building an impressive portfolio of projects. With her strong work ethic and creative problem-solving skills, Akhila is well on her way to becoming an exceptional software engineer. -600 dark:text-gray-400">Loading template list...</div>}
 
                     {error && <div className="py-8 text-center text-red-500 dark:text-red-400">{error}</div>}
 
@@ -271,6 +368,15 @@ const ManageInterviewTemplate: React.FC = () => {
                                                                         </div>
                                                                         <div className="flex items-center gap-2">
                                                                             <span className="text-xs text-gray-500 dark:text-gray-400">ID: {question.questionId}</span>
+                                                                            <button
+                                                                                className="ml-2 text-gray-400 hover:text-blue-500 transition-colors duration-150"
+                                                                                title="Edit question"
+                                                                                onClick={() => handleOpenUpdateModal(question.questionId)}
+                                                                            >
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                                                                </svg>
+                                                                            </button>
                                                                             <button
                                                                                 className="ml-2 text-gray-400 hover:text-red-500 transition-colors duration-150"
                                                                                 title="Remove question from template"
@@ -355,6 +461,108 @@ const ManageInterviewTemplate: React.FC = () => {
                             Delete
                         </Button>
                     </div>
+                </div>
+            </Modal>
+
+            {/* Update Question Modal */}
+            <Modal
+                isOpen={isUpdateModalOpen}
+                onClose={() => setIsUpdateModalOpen(false)}
+                className="max-w-2xl"
+            >
+                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
+                        Update Question
+                    </h3>
+                    {loadingUpdate && (
+                        <div className="py-4 text-center text-gray-500 dark:text-gray-400">
+                            Loading question data...
+                        </div>
+                    )}
+                    {errorUpdate && (
+                        <div className="py-4 text-center text-red-500 dark:text-red-400">
+                            {errorUpdate}
+                        </div>
+                    )}
+                    {!loadingUpdate && (
+                        <div className="space-y-4">
+                            <div>
+                                <Label>Question title</Label>
+                                <Input
+                                    value={updateTitle}
+                                    onChange={(e) => setUpdateTitle(e.target.value)}
+                                    placeholder="Enter question title"
+                                />
+                            </div>
+                            <div>
+                                <Label>Question content</Label>
+                                <TextArea
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                    rows={4}
+                                    value={updateContent}
+                                    onChange={setUpdateContent}
+                                    placeholder="Enter detailed question content"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div>
+                                    <Label>Difficulty</Label>
+                                    <select
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                        value={updateDifficulty}
+                                        onChange={(e) => setUpdateDifficulty(e.target.value)}
+                                    >
+                                        <option value="">-- Select difficulty --</option>
+                                        <option value="EASY">Easy</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="HARD">Hard</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <Label>Source (optional)</Label>
+                                    <Input
+                                        value={updateSource}
+                                        onChange={(e) => setUpdateSource(e.target.value)}
+                                        placeholder="Enter source"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <Label>Suitable answer 1</Label>
+                                <TextArea
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                    rows={2}
+                                    value={updateSuitableAnswer1}
+                                    onChange={setUpdateSuitableAnswer1}
+                                    placeholder="Enter sample answer"
+                                />
+                            </div>
+                            <div>
+                                <Label>Suitable answer 2</Label>
+                                <TextArea
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                    rows={2}
+                                    value={updateSuitableAnswer2}
+                                    onChange={setUpdateSuitableAnswer2}
+                                    placeholder="Enter second sample answer"
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsUpdateModalOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleUpdateQuestion}
+                                    disabled={!updateTitle || !updateContent || !updateDifficulty || !updateSuitableAnswer1}
+                                >
+                                    Update Question
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </Modal>
         </>

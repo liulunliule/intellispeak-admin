@@ -13,7 +13,7 @@ export default function ManageTransaction() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
-    const [selectedTransactionDetails, setSelectedTransactionDetails] = useState<string>("");
+    const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
     const fetchTransactions = async () => {
@@ -42,14 +42,14 @@ export default function ManageTransaction() {
         }
     };
 
-    const handleViewDetails = (details: string) => {
-        setSelectedTransactionDetails(details);
+    const handleViewDetails = (transaction: Transaction) => {
+        setSelectedTransaction(transaction);
         setShowDetailsModal(true);
     };
 
     const handleCloseDetailsModal = () => {
         setShowDetailsModal(false);
-        setSelectedTransactionDetails("");
+        setSelectedTransaction(null);
     };
 
     useEffect(() => {
@@ -141,7 +141,7 @@ export default function ManageTransaction() {
                                             <TableCell className="py-3">
                                                 <p
                                                     className="font-medium text-blue-600 text-sm dark:text-blue-400 cursor-pointer hover:underline"
-                                                    onClick={() => handleViewDetails(transaction.description)}
+                                                    onClick={() => handleViewDetails(transaction)}
                                                 >
                                                     {transaction.user.firstName ? transaction.user.firstName : transaction.user.userName}
                                                 </p>
@@ -180,17 +180,133 @@ export default function ManageTransaction() {
             <Modal
                 isOpen={showDetailsModal}
                 onClose={handleCloseDetailsModal}
-                className="max-w-4xl p-6"
+                className="max-w-4xl p-8 rounded-2xl"
                 showCloseButton={true}
             >
-                <div className="pb-3 border-b border-gray-200 dark:border-gray-700">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">Transaction Details</h3>
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-4">
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Transaction Details</h3>
                 </div>
-                <div className="mt-4 max-h-[80vh] overflow-y-auto">
-                    {selectedTransactionDetails ? (
-                        <p className="text-gray-700 dark:text-gray-300">{selectedTransactionDetails}</p>
+                <div className="mt-6 max-h-[80vh] overflow-y-auto">
+                    {selectedTransaction ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-6 bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                                <div>
+                                    <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 border-b border-gray-200 dark:border-gray-700 pb-2">User Information</h4>
+                                    <dl className="mt-4 space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Username</dt>
+                                            <dd>{selectedTransaction.user.userName}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Full Name</dt>
+                                            <dd>{selectedTransaction.user.firstName || 'None'} {selectedTransaction.user.lastName || ''}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Email</dt>
+                                            <dd>{selectedTransaction.user.email}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Phone</dt>
+                                            <dd>{selectedTransaction.user.phone || 'None'}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Role</dt>
+                                            <dd>{selectedTransaction.user.role}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Status</dt>
+                                            <dd>{selectedTransaction.user.status}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Bio</dt>
+                                            <dd>{selectedTransaction.user.bio || 'None'}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Website</dt>
+                                            <dd>{selectedTransaction.user.website || 'None'}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Account Created</dt>
+                                            <dd>{new Date(selectedTransaction.user.createAt).toLocaleDateString()}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">CV Analysis Used</dt>
+                                            <dd>{selectedTransaction.user.cvAnalyzeUsed}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">JD Analysis Used</dt>
+                                            <dd>{selectedTransaction.user.jdAnalyzeUsed}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Interviews Used</dt>
+                                            <dd>{selectedTransaction.user.interviewUsed}</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                            </div>
+                            <div className="space-y-6">
+                                <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                                    <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 border-b border-gray-200 dark:border-gray-700 pb-2">Package Information</h4>
+                                    <dl className="mt-4 space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Package Name</dt>
+                                            <dd>{selectedTransaction.apackage?.packageName || 'None'}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Description</dt>
+                                            <dd>{selectedTransaction.apackage?.description || 'None'}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Price</dt>
+                                            <dd>${selectedTransaction.apackage?.price.toFixed(2) || '0.00'}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Interview Count</dt>
+                                            <dd>{selectedTransaction.apackage?.interviewCount || '0'}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">CV Analysis Count</dt>
+                                            <dd>{selectedTransaction.apackage?.cvAnalyzeCount || '0'}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">JD Analysis Count</dt>
+                                            <dd>{selectedTransaction.apackage?.jdAnalyzeCount || '0'}</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                                <div className="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg">
+                                    <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90 border-b border-gray-200 dark:border-gray-700 pb-2">Transaction Information</h4>
+                                    <dl className="mt-4 space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Order Code</dt>
+                                            <dd>{selectedTransaction.orderCode}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Amount</dt>
+                                            <dd>${selectedTransaction.amount.toFixed(2)}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Status</dt>
+                                            <dd>
+                                                {selectedTransaction.transactionStatus === "PENDING" && "Pending"}
+                                                {selectedTransaction.transactionStatus === "PAID" && "Completed"}
+                                                {selectedTransaction.transactionStatus === "CANCELLED" && "Cancelled"}
+                                            </dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Description</dt>
+                                            <dd>{selectedTransaction.description}</dd>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <dt className="font-medium">Created At</dt>
+                                            <dd>{new Date(selectedTransaction.createAt).toLocaleDateString()}</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
                     ) : (
-                        <p>No details to display.</p>
+                        <p className="text-gray-700 dark:text-gray-300">No details to display.</p>
                     )}
                 </div>
             </Modal>
