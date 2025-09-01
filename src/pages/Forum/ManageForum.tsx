@@ -5,18 +5,12 @@ import Input from '../../components/form/input/InputField';
 import Label from '../../components/form/Label';
 import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
-import Badge from '../../components/ui/badge/Badge';
-import api from '../../services/api';
-
-interface ForumTopic {
-    id: number;
-    title: string;
-    createAt: string;
-    updateAt: string | null;
-    deleted: boolean;
-}
+import TopicList from './TopicList';
+import PostList from './PostList';
+import { getForumTopics, addForumTopic, updateForumTopic, deleteForumTopic, ForumTopic, ForumPost, getForumPosts } from '../../services/forum';
 
 const ManageForum: React.FC = () => {
+    // State for Manage Topic Forum
     const [topics, setTopics] = useState<ForumTopic[]>([]);
     const [filteredTopics, setFilteredTopics] = useState<ForumTopic[]>([]);
     const [search, setSearch] = useState('');
@@ -24,31 +18,57 @@ const ManageForum: React.FC = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingTopic, setEditingTopic] = useState<ForumTopic | null>(null);
     const [deletingTopic, setDeletingTopic] = useState<ForumTopic | null>(null);
-    const [topicData, setTopicData] = useState({
-        title: '',
-    });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [topicData, setTopicData] = useState({ title: '' });
+    const [loadingTopics, setLoadingTopics] = useState(false);
+    const [errorTopics, setErrorTopics] = useState('');
+    const [isTopicsExpanded, setIsTopicsExpanded] = useState(false);
 
+    // State for Manage Forum Post
+    const [posts, setPosts] = useState<ForumPost[]>([]);
+    const [filteredPosts, setFilteredPosts] = useState<ForumPost[]>([]);
+    const [postSearch, setPostSearch] = useState('');
+    const [loadingPosts, setLoadingPosts] = useState(false);
+    const [errorPosts, setErrorPosts] = useState('');
+    const [isPostsExpanded, setIsPostsExpanded] = useState(true);
+
+    // Fetch topics
     const fetchTopics = async () => {
-        setLoading(true);
-        setError('');
+        setLoadingTopics(true);
+        setErrorTopics('');
         try {
-            const response = await api.get('/topic-type');
-            setTopics(response.data);
-            setFilteredTopics(response.data);
+            const data = await getForumTopics();
+            setTopics(data);
+            setFilteredTopics(data);
         } catch (err) {
-            setError('Error fetching forum topics');
+            setErrorTopics('Error fetching forum topics');
             console.error('Error fetching topics:', err);
         } finally {
-            setLoading(false);
+            setLoadingTopics(false);
+        }
+    };
+
+    // Fetch posts
+    const fetchPosts = async () => {
+        setLoadingPosts(true);
+        setErrorPosts('');
+        try {
+            const data = await getForumPosts();
+            setPosts(data);
+            setFilteredPosts(data);
+        } catch (err) {
+            setErrorPosts('Error fetching forum posts');
+            console.error('Error fetching posts:', err);
+        } finally {
+            setLoadingPosts(false);
         }
     };
 
     useEffect(() => {
         fetchTopics();
+        fetchPosts();
     }, []);
 
+    // Filter topics
     useEffect(() => {
         const filtered = topics.filter((topic) =>
             topic.title.toLowerCase().includes(search.toLowerCase())
@@ -56,38 +76,46 @@ const ManageForum: React.FC = () => {
         setFilteredTopics(filtered);
     }, [search, topics]);
 
-    const handleAdd = () => {
+    // Filter posts
+    useEffect(() => {
+        const filtered = posts.filter((post) =>
+            post.title.toLowerCase().includes(postSearch.toLowerCase())
+        );
+        setFilteredPosts(filtered);
+    }, [postSearch, posts]);
+
+    const handleAddTopic = () => {
         setEditingTopic(null);
         setTopicData({ title: '' });
         setIsModalOpen(true);
     };
 
-    const handleEdit = (topic: ForumTopic) => {
+    const handleEditTopic = (topic: ForumTopic) => {
         setEditingTopic(topic);
         setTopicData({ title: topic.title });
         setIsModalOpen(true);
     };
 
-    const handleDelete = (topic: ForumTopic) => {
+    const handleDeleteTopic = (topic: ForumTopic) => {
         setDeletingTopic(topic);
         setIsDeleteModalOpen(true);
     };
 
-    const confirmDelete = async () => {
+    const confirmDeleteTopic = async () => {
         if (!deletingTopic) return;
 
         try {
-            await api.delete(`/topic-type/${deletingTopic.id}`);
-            fetchTopics(); // Refresh topics after deletion
+            await deleteForumTopic(deletingTopic.id);
+            fetchTopics();
             setIsDeleteModalOpen(false);
             setDeletingTopic(null);
         } catch (err) {
             console.error('Error deleting topic:', err);
-            setError('Error deleting topic');
+            setErrorTopics('Error deleting topic');
         }
     };
 
-    const handleSave = async () => {
+    const handleSaveTopic = async () => {
         if (!topicData.title) return;
 
         try {
@@ -100,125 +128,62 @@ const ManageForum: React.FC = () => {
             };
 
             if (editingTopic) {
-                await api.put(`/topic-type/${editingTopic.id}`, payload);
-                fetchTopics(); // Refresh topics after update
+                await updateForumTopic(editingTopic.id, payload);
             } else {
-                await api.post('/topic-type', payload);
-                fetchTopics(); // Refresh topics after addition
+                await addForumTopic(payload);
             }
+            fetchTopics();
             setIsModalOpen(false);
         } catch (err) {
             console.error('Error saving topic:', err);
-            setError('Error saving topic');
+            setErrorTopics('Error saving topic');
         }
+    };
+
+    const toggleTopics = () => {
+        setIsTopicsExpanded(!isTopicsExpanded);
+    };
+
+    const togglePosts = () => {
+        setIsPostsExpanded(!isPostsExpanded);
     };
 
     return (
         <>
             <PageMeta
                 title="Manage Forum"
-                description="Forum topic management page in the system"
+                description="Forum topic and post management page in the system"
             />
             <PageBreadcrumb pageTitle="Forum" />
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
-                <div className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                            Manage Forum
-                        </h3>
-                        <div className="flex gap-2">
-                            <Button onClick={handleAdd}>Add New Topic</Button>
-                        </div>
-                    </div>
+            {/* Topic List Component */}
+            <TopicList
+                topics={topics}
+                filteredTopics={filteredTopics}
+                search={search}
+                isTopicsExpanded={isTopicsExpanded}
+                loading={loadingTopics}
+                error={errorTopics}
+                setSearch={setSearch}
+                toggleTopics={toggleTopics}
+                handleAdd={handleAddTopic}
+                handleEdit={handleEditTopic}
+                handleDelete={handleDeleteTopic}
+            />
 
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex-1">
-                            <Input
-                                type="text"
-                                placeholder="Search topic by name..."
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                            />
-                        </div>
-                    </div>
+            {/* Post List Component */}
+            <PostList
+                posts={posts}
+                filteredPosts={filteredPosts}
+                search={postSearch}
+                isPostsExpanded={isPostsExpanded}
+                loading={loadingPosts}
+                error={errorPosts}
+                setSearch={setPostSearch}
+                togglePosts={togglePosts}
+            />
 
-                    {loading && (
-                        <div className="py-8 text-center text-gray-600 dark:text-gray-400">
-                            Loading topic list...
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="py-8 text-center text-red-500 dark:text-red-400">
-                            {error}
-                        </div>
-                    )}
-
-                    {!loading && !error && (
-                        <div className="space-y-4">
-                            {filteredTopics.length > 0 ? (
-                                filteredTopics.map((topic) => (
-                                    <div
-                                        key={topic.id}
-                                        className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"
-                                    >
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex-1">
-                                                <h4 className="mb-1 text-lg font-medium text-gray-800 dark:text-gray-100">
-                                                    {topic.title}
-                                                </h4>
-                                                <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                        Created: {new Date(topic.createAt).toLocaleDateString()}
-                                                    </span>
-                                                    {topic.updateAt && (
-                                                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                            • Updated: {new Date(topic.updateAt).toLocaleDateString()}
-                                                        </span>
-                                                    )}
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                        • Status: {' '}
-                                                        <Badge
-                                                            variant="light"
-                                                            color={topic.deleted ? 'error' : 'success'}
-                                                        >
-                                                            {topic.deleted ? 'Deleted' : 'Active'}
-                                                        </Badge>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() => handleEdit(topic)}
-                                                >
-                                                    Edit
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="danger"
-                                                    onClick={() => handleDelete(topic)}
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="py-8 text-center text-gray-600 dark:text-gray-400">
-                                    No topics found matching your search criteria.
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/* Modal thêm/chỉnh sửa chủ đề */}
+            {/* Modal for adding/editing topic */}
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -249,7 +214,7 @@ const ManageForum: React.FC = () => {
                             >
                                 Cancel
                             </Button>
-                            <Button onClick={handleSave}>
+                            <Button onClick={handleSaveTopic}>
                                 {editingTopic ? 'Update' : 'Add'}
                             </Button>
                         </div>
@@ -257,7 +222,7 @@ const ManageForum: React.FC = () => {
                 </div>
             </Modal>
 
-            {/* Modal xác nhận xóa */}
+            {/* Modal for confirming topic deletion */}
             <Modal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
@@ -297,7 +262,7 @@ const ManageForum: React.FC = () => {
                         </Button>
                         <Button
                             variant="danger"
-                            onClick={confirmDelete}
+                            onClick={confirmDeleteTopic}
                         >
                             Delete
                         </Button>
