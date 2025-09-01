@@ -20,7 +20,6 @@ interface TopicListProps {
 }
 
 const TopicList: React.FC<TopicListProps> = ({
-    topics,
     filteredTopics,
     search,
     isTopicsExpanded,

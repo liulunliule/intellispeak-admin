@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../../components/ui/button/Button';
 import Input from '../../components/form/input/InputField';
-import Badge from '../../components/ui/badge/Badge';
 import { ChevronUpIcon, ChevronDownIcon, MoreDotIcon } from '../../icons';
 import { Modal } from '../../components/ui/modal';
 import { ForumPost, getForumPostById, deleteForumPost } from '../../services/forum';
@@ -19,7 +18,6 @@ interface PostListProps {
 }
 
 const PostList: React.FC<PostListProps> = ({
-    posts,
     filteredPosts,
     search,
     isPostsExpanded,
