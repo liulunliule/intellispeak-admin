@@ -4,8 +4,9 @@ import Button from '../../components/ui/button/Button';
 import Label from '../../components/form/Label';
 import Badge, { BadgeColor } from '../../components/ui/badge/Badge';
 import * as questionService from '../../services/question';
-import * as topicService from '../../services/topic';
+// import * as topicService from '../../services/topic';
 import * as templateService from '../../services/template';
+import { uploadImage } from '../../services/image';
 
 interface Topic {
     topicId: number;
@@ -175,7 +176,7 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({ isOpen, onClo
             return null;
         }
         try {
-            const url = await topicService.uploadImage(file);
+            const url = await uploadImage(file);
             console.log('Image uploaded successfully:', url);
             return url;
         } catch (error: any) {

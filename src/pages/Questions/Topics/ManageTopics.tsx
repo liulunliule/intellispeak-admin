@@ -12,6 +12,7 @@ import DeleteTopicModal from "./DeleteTopicModal";
 import TopicTable from "./TopicTable";
 import * as topicService from "../../../services/topic";
 import EditTopicModal from "./EditTopicModal";
+import { uploadImage } from "../../../services/image";
 
 const ManageTopics: React.FC = () => {
     const [topics, setTopics] = useState<Topic[]>([]);
@@ -98,7 +99,7 @@ const ManageTopics: React.FC = () => {
     const handleImageUpload = async (file: File | null): Promise<string | null> => {
         if (!file) return null;
         try {
-            return await topicService.uploadImage(file);
+            return await uploadImage(file);
         } catch (error: any) {
             setError(error.message || "Error uploading image");
             return null;
