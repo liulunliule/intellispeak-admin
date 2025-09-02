@@ -1,7 +1,7 @@
 import Chart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import { useState, useEffect } from "react";
-import ChartTab from "../common/ChartTab";
+// import ChartTab from "../common/ChartTab";
 import { getPackageStats } from "../../services/dashboard";
 
 export default function StatisticsChart() {
@@ -146,9 +146,9 @@ export default function StatisticsChart() {
             Package subscriptions for {currentYear}
           </p>
         </div>
-        <div className="flex items-start w-full gap-3 sm:justify-end">
+        {/* <div className="flex items-start w-full gap-3 sm:justify-end">
           <ChartTab />
-        </div>
+        </div> */}
       </div>
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">

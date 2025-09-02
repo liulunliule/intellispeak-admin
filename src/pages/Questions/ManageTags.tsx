@@ -368,8 +368,16 @@ const ManageTags: React.FC = () => {
         if (deleteId) {
             try {
                 await questionService.deleteTag(deleteId);
-                setTags(tags.filter(tag => tag.id !== deleteId));
-                setFilteredTags(filteredTags.filter(tag => tag.id !== deleteId));
+                setTags(tags.map(tag =>
+                    tag.id === deleteId
+                        ? { ...tag, isDeleted: true, updateAt: new Date().toISOString() }
+                        : tag
+                ));
+                setFilteredTags(filteredTags.map(tag =>
+                    tag.id === deleteId
+                        ? { ...tag, isDeleted: true, updateAt: new Date().toISOString() }
+                        : tag
+                ));
             } catch (err) {
                 setError('Failed to delete tag');
                 console.error('Error deleting tag:', err);
