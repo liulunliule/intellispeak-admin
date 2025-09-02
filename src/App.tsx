@@ -44,6 +44,7 @@ import ManagePackage from "./pages/Package/ManagePackage";
 import ManageTopics from "./pages/Questions/Topics/ManageTopics";
 import ManageTransaction from "./pages/Transaction/Transaction";
 import ManageCompany from "./pages/Company/ManageCompany";
+import PostDetail from "./pages/Forum/PostDetail";
 
 export default function App() {
   return (
@@ -63,6 +64,7 @@ export default function App() {
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/manage_user" element={<ManageUsers />} />
             <Route path="/manage-forum" element={<ManageForum />} />
+            <Route path="/single-post/:id" element={<PostDetail />} />
             <Route path="/manage-hr" element={<ManageHR />} />
             {/* Package Management */}
             <Route path="/manage-package" element={<ManagePackage />} />
