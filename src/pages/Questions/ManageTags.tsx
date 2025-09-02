@@ -8,6 +8,7 @@ import PageMeta from '../../components/common/PageMeta';
 import * as questionService from '../../services/question';
 import Badge from '../../components/ui/badge/Badge';
 import { CloseIcon } from '../../icons';
+import TextArea from '../../components/form/input/TextArea';
 
 interface Question {
     questionId: number;
@@ -54,19 +55,37 @@ const ManageTags: React.FC = () => {
     const [error, setError] = useState('');
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteId, setDeleteId] = useState<number | null>(null);
-    const [showTopicDeleteConfirm, setShowTopicDeleteConfirm] = useState(false); // New state for topic deletion
-    const [deleteTopicData, setDeleteTopicData] = useState<{ tagId: number; topicId: number } | null>(null); // New state for topic deletion
+    const [showTopicDeleteConfirm, setShowTopicDeleteConfirm] = useState(false);
+    const [deleteTopicData, setDeleteTopicData] = useState<{ tagId: number; topicId: number } | null>(null);
+    const [showQuestionDeleteConfirm, setShowQuestionDeleteConfirm] = useState(false);
+    const [deleteQuestionData, setDeleteQuestionData] = useState<{ tagId: number; questionId: number } | null>(null);
+    const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
+    const [restoreId, setRestoreId] = useState<number | null>(null);
+    const [showAddTopicModal, setShowAddTopicModal] = useState(false);
+    const [selectedTagId, setSelectedTagId] = useState<number | null>(null);
+    const [topics, setTopics] = useState<Topic[]>([]);
+    const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
     const [expandedTagId, setExpandedTagId] = useState<number | null>(null);
     const [isSelectingQuestions, setIsSelectingQuestions] = useState(false);
     const [selectedQuestionIds, setSelectedQuestionIds] = useState<number[]>([]);
     const [selectedTagIdForAssignment, setSelectedTagIdForAssignment] = useState<number | null>(null);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [updateQuestionId, setUpdateQuestionId] = useState<number | null>(null);
+    const [updateTitle, setUpdateTitle] = useState('');
+    const [updateContent, setUpdateContent] = useState('');
+    const [updateDifficulty, setUpdateDifficulty] = useState('');
+    const [updateSuitableAnswer1, setUpdateSuitableAnswer1] = useState('');
+    const [updateSuitableAnswer2, setUpdateSuitableAnswer2] = useState('');
+    const [updateSource, setUpdateSource] = useState('');
+    const [loadingUpdate, setLoadingUpdate] = useState(false);
+    const [errorUpdate, setErrorUpdate] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             setError('');
             try {
-                const tagsResponse = await questionService.getTags();
+                const tagsResponse = await questionService.getAllTags();
                 const tagsData = tagsResponse.data.data;
                 const questionsResponse = await questionService.getTagsWithQuestions();
                 const tagsWithQuestions = questionsResponse.data.data;
@@ -109,6 +128,54 @@ const ManageTags: React.FC = () => {
         setFilteredTags(filtered);
     }, [search, tags]);
 
+    const fetchTopics = async (tagId: number) => {
+        try {
+            const response = await questionService.getTopics();
+            const allTopics = response.data;
+            const currentTag = tags.find(tag => tag.id === tagId);
+            const existingTopicIds = currentTag?.topics?.map(topic => topic.topicId) || [];
+            const availableTopics = allTopics.filter((topic: Topic) => !existingTopicIds.includes(topic.topicId));
+            setTopics(availableTopics);
+        } catch (err) {
+            setError('Failed to fetch topics');
+            console.error('Error fetching topics:', err);
+        }
+    };
+
+    const handleAddTopicToTag = async () => {
+        if (selectedTagId && selectedTopicId) {
+            try {
+                await questionService.connectTopicToTag(selectedTagId, selectedTopicId);
+                const topicToAdd = topics.find(topic => topic.topicId === selectedTopicId);
+                if (topicToAdd) {
+                    setTags(tags.map(tag =>
+                        tag.id === selectedTagId
+                            ? { ...tag, topics: [...(tag.topics || []), topicToAdd] }
+                            : tag
+                    ));
+                    setFilteredTags(filteredTags.map(tag =>
+                        tag.id === selectedTagId
+                            ? { ...tag, topics: [...(tag.topics || []), topicToAdd] }
+                            : tag
+                    ));
+                }
+                setShowAddTopicModal(false);
+                setSelectedTopicId(null);
+                setSelectedTagId(null);
+                setTopics([]);
+            } catch (err) {
+                setError('Failed to add topic to tag');
+                console.error('Error adding topic to tag:', err);
+            }
+        }
+    };
+
+    const openAddTopicModal = (tagId: number) => {
+        setSelectedTagId(tagId);
+        setShowAddTopicModal(true);
+        fetchTopics(tagId);
+    };
+
     const handleRemoveTopic = async (tagId: number, topicId: number) => {
         try {
             await questionService.removeTopicFromTag(tagId, topicId);
@@ -136,6 +203,33 @@ const ManageTags: React.FC = () => {
         }
     };
 
+    const handleRemoveQuestion = async (tagId: number, questionId: number) => {
+        try {
+            await questionService.deleteTagFromQuestion(questionId, tagId);
+            setTags(tags.map(tag => {
+                if (tag.id === tagId) {
+                    return {
+                        ...tag,
+                        questions: tag.questions?.filter(q => q.questionId !== questionId) || []
+                    };
+                }
+                return tag;
+            }));
+            setFilteredTags(filteredTags.map(tag => {
+                if (tag.id === tagId) {
+                    return {
+                        ...tag,
+                        questions: tag.questions?.filter(q => q.questionId !== questionId) || []
+                    };
+                }
+                return tag;
+            }));
+        } catch (err) {
+            setError('Error removing question from tag');
+            console.error('Error removing question from tag:', err);
+        }
+    };
+
     const requestTopicDelete = (tagId: number, topicId: number) => {
         setDeleteTopicData({ tagId, topicId });
         setShowTopicDeleteConfirm(true);
@@ -149,6 +243,105 @@ const ManageTags: React.FC = () => {
                 setShowTopicDeleteConfirm(false);
                 setDeleteTopicData(null);
             }
+        }
+    };
+
+    const requestQuestionDelete = (tagId: number, questionId: number) => {
+        setDeleteQuestionData({ tagId, questionId });
+        setShowQuestionDeleteConfirm(true);
+    };
+
+    const confirmQuestionDelete = async () => {
+        if (deleteQuestionData) {
+            try {
+                await handleRemoveQuestion(deleteQuestionData.tagId, deleteQuestionData.questionId);
+            } finally {
+                setShowQuestionDeleteConfirm(false);
+                setDeleteQuestionData(null);
+            }
+        }
+    };
+
+    const handleOpenUpdateModal = async (questionId: number) => {
+        setLoadingUpdate(true);
+        setErrorUpdate('');
+        try {
+            const response = await questionService.getQuestionDetail(questionId);
+            const question = response.data;
+            setUpdateQuestionId(questionId);
+            setUpdateTitle(question.title);
+            setUpdateContent(question.content);
+            setUpdateDifficulty(question.difficulty);
+            setUpdateSuitableAnswer1(question.suitableAnswer1);
+            setUpdateSuitableAnswer2(question.suitableAnswer2 || '');
+            setUpdateSource(question.source || '');
+            setIsUpdateModalOpen(true);
+        } catch (err) {
+            setErrorUpdate('Failed to load question details');
+            console.error('Error fetching question details:', err);
+        } finally {
+            setLoadingUpdate(false);
+        }
+    };
+
+    const handleUpdateQuestion = async () => {
+        if (!updateQuestionId || !updateTitle || !updateContent || !updateDifficulty || !updateSuitableAnswer1) return;
+
+        setLoadingUpdate(true);
+        setErrorUpdate('');
+        try {
+            await questionService.updateQuestion(updateQuestionId, {
+                title: updateTitle,
+                content: updateContent,
+                suitableAnswer1: updateSuitableAnswer1,
+                suitableAnswer2: updateSuitableAnswer2,
+                difficulty: updateDifficulty,
+                source: updateSource,
+            });
+
+            setTags((prev) =>
+                prev.map((tag) => ({
+                    ...tag,
+                    questions: tag.questions?.map((q) =>
+                        q.questionId === updateQuestionId
+                            ? {
+                                ...q,
+                                title: updateTitle,
+                                content: updateContent,
+                                difficulty: updateDifficulty,
+                                suitableAnswer1: updateSuitableAnswer1,
+                                suitableAnswer2: updateSuitableAnswer2,
+                                source: updateSource,
+                            }
+                            : q
+                    ) || [],
+                }))
+            );
+            setFilteredTags((prev) =>
+                prev.map((tag) => ({
+                    ...tag,
+                    questions: tag.questions?.map((q) =>
+                        q.questionId === updateQuestionId
+                            ? {
+                                ...q,
+                                title: updateTitle,
+                                content: updateContent,
+                                difficulty: updateDifficulty,
+                                suitableAnswer1: updateSuitableAnswer1,
+                                suitableAnswer2: updateSuitableAnswer2,
+                                source: updateSource,
+                            }
+                            : q
+                    ) || [],
+                }))
+            );
+            setIsUpdateModalOpen(false);
+            setUpdateQuestionId(null);
+        } catch (err) {
+            setErrorUpdate('Failed to update question');
+            console.error('Error updating question:', err);
+        } finally {
+            setLoadingUpdate(false);
         }
     };
 
@@ -183,6 +376,27 @@ const ManageTags: React.FC = () => {
             } finally {
                 setShowDeleteConfirm(false);
                 setDeleteId(null);
+            }
+        }
+    };
+
+    const requestRestore = (id: number) => {
+        setRestoreId(id);
+        setShowRestoreConfirm(true);
+    };
+
+    const confirmRestore = async () => {
+        if (restoreId) {
+            try {
+                await questionService.restoreTag(restoreId);
+                setTags(tags.map(tag => tag.id === restoreId ? { ...tag, isDeleted: false, updateAt: new Date().toISOString() } : tag));
+                setFilteredTags(filteredTags.map(tag => tag.id === restoreId ? { ...tag, isDeleted: false, updateAt: new Date().toISOString() } : tag));
+            } catch (err) {
+                setError('Failed to restore tag');
+                console.error('Error restoring tag:', err);
+            } finally {
+                setShowRestoreConfirm(false);
+                setRestoreId(null);
             }
         }
     };
@@ -248,7 +462,6 @@ const ManageTags: React.FC = () => {
 
         try {
             await questionService.assignTagToQuestions(selectedTagIdForAssignment, selectedQuestionIds);
-            // Optionally, you may want to refresh tags/questions here
             setSelectedQuestionIds([]);
             setSelectedTagIdForAssignment(null);
             setIsSelectingQuestions(false);
@@ -279,10 +492,10 @@ const ManageTags: React.FC = () => {
                                     setSelectedQuestionIds([]);
                                 }}
                             >
-                                {isSelectingQuestions ? 'Cancel question selection' : 'Select questions'}
+                                {isSelectingQuestions ? 'Cancel Question Selection' : 'Select Questions'}
                             </Button>
                             <Button onClick={openAddModal}>
-                                Add new Tag
+                                Add New Tag
                             </Button>
                         </div>
                     </div>
@@ -291,7 +504,7 @@ const ManageTags: React.FC = () => {
                         <div className="flex-1">
                             <Input
                                 type="text"
-                                placeholder="Search tag by name or description..."
+                                placeholder="Search tags by name or description..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
@@ -300,7 +513,7 @@ const ManageTags: React.FC = () => {
 
                     {loading && (
                         <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                            Loading tag list...
+                            Loading tags...
                         </div>
                     )}
 
@@ -336,17 +549,29 @@ const ManageTags: React.FC = () => {
                                                 </div>
                                                 <div className="flex items-center gap-2 mt-2">
                                                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                        Tạo: {new Date(tag.createAt).toLocaleDateString()}
+                                                        Created: {new Date(tag.createAt).toLocaleDateString()}
                                                     </span>
                                                     {tag.updateAt && (
                                                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                            • Cập nhật: {new Date(tag.updateAt).toLocaleDateString()}
+                                                            • Updated: {new Date(tag.updateAt).toLocaleDateString()}
                                                         </span>
                                                     )}
+                                                    <Badge
+                                                        variant="light"
+                                                        color={tag.isDeleted ? "error" : "success"}
+                                                    >
+                                                        {tag.isDeleted ? "Deleted" : "Active"}
+                                                    </Badge>
                                                 </div>
                                                 <div className="mt-2">
-                                                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                                        Topics:
+                                                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                                        <span>Topics:</span>
+                                                        <button
+                                                            className="text-blue-500 hover:text-blue-700"
+                                                            onClick={() => openAddTopicModal(tag.id)}
+                                                        >
+                                                            +
+                                                        </button>
                                                     </div>
                                                     <div className="flex flex-wrap gap-2">
                                                         {tag.topics && tag.topics.length > 0 ? (
@@ -377,33 +602,45 @@ const ManageTags: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() => openEditModal(tag)}
-                                                >
-                                                    Edit
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() => requestDelete(tag.id)}
-                                                >
-                                                    Delete
-                                                </Button>
+                                                {!tag.isDeleted && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => openEditModal(tag)}
+                                                    >
+                                                        Edit
+                                                    </Button>
+                                                )}
+                                                {tag.isDeleted ? (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => requestRestore(tag.id)}
+                                                    >
+                                                        Restore
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => requestDelete(tag.id)}
+                                                    >
+                                                        Delete
+                                                    </Button>
+                                                )}
                                             </div>
                                         </div>
                                         {expandedTagId === tag.id && (
                                             <div className="mt-4 border-t border-gray-200 dark:border-gray-800 pt-4">
                                                 <h5 className="text-md font-semibold text-gray-800 dark:text-white/90 mb-3">
-                                                    Question list
+                                                    Questions
                                                 </h5>
                                                 {tag.questions && tag.questions.length > 0 ? (
                                                     <div className="space-y-3">
                                                         {tag.questions.map((question) => (
                                                             <div
                                                                 key={question.questionId}
-                                                                className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-start gap-3"
+                                                                className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-start gap-3 relative"
                                                             >
                                                                 {isSelectingQuestions && (
                                                                     <input
@@ -429,8 +666,26 @@ const ManageTags: React.FC = () => {
                                                                                 Tags: {question.tags.map(t => t.title).join(', ')}
                                                                             </div>
                                                                         </div>
-                                                                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                                            ID: {question.questionId}
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-xs text-gray-500 dark:text-gray-400">ID: {question.questionId}</span>
+                                                                            <button
+                                                                                className="ml-2 text-gray-400 hover:text-blue-500 transition-colors duration-150"
+                                                                                title="Edit question"
+                                                                                onClick={() => handleOpenUpdateModal(question.questionId)}
+                                                                            >
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                                                                </svg>
+                                                                            </button>
+                                                                            <button
+                                                                                className="ml-2 text-gray-400 hover:text-red-500 transition-colors duration-150"
+                                                                                title="Remove question from tag"
+                                                                                onClick={() => requestQuestionDelete(tag.id, question.questionId)}
+                                                                            >
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                                                </svg>
+                                                                            </button>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -487,7 +742,7 @@ const ManageTags: React.FC = () => {
             <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} className="max-w-2xl">
                 <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900">
                     <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
-                        {editingTag ? 'Edit Tag' : 'Add new Tag'}
+                        {editingTag ? 'Edit Tag' : 'Add New Tag'}
                     </h3>
 
                     <div className="space-y-4">
@@ -542,7 +797,7 @@ const ManageTags: React.FC = () => {
                             Cancel
                         </Button>
                         <Button onClick={confirmDelete}>
-                            Confirm delete
+                            Confirm Delete
                         </Button>
                     </div>
                 </div>
@@ -561,9 +816,190 @@ const ManageTags: React.FC = () => {
                             Cancel
                         </Button>
                         <Button onClick={confirmTopicDelete}>
-                            Confirm delete
+                            Confirm Delete
                         </Button>
                     </div>
+                </div>
+            </Modal>
+
+            <Modal isOpen={showQuestionDeleteConfirm} onClose={() => setShowQuestionDeleteConfirm(false)} className="max-w-md">
+                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
+                        Remove Question
+                    </h3>
+                    <p className="mb-6 text-gray-600 dark:text-gray-400">
+                        Are you sure you want to remove this question from the tag? This action cannot be undone.
+                    </p>
+                    <div className="flex justify-end gap-3">
+                        <Button variant="outline" onClick={() => setShowQuestionDeleteConfirm(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={confirmQuestionDelete}>
+                            Confirm Remove
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal isOpen={showRestoreConfirm} onClose={() => setShowRestoreConfirm(false)} className="max-w-md">
+                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
+                        Restore Tag
+                    </h3>
+                    <p className="mb-6 text-gray-600 dark:text-gray-400">
+                        Are you sure you want to restore this tag? This will make the tag active again.
+                    </p>
+                    <div className="flex justify-end gap-3">
+                        <Button variant="outline" onClick={() => setShowRestoreConfirm(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={confirmRestore}>
+                            Confirm Restore
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal isOpen={showAddTopicModal} onClose={() => setShowAddTopicModal(false)} className="max-w-md">
+                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
+                        Add Topic to Tag
+                    </h3>
+                    <p className="mb-4 text-gray-600 dark:text-gray-400">
+                        Select a topic to add to the tag.
+                    </p>
+                    <div className="mb-4">
+                        <Label>Select Topic</Label>
+                        <select
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white/90"
+                            value={selectedTopicId || ''}
+                            onChange={(e) => setSelectedTopicId(Number(e.target.value) || null)}
+                        >
+                            <option value="">Select a topic</option>
+                            {topics.map(topic => (
+                                <option key={topic.topicId} value={topic.topicId}>
+                                    {topic.title}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    {error && (
+                        <div className="text-red-500 dark:text-red-400 text-sm mb-4">
+                            {error}
+                        </div>
+                    )}
+                    <div className="flex justify-end gap-3">
+                        <Button variant="outline" onClick={() => setShowAddTopicModal(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleAddTopicToTag}
+                            disabled={!selectedTopicId}
+                        >
+                            Add Topic
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={isUpdateModalOpen}
+                onClose={() => setIsUpdateModalOpen(false)}
+                className="max-w-2xl"
+            >
+                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+                    <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
+                        Update Question
+                    </h3>
+                    {loadingUpdate && (
+                        <div className="py-4 text-center text-gray-500 dark:text-gray-400">
+                            Loading question data...
+                        </div>
+                    )}
+                    {errorUpdate && (
+                        <div className="py-4 text-center text-red-500 dark:text-red-400">
+                            {errorUpdate}
+                        </div>
+                    )}
+                    {!loadingUpdate && (
+                        <div className="space-y-4">
+                            <div>
+                                <Label>Question title</Label>
+                                <Input
+                                    value={updateTitle}
+                                    onChange={(e) => setUpdateTitle(e.target.value)}
+                                    placeholder="Enter question title"
+                                />
+                            </div>
+                            <div>
+                                <Label>Question content</Label>
+                                <TextArea
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                    rows={4}
+                                    value={updateContent}
+                                    onChange={setUpdateContent}
+                                    placeholder="Enter detailed question content"
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div>
+                                    <Label>Difficulty</Label>
+                                    <select
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                        value={updateDifficulty}
+                                        onChange={(e) => setUpdateDifficulty(e.target.value)}
+                                    >
+                                        <option value="">-- Select difficulty --</option>
+                                        <option value="EASY">Easy</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="HARD">Hard</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <Label>Source (optional)</Label>
+                                    <Input
+                                        value={updateSource}
+                                        onChange={(e) => setUpdateSource(e.target.value)}
+                                        placeholder="Enter source"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <Label>Suitable answer 1</Label>
+                                <TextArea
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                    rows={2}
+                                    value={updateSuitableAnswer1}
+                                    onChange={setUpdateSuitableAnswer1}
+                                    placeholder="Enter sample answer"
+                                />
+                            </div>
+                            <div>
+                                <Label>Suitable answer 2</Label>
+                                <TextArea
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                                    rows={2}
+                                    value={updateSuitableAnswer2}
+                                    onChange={setUpdateSuitableAnswer2}
+                                    placeholder="Enter second sample answer"
+                                />
+                            </div>
+                            <div className="flex justify-end gap-3 pt-4">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setIsUpdateModalOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleUpdateQuestion}
+                                    disabled={!updateTitle || !updateContent || !updateDifficulty || !updateSuitableAnswer1}
+                                >
+                                    Update Question
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </Modal>
         </>

@@ -26,6 +26,14 @@ export const getTopicTags = async (topicId: number) => {
   }
 };
 
+export const connectTopicToTag = async (tagId: number, topicId: number) => {
+  try {
+    return await api.put(`/tag/${tagId}/topics/${topicId}`);
+  } catch (error) {
+    throw new Error(`Failed to connect topic to tag: ${error}`);
+  }
+};
+
 export const connectTagToTopic = async (topicId: number, tagId: number) => {
   try {
     const response = await api.get(`/topic/${topicId}/tags`);
@@ -68,6 +76,22 @@ export const getTags = async () => {
     return await api.get('/tag');
   } catch (error) {
     throw new Error(`Failed to get tags: ${error}`);
+  }
+};
+
+export const getAllTags = async () => {
+  try {
+    return await api.get('/tag/get-all');
+  } catch (error) {
+    throw new Error(`Failed to get tags: ${error}`);
+  }
+};
+
+export const restoreTag = async (tagId: number) => {
+  try {
+    return await api.put(`/tag/${tagId}/restore`);
+  } catch (error) {
+    throw new Error(`Failed to restore tag: ${error}`);
   }
 };
 
