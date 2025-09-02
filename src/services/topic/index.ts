@@ -42,6 +42,8 @@ export const uploadImage = async (file: File) => {
         const res = await api.post("/image/upload", formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
+        console.log("uploadImage",res);
+        
         return res.data[0] ?? null;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || "Error uploading image");

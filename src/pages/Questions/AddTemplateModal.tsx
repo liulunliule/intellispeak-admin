@@ -5,19 +5,21 @@ import Input from '../../components/form/input/InputField';
 import Label from '../../components/form/Label';
 import * as questionService from '../../services/question';
 import * as templateService from '../../services/template';
-import { uploadImage } from '../../services/image';
+import * as topicService from '../../services/topic';
 
 interface Topic {
     topicId: number;
     title: string;
     description: string;
+    longDescription?: string | null;
     createAt: string;
-    updateAt: string | null;
+    thumbnail?: string | null;
+    updateAt?: string | null;
     isDeleted: boolean;
 }
 
 interface Tag {
-    id: number;
+    tagId: number;
     title: string;
     description?: string;
     createAt?: string;
@@ -25,53 +27,23 @@ interface Tag {
     isDeleted?: boolean;
 }
 
-interface Question {
-    questionId: number;
-    title: string;
-    content: string;
-    suitableAnswer1: string;
-    suitableAnswer2: string;
-    embeddedVector: null;
-    difficulty: string;
-    questionStatus: string;
-    source: string;
-    is_deleted: boolean;
-}
-
-interface Session {
-    interviewSessionId: number;
-    topic: Topic;
-    title: string;
-    description: string;
-    interviewSessionThumbnail: string | null;
-    totalQuestion: number;
-    difficulty: string;
-    durationEstimate: string;
-    createAt: string;
-    updateAt: string | null;
-    isDeleted: boolean;
-    tags: Tag[];
-    questions: Question[];
-}
-
 interface AddTemplateModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: (newSession: any) => void;
-    editingSession: Session | null;
+    editingSession: any | null;
 }
 
-const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, onSuccess, editingSession }) => {
     const [form, setForm] = useState({
         thumbnail: '',
         title: '',
         description: '',
-        totalQuestion: '',
-        difficulty: '',
+        difficulty: '' as '' | 'EASY' | 'MEDIUM' | 'HARD', // Allow empty string for form state
         topicId: '',
         tagIds: [] as number[],
     });
-    const [topics, setTopics] = useState<{ topicId: number; title: string }[]>([]);
+    const [topics, setTopics] = useState<Topic[]>([]);
     const [tags, setTags] = useState<Tag[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -80,63 +52,78 @@ const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, on
 
     useEffect(() => {
         if (isOpen) {
-            setForm({
-                thumbnail: '',
-                title: '',
-                description: '',
-                totalQuestion: '',
-                difficulty: '',
-                topicId: '',
-                tagIds: [],
-            });
-            setThumbnailPreview(null);
-            setThumbnailFile(null);
+            if (editingSession) {
+                setForm({
+                    thumbnail: editingSession.interviewSessionThumbnail || '',
+                    title: editingSession.title || '',
+                    description: editingSession.description || '',
+                    difficulty: editingSession.difficulty || '',
+                    topicId: editingSession.topic?.topicId?.toString() || '',
+                    tagIds: editingSession.tags?.map((tag: Tag) => tag.tagId) || [],
+                });
+                if (editingSession.interviewSessionThumbnail) {
+                    setThumbnailPreview(editingSession.interviewSessionThumbnail);
+                }
+            } else {
+                setForm({
+                    thumbnail: '',
+                    title: '',
+                    description: '',
+                    difficulty: '',
+                    topicId: '',
+                    tagIds: [],
+                });
+                setThumbnailPreview(null);
+                setThumbnailFile(null);
+            }
             setError('');
+            fetchTopics();
         }
-    }, [isOpen]);
+    }, [isOpen, editingSession]);
+
+    const fetchTopics = async () => {
+        try {
+            const topicRes = await questionService.getTopics();
+            const fetchedTopics = topicRes.data || [];
+            setTopics(fetchedTopics);
+        } catch (err) {
+            const errorMessage = 'Error fetching topics';
+            console.error(errorMessage, err);
+            setError(errorMessage);
+        }
+    };
 
     useEffect(() => {
-        async function fetchData() {
+        async function fetchTags() {
+            if (!form.topicId) {
+                setTags([]);
+                return;
+            }
             try {
-                const topicRes = await questionService.getTopics();
-                setTopics(topicRes.data.data || topicRes.data);
-                const tagRes = await questionService.getTags();
-                console.log('Tags list:', tagRes.data.data || tagRes.data);
-                const fetchedTags = tagRes.data.data || tagRes.data;
-                const validTags = fetchedTags
-                    .filter((tag: any) => tag.id !== undefined && tag.id !== null)
-                    .map((tag: any) => ({
-                        id: tag.id,
-                        title: tag.title,
-                        description: tag.description,
-                        createAt: tag.createAt,
-                        updateAt: tag.updateAt,
-                        isDeleted: tag.isDeleted,
-                    }));
-                if (validTags.length < fetchedTags.length) {
-                    setError('Warning: Some tags have invalid IDs and were skipped');
-                }
-                setTags(validTags);
+                const topicRes = await topicService.getTopicsWithTags();
+                const selectedTopic = topicRes.find((topic: Topic) => topic.topicId === Number(form.topicId));
+                const fetchedTags = selectedTopic?.tags || [];
+                setTags(fetchedTags);
             } catch (err) {
-                const errorMessage = 'Error fetching topics or tags';
+                const errorMessage = 'Error fetching tags for topic';
                 console.error(errorMessage, err);
                 setError(errorMessage);
             }
         }
-        if (isOpen) {
-            fetchData();
+        if (isOpen && form.topicId) {
+            fetchTags();
         }
-    }, [isOpen]);
+    }, [isOpen, form.topicId]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleTagChange = (id: number, checked: boolean) => {
+    const handleTagChange = (tagId: number, checked: boolean) => {
         setForm((prev) => {
             const newTagIds = checked
-                ? [...prev.tagIds, id].filter((id, index, self) => self.indexOf(id) === index)
-                : prev.tagIds.filter((tagId) => tagId !== id);
+                ? [...prev.tagIds, tagId].filter((id, index, self) => self.indexOf(id) === index)
+                : prev.tagIds.filter((id) => id !== tagId);
             console.log('Selected tagIds:', newTagIds);
             return { ...prev, tagIds: newTagIds };
         });
@@ -156,7 +143,7 @@ const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, on
             return null;
         }
         try {
-            const url = await uploadImage(file);
+            const url = await topicService.uploadImage(file);
             console.log('Image uploaded successfully:', url);
             return url;
         } catch (error: any) {
@@ -185,18 +172,13 @@ const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, on
 
             const now = new Date().toISOString();
             const payload = {
-                interviewSessionId: 0,
                 title: form.title,
                 description: form.description,
                 interviewSessionThumbnail: thumbnailUrl || form.thumbnail,
-                totalQuestion: Number(form.totalQuestion) || 0,
-                difficulty: form.difficulty,
+                difficulty: (form.difficulty || 'MEDIUM') as 'EASY' | 'MEDIUM' | 'HARD', // Type assertion for safety
                 questionIds: [],
                 tagIds: form.tagIds,
                 topicId: Number(form.topicId),
-                tags: [],
-                topic: null,
-                durationEstimate: '',
                 createAt: now,
                 updateAt: null,
                 isDeleted: false,
@@ -204,15 +186,31 @@ const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, on
 
             console.log('Payload before sending to API:', payload);
 
-            const response = await templateService.createInterviewSessionV2(payload);
+            let response;
+            if (editingSession) {
+                response = await templateService.updateInterviewSession(editingSession.interviewSessionId, {
+                    title: form.title,
+                    description: form.description,
+                    difficulty: (form.difficulty || 'MEDIUM') as 'EASY' | 'MEDIUM' | 'HARD', // Type assertion
+                    topicId: Number(form.topicId),
+                    tagIds: form.tagIds,
+                });
+                if (thumbnailUrl) {
+                    await templateService.updateInterviewSessionThumbnail(editingSession.interviewSessionId, {
+                        thumbnailURL: thumbnailUrl,
+                    });
+                }
+            } else {
+                response = await templateService.createInterviewSessionV2(payload);
+            }
+
             console.log('API response:', response.data);
-            onSuccess(response.data.data);
+            onSuccess(response.data.data || response.data);
             onClose();
             setForm({
                 thumbnail: '',
                 title: '',
                 description: '',
-                totalQuestion: '',
                 difficulty: '',
                 topicId: '',
                 tagIds: [],
@@ -232,7 +230,7 @@ const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, on
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl">
             <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900">
                 <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-gray-100">
-                    Add New Template
+                    {editingSession ? 'Edit Template' : 'Add New Template'}
                 </h3>
                 <div className="space-y-4">
                     <div>
@@ -274,18 +272,6 @@ const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, on
                         />
                     </div>
                     <div>
-                        <Label className="text-gray-800 dark:text-gray-100">Total Questions</Label>
-                        <Input
-                            type="number"
-                            name="totalQuestion"
-                            value={form.totalQuestion}
-                            onChange={handleChange}
-                            placeholder="Enter total questions"
-                            className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                            min="0"
-                        />
-                    </div>
-                    <div>
                         <Label className="text-gray-800 dark:text-gray-100">Difficulty</Label>
                         <select
                             name="difficulty"
@@ -318,17 +304,17 @@ const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, on
                         <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-lg dark:border-gray-700 p-2">
                             {tags.length > 0 ? (
                                 tags.map((tag) => (
-                                    <div key={tag.id} className="flex items-center gap-2 py-1">
+                                    <div key={tag.tagId} className="flex items-center gap-2 py-1">
                                         <input
                                             type="checkbox"
-                                            id={`tag-${tag.id}`}
-                                            value={tag.id}
-                                            checked={form.tagIds.includes(tag.id)}
-                                            onChange={(e) => handleTagChange(tag.id, e.target.checked)}
+                                            id={`tag-${tag.tagId}`}
+                                            value={tag.tagId}
+                                            checked={form.tagIds.includes(tag.tagId)}
+                                            onChange={(e) => handleTagChange(tag.tagId, e.target.checked)}
                                             className="h-4 w-4 text-blue-600 border-gray-300 rounded dark:bg-gray-800 dark:border-gray-700"
                                         />
                                         <label
-                                            htmlFor={`tag-${tag.id}`}
+                                            htmlFor={`tag-${tag.tagId}`}
                                             className="text-gray-800 dark:text-gray-100"
                                         >
                                             {tag.title}
@@ -336,7 +322,9 @@ const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, on
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">No tags available</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    {form.topicId ? 'No tags available for this topic' : 'Select a topic to load tags'}
+                                </p>
                             )}
                         </div>
                     </div>
@@ -346,7 +334,7 @@ const AddTemplateModal: React.FC<AddTemplateModalProps> = ({ isOpen, onClose, on
                             Cancel
                         </Button>
                         <Button onClick={handleSubmit} disabled={loading}>
-                            Add
+                            {editingSession ? 'Update' : 'Add'}
                         </Button>
                     </div>
                 </div>

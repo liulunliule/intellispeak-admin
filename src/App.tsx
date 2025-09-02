@@ -45,6 +45,8 @@ import ManageTopics from "./pages/Questions/Topics/ManageTopics";
 import ManageTransaction from "./pages/Transaction/Transaction";
 import ManageCompany from "./pages/Company/ManageCompany";
 import PostDetail from "./pages/Forum/PostDetail";
+import AdminTemplateDetail from "./pages/Questions/AdminTemplateDetail";
+import CompanyTemplateDetail from "./pages/Questions/CompanyTemplateDetail";
 
 export default function App() {
   return (
@@ -72,6 +74,8 @@ export default function App() {
             <Route path="/questions" element={<ManageQuestions />} />
             <Route path="/manage-tags" element={<ManageTags />} />
             <Route path="/manage-interview-template" element={<ManageInterviewTemplate />} />
+            <Route path="/detail-admin-template/:id" element={<AdminTemplateDetail />} />
+            <Route path="/detail-company-template/:id" element={<CompanyTemplateDetail />} />
             <Route path="/manage-topics" element={<ManageTopics />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
