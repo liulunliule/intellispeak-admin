@@ -22,7 +22,7 @@ export default function UserDropdown() {
   const fetchUserProfile = useCallback(async () => {
     try {
       const response = await api.get('/auth/profile');
-      // console.log('User profile response:', response);
+      console.log('User profile response:', response);
 
       if (response.data.code === 200) {
         setUserProfile({
@@ -30,7 +30,7 @@ export default function UserDropdown() {
           email: response.data.data.email || "user@example.com",
           avatar: response.data.data.avatar || "/images/user/user-01.jpg"
         });
-      } else if (response.data.code === 500) {
+      } else if (response.status === 500) {
         await
           handleLogout();
         navigate('/');

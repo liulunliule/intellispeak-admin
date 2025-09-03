@@ -23,12 +23,14 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Response interceptor for error handling
+// Response interceptor for error handling with logout on 401 or 500
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (error.response && error.response.status === 401) {
-            console.log('Unauthorized request, redirecting to login...');
+    async (error) => {
+        if (error.response && (error.response.status === 401 || error.response.status === 500)) {
+            console.log('Unauthorized or server error, logging out...');
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('refreshToken');
             window.location.href = '/';
         }
         return Promise.reject(error);
