@@ -26,6 +26,14 @@ export default function MonthlyTarget() {
   // Format month as string "Month X"
   const formatMonth = (m: number) => `Month ${m}`;
 
+  // Format currency
+  const formatCurrency = (amount: string | number) => {
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount.replace(/,/g, '')) : amount;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(numericAmount);
+  };
   // Get revenue data
   useEffect(() => {
     setLoading(true);
@@ -120,16 +128,6 @@ export default function MonthlyTarget() {
     setIsOpen(false);
   }
 
-  // Format currency
-  const formatCurrency = (amount: string | number) => {
-    const numericAmount = typeof amount === 'string' ? parseFloat(amount.replace(/,/g, '')) : amount;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0
-    }).format(numericAmount);
-  };
-
   return (
     <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-11 dark:bg-gray-900 sm:px-6 sm:pt-6">
@@ -183,8 +181,8 @@ export default function MonthlyTarget() {
               </div>
 
               <span className={`absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full px-3 py-1 text-xs font-medium ${growthPercentage >= 0
-                  ? "bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500"
-                  : "bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500"
+                ? "bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500"
+                : "bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500"
                 }`}>
                 {growthPercentage >= 0 ? '+' : ''}{growthPercentage}%
               </span>

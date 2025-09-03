@@ -68,10 +68,18 @@ export default function ManageTransaction() {
                 return "warning";
         }
     };
+    // Format currency
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    };
 
     const filteredTransactions = statusFilter === "ALL"
         ? transactions
         : transactions.filter(transaction => transaction.transactionStatus === statusFilter);
+
 
     return (
         <div>
@@ -81,7 +89,7 @@ export default function ManageTransaction() {
                 <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Revenue</h3>
                     <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        ${totalRevenue.toFixed(2)}
+                        {formatCurrency(totalRevenue)}
                     </p>
                 </div>
             )}
@@ -149,7 +157,7 @@ export default function ManageTransaction() {
                                                 </p>
                                             </TableCell>
                                             <TableCell className="py-3 text-gray-500 text-sm dark:text-gray-400">
-                                                ${transaction.amount.toFixed(2)}
+                                                {formatCurrency(transaction.amount)}
                                             </TableCell>
                                             <TableCell className="py-3 text-gray-500 text-sm dark:text-gray-400">
                                                 {transaction.apackage?.packageName || 'None'}

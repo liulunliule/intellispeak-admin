@@ -30,12 +30,13 @@ export default function UserDropdown() {
           email: response.data.data.email || "user@example.com",
           avatar: response.data.data.avatar || "/images/user/user-01.jpg"
         });
-      } else if (response.status === 500) {
-        await
-          handleLogout();
-        navigate('/');
-        window.location.reload();
       }
+      // else if (response.status === 500) {
+      //   await
+      //     handleLogout();
+      //   navigate('/');
+      //   window.location.reload();
+      // }
       else {
         console.error('Failed to fetch profile:', response.data.message);
       }
