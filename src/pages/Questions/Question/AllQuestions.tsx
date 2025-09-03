@@ -1,4 +1,3 @@
-// AllQuestions.tsx
 import { useState } from "react";
 import QuestionTable from "../../../components/questions/QuestionTable";
 import { QuestionSet } from "./ManageQuestions";

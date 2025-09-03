@@ -1,4 +1,3 @@
-// components/questions/QuestionTable.tsx
 import { useState } from "react";
 import Badge from "../../components/ui/badge/Badge";
 import {
@@ -43,11 +42,28 @@ export default function QuestionTable({
     onDeleteTag,
     onViewDetails,
     onUpdateQuestion,
-    onDeleteQuestion
+    onDeleteQuestion,
 }: QuestionTableProps) {
     const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
     const handleDropdown = (id: number) => {
         setDropdownOpen(dropdownOpen === id ? null : id);
+    };
+
+    // Calculate total pages and slice the questionSets for the current page
+    const totalPages = Math.ceil(questionSets.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedSets = questionSets.slice(startIndex, endIndex);
+
+    // Handle page change
+    const handlePageChange = (page: number) => {
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+            setDropdownOpen(null); // Close any open dropdown when changing pages
+        }
     };
 
     return (
@@ -83,8 +99,8 @@ export default function QuestionTable({
                         </TableRow>
                     </TableHeader>
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                        {questionSets.length > 0 ? (
-                            questionSets.map((set) => (
+                        {paginatedSets.length > 0 ? (
+                            paginatedSets.map((set) => (
                                 <TableRow key={set.id}>
                                     <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-800 dark:text-white/90">
                                         <div className="flex flex-col gap-1">
@@ -120,16 +136,15 @@ export default function QuestionTable({
                                                         : "error"
                                             }
                                         >
-                                            {set.difficulty === "Easy"
-                                                ? "Easy"
-                                                : set.difficulty === "Medium"
-                                                    ? "Medium"
-                                                    : "Hard"}
+                                            {set.difficulty}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="px-4 py-3 text-start text-theme-sm">
                                         <div className="relative">
-                                            <button onClick={() => handleDropdown(set.id)} className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                                            <button
+                                                onClick={() => handleDropdown(set.id)}
+                                                className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                                            >
                                                 <MoreDotIcon className="w-5 h-5 text-gray-500" />
                                             </button>
                                             {dropdownOpen === set.id && (
@@ -190,6 +205,34 @@ export default function QuestionTable({
                     </TableBody>
                 </Table>
             </div>
+            {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 py-4">
+                    <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50"
+                    >
+                        Previous
+                    </button>
+                    {Array.from({ length: totalPages }, (_, index) => (
+                        <button
+                            key={index + 1}
+                            onClick={() => handlePageChange(index + 1)}
+                            className={`px-3 py-1 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-white ${currentPage === index + 1 ? "bg-gray-200 dark:bg-gray-700" : ""
+                                }`}
+                        >
+                            {index + 1}
+                        </button>
+                    ))}
+                    <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 text-gray-800 dark:text-white disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
         </div>
     );
 }
