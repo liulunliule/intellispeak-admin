@@ -1,4 +1,3 @@
-// MyQuestions.tsx
 import { useState } from "react";
 import { Button } from "../../../components/ui/button";
 import QuestionTable from "../../../components/questions/QuestionTable";

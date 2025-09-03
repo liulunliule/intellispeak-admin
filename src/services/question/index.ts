@@ -7,16 +7,33 @@ export const removeQuestionFromSession = async (sessionId: number, questionId: n
     throw new Error(`Failed to remove question from session: ${error}`);
   }
 };
-export const importCsvQuestions = async (tagId: number, file: File) => {
-  try {
+// export const importCsvQuestions = async (tagId: number, file: File) => {
+//   try {
+//     const formData = new FormData();
+//     formData.append('file', file);
+//     return await api.post(`/question/import-csv/${tagId}`, formData, {
+//       headers: { 'Content-Type': 'multipart/form-data' },
+//     });
+//   } catch (error) {
+//     throw new Error(`Failed to import questions from CSV: ${error}`);
+//   }
+// };
+
+export const importQuestionsFromCsv = async (data:{tagIds:[],interviewSessionId: number, file: File}) => {
     const formData = new FormData();
-    formData.append('file', file);
-    return await api.post(`/question/import-csv/${tagId}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-  } catch (error) {
-    throw new Error(`Failed to import questions from CSV: ${error}`);
-  }
+    formData.append("file", data.file);
+    const queryString = data.tagIds.map(id => `tagIds=${id}`).join('&');
+
+    const response = await api.post(
+        `/question/import-csv/${data.interviewSessionId}?${queryString}`,
+        formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        }
+    );
+    return response.data;
 };
 export const getTopicTags = async (topicId: number) => {
   try {

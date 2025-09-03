@@ -1,16 +1,13 @@
 import { useState, useEffect } from "react";
 import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
 import PageMeta from "../../../components/common/PageMeta";
-import { Modal } from "../../../components/ui/modal";
-import Label from "../../../components/form/Label";
-import Input from "../../../components/form/input/InputField";
 import AllQuestions from "./AllQuestions";
 import ConfirmationDialog from "../../../components/questions/ConfirmationDialog";
 import MyQuestions from "./MyQuestions";
-import Button from "../../../components/ui/button/Button";
+import CreateQuestionModal from "./CreateQuestionModal";
 import * as questionService from "../../../services/question";
 import * as topicService from "../../../services/topic";
-import TextArea from "../../../components/form/input/TextArea";
+import * as templateService from "../../../services/template";
 
 interface Tag {
     tagId: number;
@@ -69,33 +66,11 @@ export default function ManageQuestions() {
     const [currentSort, setCurrentSort] = useState("title");
     const [searchTerm, setSearchTerm] = useState("");
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [createStep, setCreateStep] = useState(1);
-    const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-    const [selectedTag, setSelectedTag] = useState<string | null>(null);
-    const [topics, setTopics] = useState<any[]>([]);
-    const [tags, setTags] = useState<any[]>([]);
-    const [loadingTags, setLoadingTags] = useState(false);
-    const [errorTags, setErrorTags] = useState("");
-    const [newTopic, setNewTopic] = useState("");
-    const [newTopicDesc, setNewTopicDesc] = useState("");
-    const [newTag, setNewTag] = useState("");
-    const [newTagDesc, setNewTagDesc] = useState("");
-    const [newQuestion, setNewQuestion] = useState("");
-    const [csvFile, setCsvFile] = useState<File | null>(null);
-    const [csvImporting, setCsvImporting] = useState(false);
-    const [csvImportError, setCsvImportError] = useState("");
-    const [csvImportSuccess, setCsvImportSuccess] = useState("");
-    const [createTab, setCreateTab] = useState<'manual' | 'csv'>('manual');
-    const [questionContent, setQuestionContent] = useState("");
-    const [questionDifficulty, setQuestionDifficulty] = useState("");
-    const [suitableAnswer1, setSuitableAnswer1] = useState("");
-    const [suitableAnswer2, setSuitableAnswer2] = useState("");
     const [isAddTagModalOpen, setIsAddTagModalOpen] = useState(false);
     const [selectedQuestionId, setSelectedQuestionId] = useState<number | null>(null);
     const [selectedAddTag, setSelectedAddTag] = useState<string | null>(null);
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
     const [deleteTagInfo, setDeleteTagInfo] = useState<{ questionId: number; tagId: number } | null>(null);
-    const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [questionDetail, setQuestionDetail] = useState<QuestionDetail | null>(null);
     const [loadingDetail, setLoadingDetail] = useState(false);
@@ -110,6 +85,9 @@ export default function ManageQuestions() {
     const [updateSource, setUpdateSource] = useState("");
     const [loadingUpdate, setLoadingUpdate] = useState(false);
     const [errorUpdate, setErrorUpdate] = useState("");
+    const [tags, setTags] = useState<any[]>([]);
+    const [loadingTags, setLoadingTags] = useState(false);
+    const [errorTags, setErrorTags] = useState("");
 
     useEffect(() => {
         fetchQuestions();
@@ -120,6 +98,7 @@ export default function ManageQuestions() {
         setLoadingQuestions(true);
         setErrorQuestions("");
         try {
+            // const response = await questionService.importQuestionsFromCsv();
             const response = await questionService.getQuestions();
             const convertedSets = response.data.map((q: Question) => ({
                 id: q.questionId,
@@ -247,133 +226,21 @@ export default function ManageQuestions() {
         }
     };
 
-    const convertDifficulty = (difficulty: string): "Easy" | "Medium" | "Hard" => {
-        switch (difficulty) {
-            case "EASY": return "Easy";
-            case "MEDIUM": return "Medium";
-            case "HARD": return "Hard";
-            default: return "Medium";
-        }
-    };
-
-    useEffect(() => {
-        if (isCreateModalOpen || isAddTagModalOpen || isDeleteTagModalOpen || isUpdateModalOpen) {
-            fetchTopics();
-        }
-    }, [isCreateModalOpen, isAddTagModalOpen, isDeleteTagModalOpen, isUpdateModalOpen]);
-
-    useEffect(() => {
-        if (isCreateModalOpen && selectedTopicId) {
-            fetchTags();
-        }
-    }, [isCreateModalOpen, selectedTopicId]);
-
-    const fetchTopics = async () => {
-        setLoadingTags(true);
-        setErrorTags("");
-        try {
-            const response = await questionService.getTopics();
-            setTopics(response.data);
-        } catch (error) {
-            setErrorTags("Failed to load topics");
-            console.error("Error fetching topics:", error);
-        } finally {
-            setLoadingTags(false);
-        }
-    };
-
     const fetchTags = async () => {
         setLoadingTags(true);
         setErrorTags("");
         try {
-            if (selectedTopicId) {
-                const response = await topicService.getTopicsWithTags();
-                const selectedTopic = response.find((topic: any) => topic.topicId === selectedTopicId);
-                setTags(selectedTopic?.tags || []);
-            } else {
-                setTags([]);
-            }
+            const response = await topicService.getTopicsWithTags();
+            const combinedTags = response.flatMap((topic: any) => topic.tags || []);
+            const uniqueTags = Array.from(
+                new Map(combinedTags.map((tag: any) => [tag.tagId, tag])).values()
+            );
+            setTags(uniqueTags);
         } catch (error) {
             setErrorTags("Failed to load tags");
             console.error("Error fetching tags:", error);
         } finally {
             setLoadingTags(false);
-        }
-    };
-
-    const connectTagToTopic = async (topicId: number, tagId: number) => {
-        try {
-            await questionService.connectTagToTopic(topicId, tagId);
-        } catch (error) {
-            console.error("Error connecting tag to topic:", error);
-        }
-    };
-
-    const handleAddTopic = async () => {
-        if (!newTopic || !newTopicDesc) return;
-        try {
-            const response = await questionService.createTopic({
-                title: newTopic,
-                description: newTopicDesc,
-            });
-            const newTopicId = response.data.topicId;
-            setSelectedTopic(newTopic);
-            setSelectedTopicId(newTopicId);
-            setNewTopic("");
-            setNewTopicDesc("");
-            setCreateStep(2);
-            await fetchTopics();
-        } catch (error) {
-            console.error("Error adding topic:", error);
-        }
-    };
-
-    const handleAddTag = async () => {
-        if (!newTag || !newTagDesc || !selectedTopicId) return;
-        try {
-            const response = await questionService.createTagForQuestion({
-                title: newTag,
-                description: newTagDesc,
-            });
-            const newTagId = response.data.id;
-            await connectTagToTopic(selectedTopicId, newTagId);
-            setSelectedTag(newTag);
-            setNewTag("");
-            setNewTagDesc("");
-            setCreateStep(3);
-            await fetchTags();
-        } catch (error) {
-            console.error("Error adding tag:", error);
-        }
-    };
-
-    const handleAddQuestion = async () => {
-        if (!questionContent || !questionDifficulty || !suitableAnswer1) return;
-        try {
-            const selectedTagObj = tags.find((tag) => tag.title === selectedTag);
-
-            if (!selectedTagObj || !selectedTopicId) {
-                console.error("Tag or topic not found");
-                return;
-            }
-
-            await questionService.createQuestion({
-                title: newQuestion,
-                content: questionContent,
-                difficulty: questionDifficulty,
-                suitableAnswer1,
-                suitableAnswer2,
-                tagIds: [selectedTagObj.tagId],
-            });
-
-            await connectTagToTopic(selectedTopicId, selectedTagObj.tagId);
-
-            await fetchQuestions();
-            await fetchMyQuestions();
-            setIsCreateModalOpen(false);
-            resetCreateFlow();
-        } catch (error) {
-            console.error("Error adding question:", error);
         }
     };
 
@@ -407,31 +274,26 @@ export default function ManageQuestions() {
         }
     };
 
-    const requestDeleteTag = (questionId: number, tagId: number) => {
-        setDeleteTagInfo({ questionId, tagId });
-        setIsDeleteTagModalOpen(true);
+    const handleCreateQuestionSuccess = async () => {
+        await fetchQuestions();
+        await fetchMyQuestions();
+        setIsCreateModalOpen(false);
     };
 
-    const resetCreateFlow = () => {
-        setCreateStep(1);
-        setSelectedTopic(null);
-        setSelectedTopicId(null);
-        setSelectedTag(null);
-        setNewTopic("");
-        setNewTopicDesc("");
-        setNewTag("");
-        setNewTagDesc("");
-        setNewQuestion("");
-        setQuestionContent("");
-        setQuestionDifficulty("");
-        setSuitableAnswer1("");
-        setSuitableAnswer2("");
-        setTags([]);
+    const convertDifficulty = (difficulty: string): "Easy" | "Medium" | "Hard" => {
+        switch (difficulty) {
+            case "EASY": return "Easy";
+            case "MEDIUM": return "Medium";
+            case "HARD": return "Hard";
+            default: return "Medium";
+        }
     };
 
     useEffect(() => {
-        if (!isCreateModalOpen) resetCreateFlow();
-    }, [isCreateModalOpen]);
+        if (isAddTagModalOpen || isDeleteTagModalOpen || isUpdateModalOpen) {
+            fetchTags();
+        }
+    }, [isAddTagModalOpen, isDeleteTagModalOpen, isUpdateModalOpen]);
 
     const filterTags = Array.from(
         new Set(
@@ -522,7 +384,7 @@ export default function ManageQuestions() {
             <PageBreadcrumb pageTitle="Questions" />
 
             <div className="mb-6">
-                <Input
+                <input
                     placeholder="Search questions by title..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -543,7 +405,7 @@ export default function ManageQuestions() {
                 onDifficultyChange={handleDifficultyChange}
                 onSortChange={handleSortChange}
                 onAddTag={openAddTagModal}
-                onDeleteTag={requestDeleteTag}
+                onDeleteTag={(questionId, tagId) => setDeleteTagInfo({ questionId, tagId })}
                 onCreateQuestion={() => setIsCreateModalOpen(true)}
                 onViewDetails={handleViewDetails}
                 onUpdateQuestion={handleOpenUpdateModal}
@@ -563,7 +425,7 @@ export default function ManageQuestions() {
                 onDifficultyChange={handleDifficultyChange}
                 onSortChange={handleSortChange}
                 onAddTag={openAddTagModal}
-                onDeleteTag={requestDeleteTag}
+                onDeleteTag={(questionId, tagId) => setDeleteTagInfo({ questionId, tagId })}
                 onViewDetails={handleViewDetails}
                 onUpdateQuestion={handleOpenUpdateModal}
                 onDeleteQuestion={handleDeleteQuestion}
@@ -579,12 +441,17 @@ export default function ManageQuestions() {
                 cancelText="Cancel"
             />
 
-            <Modal
-                isOpen={isDetailModalOpen}
-                onClose={() => setIsDetailModalOpen(false)}
-                className="max-w-2xl"
-            >
-                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+            <CreateQuestionModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                onQuestionCreated={handleCreateQuestionSuccess}
+                questionService={questionService}
+                topicService={topicService}
+                templateService={templateService}
+            />
+
+            <div className={isDetailModalOpen ? "modal show" : "modal"}>
+                <div className="modal-content rounded-2xl bg-white p-6 dark:bg-gray-900 max-w-2xl">
                     {loadingDetail && (
                         <div className="py-8 text-center text-gray-500 dark:text-gray-400">
                             Loading question details...
@@ -602,25 +469,25 @@ export default function ManageQuestions() {
                             </h3>
                             <div className="space-y-4">
                                 <div>
-                                    <Label>Title</Label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
                                     <p className="mt-1 text-gray-800 dark:text-white/90">
                                         {questionDetail.title}
                                     </p>
                                 </div>
                                 <div>
-                                    <Label>Content</Label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Content</label>
                                     <p className="mt-1 text-gray-800 dark:text-white/90">
                                         {questionDetail.content}
                                     </p>
                                 </div>
                                 <div>
-                                    <Label>Difficulty</Label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty</label>
                                     <p className="mt-1 text-gray-800 dark:text-white/90 capitalize">
                                         {questionDetail.difficulty.toLowerCase()}
                                     </p>
                                 </div>
                                 <div>
-                                    <Label>Tags</Label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
                                     <div className="mt-1 flex flex-wrap gap-2">
                                         {questionDetail.tags.map((tag) => (
                                             <span
@@ -633,14 +500,14 @@ export default function ManageQuestions() {
                                     </div>
                                 </div>
                                 <div>
-                                    <Label>Suitable Answer 1</Label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable Answer 1</label>
                                     <p className="mt-1 text-gray-800 dark:text-white/90">
                                         {questionDetail.suitableAnswer1}
                                     </p>
                                 </div>
                                 {questionDetail.suitableAnswer2 && (
                                     <div>
-                                        <Label>Suitable Answer 2</Label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable Answer 2</label>
                                         <p className="mt-1 text-gray-800 dark:text-white/90">
                                             {questionDetail.suitableAnswer2}
                                         </p>
@@ -648,7 +515,7 @@ export default function ManageQuestions() {
                                 )}
                                 {questionDetail.source && (
                                     <div>
-                                        <Label>Source</Label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Source</label>
                                         <p className="mt-1 text-gray-800 dark:text-white/90">
                                             {questionDetail.source}
                                         </p>
@@ -656,21 +523,20 @@ export default function ManageQuestions() {
                                 )}
                             </div>
                             <div className="mt-6 flex justify-end">
-                                <Button onClick={() => setIsDetailModalOpen(false)}>
+                                <button
+                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                                    onClick={() => setIsDetailModalOpen(false)}
+                                >
                                     Close
-                                </Button>
+                                </button>
                             </div>
                         </>
                     )}
                 </div>
-            </Modal>
+            </div>
 
-            <Modal
-                isOpen={isUpdateModalOpen}
-                onClose={() => setIsUpdateModalOpen(false)}
-                className="max-w-2xl"
-            >
-                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+            <div className={isUpdateModalOpen ? "modal show" : "modal"}>
+                <div className="modal-content rounded-2xl bg-white p-6 dark:bg-gray-900 max-w-2xl">
                     <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
                         Update Question
                     </h3>
@@ -687,26 +553,27 @@ export default function ManageQuestions() {
                     {!loadingUpdate && (
                         <div className="space-y-4">
                             <div>
-                                <Label>Question title</Label>
-                                <Input
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Question title</label>
+                                <input
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                     value={updateTitle}
                                     onChange={(e) => setUpdateTitle(e.target.value)}
                                     placeholder="Enter question title"
                                 />
                             </div>
                             <div>
-                                <Label>Question content</Label>
-                                <TextArea
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Question content</label>
+                                <textarea
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                     rows={4}
                                     value={updateContent}
-                                    onChange={setUpdateContent}
+                                    onChange={(e) => setUpdateContent(e.target.value)}
                                     placeholder="Enter detailed question content"
                                 />
                             </div>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <Label>Difficulty</Label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty</label>
                                     <select
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                         value={updateDifficulty}
@@ -719,8 +586,9 @@ export default function ManageQuestions() {
                                     </select>
                                 </div>
                                 <div>
-                                    <Label>Source (optional)</Label>
-                                    <Input
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Source (optional)</label>
+                                    <input
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                                         value={updateSource}
                                         onChange={(e) => setUpdateSource(e.target.value)}
                                         placeholder="Enter source"
@@ -728,56 +596,53 @@ export default function ManageQuestions() {
                                 </div>
                             </div>
                             <div>
-                                <Label>Suitable answer 1</Label>
-                                <TextArea
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable answer 1</label>
+                                <textarea
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                     rows={2}
                                     value={updateSuitableAnswer1}
-                                    onChange={setUpdateSuitableAnswer1}
+                                    onChange={(e) => setUpdateSuitableAnswer1(e.target.value)}
                                     placeholder="Enter sample answer"
                                 />
                             </div>
                             <div>
-                                <Label>Suitable answer 2</Label>
-                                <TextArea
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable answer 2</label>
+                                <textarea
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
                                     rows={2}
                                     value={updateSuitableAnswer2}
-                                    onChange={setUpdateSuitableAnswer2}
+                                    onChange={(e) => setUpdateSuitableAnswer2(e.target.value)}
                                     placeholder="Enter second sample answer"
                                 />
                             </div>
                             <div className="flex justify-end gap-3 pt-4">
-                                <Button
-                                    variant="outline"
+                                <button
+                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                                     onClick={() => setIsUpdateModalOpen(false)}
                                 >
                                     Cancel
-                                </Button>
-                                <Button
+                                </button>
+                                <button
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                                     onClick={handleUpdateQuestion}
                                     disabled={!updateTitle || !updateContent || !updateDifficulty || !updateSuitableAnswer1}
                                 >
                                     Update Question
-                                </Button>
+                                </button>
                             </div>
                         </div>
                     )}
                 </div>
-            </Modal>
+            </div>
 
-            <Modal
-                isOpen={isAddTagModalOpen}
-                onClose={() => setIsAddTagModalOpen(false)}
-                className="max-w-md"
-            >
-                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+            <div className={isAddTagModalOpen ? "modal show" : "modal"}>
+                <div className="modal-content rounded-2xl bg-white p-6 dark:bg-gray-900 max-w-md">
                     <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
                         Add Tag to Question
                     </h3>
                     <div className="space-y-4">
                         <div>
-                            <Label>Select tag</Label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Select tag</label>
                             {loadingTags ? (
                                 <div className="py-2 text-gray-500">Loading tags...</div>
                             ) : (
@@ -797,29 +662,26 @@ export default function ManageQuestions() {
                             {errorTags && <p className="text-red-500">{errorTags}</p>}
                         </div>
                         <div className="flex justify-end gap-3">
-                            <Button
-                                variant="outline"
+                            <button
+                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                                 onClick={() => setIsAddTagModalOpen(false)}
                             >
                                 Cancel
-                            </Button>
-                            <Button
+                            </button>
+                            <button
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                                 onClick={handleAddTagToQuestion}
                                 disabled={!selectedAddTag}
                             >
                                 Add
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 </div>
-            </Modal>
+            </div>
 
-            <Modal
-                isOpen={isDeleteTagModalOpen}
-                onClose={() => setIsDeleteTagModalOpen(false)}
-                className="max-w-md"
-            >
-                <div className="rounded-2xl bg-white p-6 dark:bg-gray-900">
+            <div className={isDeleteTagModalOpen ? "modal show" : "modal"}>
+                <div className="modal-content rounded-2xl bg-white p-6 dark:bg-gray-900 max-w-md">
                     <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
                         Remove Tag from Question
                     </h3>
@@ -827,326 +689,21 @@ export default function ManageQuestions() {
                         Are you sure you want to remove this tag from the question? This action cannot be undone.
                     </p>
                     <div className="flex justify-end gap-3">
-                        <Button
-                            variant="outline"
+                        <button
+                            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
                             onClick={() => setIsDeleteTagModalOpen(false)}
                         >
                             Cancel
-                        </Button>
-                        <Button onClick={handleDeleteTagFromQuestion}>
+                        </button>
+                        <button
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                            onClick={handleDeleteTagFromQuestion}
+                        >
                             Remove
-                        </Button>
+                        </button>
                     </div>
                 </div>
-            </Modal>
-
-            {isCreateModalOpen && (
-                <Modal
-                    isOpen={isCreateModalOpen}
-                    onClose={() => setIsCreateModalOpen(false)}
-                    className="max-w-2xl"
-                >
-                    <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900">
-                        <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
-                            Create New Question
-                        </h3>
-                        <div className="space-y-4">
-                            {createStep === 1 && (
-                                <div className="space-y-4">
-                                    <div>
-                                        <Label>1. Select topic</Label>
-                                        {loadingTags ? (
-                                            <div className="py-2 text-gray-500">Loading topics...</div>
-                                        ) : (
-                                            <>
-                                                <select
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                                    value={selectedTopic || ""}
-                                                    onChange={(e) => {
-                                                        const selected = topics.find(t => t.title === e.target.value);
-                                                        setSelectedTopic(e.target.value);
-                                                        setSelectedTopicId(selected?.topicId || null);
-                                                        if (e.target.value) {
-                                                            setCreateStep(2);
-                                                            fetchTags();
-                                                        }
-                                                    }}
-                                                >
-                                                    <option value="" className="text-gray-900 bg-white dark:bg-gray-800 dark:text-white">-- Select available topic --</option>
-                                                    {topics.map((topic) => (
-                                                        <option key={topic.topicId} value={topic.title}>
-                                                            {topic.title}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <div className="mt-4">
-                                                    <Label>Or create new topic</Label>
-                                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                                        <div>
-                                                            <Input
-                                                                placeholder="Topic name"
-                                                                value={newTopic}
-                                                                onChange={(e) => setNewTopic(e.target.value)}
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <TextArea
-                                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
-                                                                placeholder="Topic description"
-                                                                rows={3}
-                                                                value={newTopicDesc}
-                                                                onChange={setNewTopicDesc}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex justify-end mt-2">
-                                                        <Button
-                                                            onClick={handleAddTopic}
-                                                            disabled={!newTopic || !newTopicDesc}
-                                                        >
-                                                            Create topic
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </>
-                                        )}
-                                        {errorTags && <p className="text-red-500">{errorTags}</p>}
-                                    </div>
-                                </div>
-                            )}
-                            {createStep === 2 && selectedTopic && (
-                                <div className="space-y-4">
-                                    <div>
-                                        <Label>2. Select tag (category)</Label>
-                                        {loadingTags ? (
-                                            <div className="py-2 text-gray-500">Loading tags...</div>
-                                        ) : (
-                                            <>
-                                                <select
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                                    value={selectedTag || ""}
-                                                    onChange={(e) => {
-                                                        setSelectedTag(e.target.value);
-                                                        if (e.target.value) setCreateStep(3);
-                                                    }}
-                                                >
-                                                    <option value="">-- Select available tag --</option>
-                                                    {tags.map((tag) => (
-                                                        <option key={tag.tagId} value={tag.title}>
-                                                            {tag.title}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <div className="mt-4">
-                                                    <Label>Or create new tag</Label>
-                                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                                        <div>
-                                                            <Input
-                                                                placeholder="Tag name"
-                                                                value={newTag}
-                                                                onChange={(e) => setNewTag(e.target.value)}
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <TextArea
-                                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
-                                                                placeholder="Tag description"
-                                                                rows={3}
-                                                                value={newTagDesc}
-                                                                onChange={setNewTagDesc}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex justify-end mt-2">
-                                                        <Button
-                                                            onClick={handleAddTag}
-                                                            disabled={!newTag || !newTagDesc}
-                                                        >
-                                                            Create tag
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </>
-                                        )}
-                                        {errorTags && <p className="text-red-500">{errorTags}</p>}
-                                    </div>
-                                    <div className="flex justify-between pt-4">
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => setCreateStep(1)}
-                                        >
-                                            Back
-                                        </Button>
-                                        <Button
-                                            onClick={() => setCreateStep(3)}
-                                            disabled={!selectedTag && !newTag}
-                                        >
-                                            Continue
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-                            {createStep === 3 && selectedTag && (
-                                <div className="space-y-4">
-                                    <div className="flex gap-2 border-b mb-4">
-                                        <button
-                                            className={`px-4 py-2 font-semibold border-b-2 transition-colors ${createTab === 'manual' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-600 dark:text-gray-300'}`}
-                                            onClick={() => setCreateTab('manual')}
-                                            type="button"
-                                        >
-                                            Input Question
-                                        </button>
-                                        <button
-                                            className={`px-4 py-2 font-semibold border-b-2 transition-colors ${createTab === 'csv' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-gray-600 dark:text-gray-300'}`}
-                                            onClick={() => setCreateTab('csv')}
-                                            type="button"
-                                        >
-                                            Import CSV
-                                        </button>
-                                    </div>
-                                    {createTab === 'manual' && (
-                                        <>
-                                            <div>
-                                                <Label>Question title</Label>
-                                                <Input
-                                                    value={newQuestion}
-                                                    onChange={(e) => setNewQuestion(e.target.value)}
-                                                    placeholder="Enter question title"
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label>Question content</Label>
-                                                <TextArea
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
-                                                    rows={4}
-                                                    value={questionContent}
-                                                    onChange={setQuestionContent}
-                                                    placeholder="Enter detailed question content"
-                                                />
-                                            </div>
-                                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                                <div>
-                                                    <Label>Difficulty</Label>
-                                                    <select
-                                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                                        value={questionDifficulty}
-                                                        onChange={(e) => setQuestionDifficulty(e.target.value)}
-                                                    >
-                                                        <option value="">-- Select difficulty --</option>
-                                                        <option value="EASY">Easy</option>
-                                                        <option value="MEDIUM">Medium</option>
-                                                        <option value="HARD">Hard</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <Label>Suitable answer 1</Label>
-                                                <TextArea
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
-                                                    rows={2}
-                                                    value={suitableAnswer1}
-                                                    onChange={setSuitableAnswer1}
-                                                    placeholder="Enter sample answer"
-                                                />
-                                            </div>
-                                            <div>
-                                                <Label>Suitable answer 2</Label>
-                                                <TextArea
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
-                                                    rows={2}
-                                                    value={suitableAnswer2}
-                                                    onChange={setSuitableAnswer2}
-                                                    placeholder="Enter second sample answer"
-                                                />
-                                            </div>
-                                            <div className="flex justify-between pt-4">
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => setCreateStep(2)}
-                                                >
-                                                    Back
-                                                </Button>
-                                                <Button
-                                                    onClick={handleAddQuestion}
-                                                    disabled={!questionContent || !questionDifficulty || !suitableAnswer1}
-                                                >
-                                                    Create question
-                                                </Button>
-                                            </div>
-                                        </>
-                                    )}
-                                    {createTab === 'csv' && (
-                                        <>
-                                            <div>
-                                                <Label>Import CSV file</Label>
-                                                <input
-                                                    type="file"
-                                                    accept=".csv"
-                                                    onChange={e => {
-                                                        setCsvImportError("");
-                                                        setCsvImportSuccess("");
-                                                        if (e.target.files && e.target.files[0]) {
-                                                            setCsvFile(e.target.files[0]);
-                                                        } else {
-                                                            setCsvFile(null);
-                                                        }
-                                                    }}
-                                                    className="block w-full text-sm text-gray-500"
-                                                />
-                                            </div>
-                                            {csvImportError && (
-                                                <div className="text-red-500 text-sm">{csvImportError}</div>
-                                            )}
-                                            {csvImportSuccess && (
-                                                <div className="text-green-600 text-sm">{csvImportSuccess}</div>
-                                            )}
-                                            <div className="flex justify-between pt-4">
-                                                <Button
-                                                    variant="outline"
-                                                    onClick={() => setCreateStep(2)}
-                                                >
-                                                    Back
-                                                </Button>
-                                                <Button
-                                                    onClick={async () => {
-                                                        setCsvImportError("");
-                                                        setCsvImportSuccess("");
-                                                        if (!csvFile) {
-                                                            setCsvImportError("Please select a CSV file.");
-                                                            return;
-                                                        }
-                                                        const selectedTagObj = tags.find((tag) => tag.title === selectedTag);
-                                                        if (!selectedTagObj) {
-                                                            setCsvImportError("Please select a tag before importing.");
-                                                            return;
-                                                        }
-                                                        setCsvImporting(true);
-                                                        try {
-                                                            await questionService.importCsvQuestions(selectedTagObj.tagId, csvFile);
-                                                            setCsvImportSuccess("CSV imported successfully.");
-                                                            await fetchQuestions();
-                                                            await fetchMyQuestions();
-                                                            setIsCreateModalOpen(false);
-                                                            resetCreateFlow();
-                                                        } catch (error) {
-                                                            setCsvImportError((error as any).message || "Failed to import CSV.");
-                                                        } finally {
-                                                            setCsvImporting(false);
-                                                        }
-                                                    }}
-                                                    disabled={csvImporting || !csvFile}
-                                                >
-                                                    {csvImporting ? "Importing..." : "Import CSV"}
-                                                </Button>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </Modal>
-            )}
+            </div>
         </>
     );
 }
