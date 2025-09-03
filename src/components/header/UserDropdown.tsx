@@ -64,7 +64,7 @@ export default function UserDropdown() {
     }
     localStorage.removeItem('authToken');
     localStorage.removeItem('refreshToken');
-    // navigate('/');
+    navigate('/');
   };
 
   return (

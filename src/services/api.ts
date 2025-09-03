@@ -31,6 +31,7 @@ api.interceptors.response.use(
             console.log('Unauthorized or server error, logging out...');
             localStorage.removeItem('authToken');
             localStorage.removeItem('refreshToken');
+            window.location.reload();
             window.location.href = '/';
         }
         return Promise.reject(error);
