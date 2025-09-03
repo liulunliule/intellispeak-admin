@@ -66,116 +66,116 @@ const getDifficultyColor = (difficulty: string): BadgeColor => {
     }
 };
 
-const CompanyTemplateManagement: React.FC = () => {
+const AllTemplateManagement: React.FC = () => {
     const navigate = useNavigate();
-    const [companySessions, setCompanySessions] = useState<Session[]>([]);
-    const [filteredCompanySessions, setFilteredCompanySessions] = useState<Session[]>([]);
-    const [companySearch, setCompanySearch] = useState('');
-    const [companyLoading, setCompanyLoading] = useState(false);
-    const [companyError, setCompanyError] = useState('');
-    const [companyExpandedSessionId, setCompanyExpandedSessionId] = useState<number | null>(null);
-    const [isCompanyTemplateListCollapsed, setIsCompanyTemplateListCollapsed] = useState(false);
+    const [allSessions, setAllSessions] = useState<Session[]>([]);
+    const [filteredAllSessions, setFilteredAllSessions] = useState<Session[]>([]);
+    const [allSearch, setAllSearch] = useState('');
+    const [allLoading, setAllLoading] = useState(false);
+    const [allError, setAllError] = useState('');
+    const [allExpandedSessionId, setAllExpandedSessionId] = useState<number | null>(null);
+    const [isAllTemplateListCollapsed, setIsAllTemplateListCollapsed] = useState(false);
 
     useEffect(() => {
-        const fetchCompanySessions = async () => {
-            setCompanyLoading(true);
-            setCompanyError('');
+        const fetchAllSessions = async () => {
+            setAllLoading(true);
+            setAllError('');
             try {
-                const response = await templateService.getCompanyInterviewSessions();
-                console.log('getCompanyInterviewSessions response:', response.data);
+                const response = await templateService.getAllAdminInterviews();
+                console.log('getAllAdminInterviews response:', response.data);
                 const normalizedSessions = response.data.data.map((session: Session) => ({
                     ...session,
                     questions: session.questions || [],
                 }));
-                setCompanySessions(normalizedSessions);
-                setFilteredCompanySessions(normalizedSessions);
+                setAllSessions(normalizedSessions);
+                setFilteredAllSessions(normalizedSessions);
             } catch (err) {
-                setCompanyError('Error fetching company templates');
-                console.error('Error fetching company templates:', err);
+                setAllError('Error fetching all templates');
+                console.error('Error fetching all templates:', err);
             } finally {
-                setCompanyLoading(false);
+                setAllLoading(false);
             }
         };
-        fetchCompanySessions();
+        fetchAllSessions();
     }, []);
 
     useEffect(() => {
-        const filtered = companySessions.filter(
+        const filtered = allSessions.filter(
             (session) =>
-                session.title.toLowerCase().includes(companySearch.toLowerCase()) ||
-                session.description.toLowerCase().includes(companySearch.toLowerCase()) ||
-                session.topic.title.toLowerCase().includes(companySearch.toLowerCase())
+                session.title.toLowerCase().includes(allSearch.toLowerCase()) ||
+                session.description.toLowerCase().includes(allSearch.toLowerCase()) ||
+                session.topic.title.toLowerCase().includes(allSearch.toLowerCase())
         );
-        setFilteredCompanySessions(filtered);
-    }, [companySearch, companySessions]);
+        setFilteredAllSessions(filtered);
+    }, [allSearch, allSessions]);
 
-    const handleViewCompanySession = (sessionId: number) => {
-        console.log('Navigating to company template details with sessionId:', sessionId);
-        navigate(`/detail-company-template/${sessionId}`);
+    const handleViewAllSession = (sessionId: number) => {
+        console.log('Navigating to all template details with sessionId:', sessionId);
+        navigate(`/detail-all-template/${sessionId}`);
     };
 
-    const toggleCompanySessionQuestions = (sessionId: number) => {
-        setCompanyExpandedSessionId(companyExpandedSessionId === sessionId ? null : sessionId);
+    const toggleAllSessionQuestions = (sessionId: number) => {
+        setAllExpandedSessionId(allExpandedSessionId === sessionId ? null : sessionId);
     };
 
-    const toggleCompanyTemplateList = () => {
-        setIsCompanyTemplateListCollapsed(!isCompanyTemplateListCollapsed);
+    const toggleAllTemplateList = () => {
+        setIsAllTemplateListCollapsed(!isAllTemplateListCollapsed);
     };
 
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6 mb-8">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6">
             <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={toggleCompanyTemplateList}
+                            onClick={toggleAllTemplateList}
                             className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-100 transition-colors duration-150"
-                            title={isCompanyTemplateListCollapsed ? 'Expand company template list' : 'Collapse company template list'}
+                            title={isAllTemplateListCollapsed ? 'Expand all template list' : 'Collapse all template list'}
                         >
-                            {isCompanyTemplateListCollapsed ? (
+                            {isAllTemplateListCollapsed ? (
                                 <ChevronDownIcon className="w-5 h-5" />
                             ) : (
                                 <ChevronUpIcon className="w-5 h-5" />
                             )}
                         </button>
                         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                            Interview Company Template Management
+                            All Template Management
                         </h3>
                     </div>
                 </div>
 
-                {!isCompanyTemplateListCollapsed && (
+                {!isAllTemplateListCollapsed && (
                     <>
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div className="flex-1">
                                 <Input
                                     type="text"
-                                    placeholder="Search company templates by name, description, or topic..."
-                                    value={companySearch}
-                                    onChange={(e) => setCompanySearch(e.target.value)}
+                                    placeholder="Search all templates by name, description, or topic..."
+                                    value={allSearch}
+                                    onChange={(e) => setAllSearch(e.target.value)}
                                     className="text-gray-800 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                                 />
                             </div>
                         </div>
 
-                        {companyLoading && !companySessions.length && (
+                        {allLoading && !allSessions.length && (
                             <div className="py-8 text-center text-gray-600 dark:text-gray-400">
-                                Loading company template list...
+                                Loading all template list...
                             </div>
                         )}
 
-                        {companyError && (
-                            <div className="py-8 text-center text-red-500 dark:text-red-400">{companyError}</div>
+                        {allError && (
+                            <div className="py-8 text-center text-red-500 dark:text-red-400">{allError}</div>
                         )}
 
-                        {!companyLoading && !companyError && (
+                        {!allLoading && !allError && (
                             <div className="space-y-4">
-                                {filteredCompanySessions.length > 0 ? (
-                                    filteredCompanySessions.map((session) => (
+                                {filteredAllSessions.length > 0 ? (
+                                    filteredAllSessions.map((session) => (
                                         <div
                                             key={session.interviewSessionId}
                                             className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                                            onClick={() => handleViewCompanySession(session.interviewSessionId)}
+                                            onClick={() => handleViewAllSession(session.interviewSessionId)}
                                         >
                                             <div className="flex items-start justify-between gap-4">
                                                 <div className="flex items-start gap-4">
@@ -192,7 +192,7 @@ const CompanyTemplateManagement: React.FC = () => {
                                                                 className="mb-1 text-lg font-medium text-gray-800 dark:text-gray-100"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    toggleCompanySessionQuestions(session.interviewSessionId);
+                                                                    toggleAllSessionQuestions(session.interviewSessionId);
                                                                 }}
                                                             >
                                                                 {session.title}
@@ -201,10 +201,10 @@ const CompanyTemplateManagement: React.FC = () => {
                                                                 className="text-sm text-gray-500 dark:text-gray-400 cursor-pointer"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    toggleCompanySessionQuestions(session.interviewSessionId);
+                                                                    toggleAllSessionQuestions(session.interviewSessionId);
                                                                 }}
                                                             >
-                                                                {companyExpandedSessionId === session.interviewSessionId ? '▲' : '▼'}
+                                                                {allExpandedSessionId === session.interviewSessionId ? '▲' : '▼'}
                                                             </span>
                                                         </div>
                                                         <div className="text-sm text-gray-600 dark:text-gray-400">{session.description}</div>
@@ -224,7 +224,7 @@ const CompanyTemplateManagement: React.FC = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                            {companyExpandedSessionId === session.interviewSessionId && (
+                                            {allExpandedSessionId === session.interviewSessionId && (
                                                 <div className="mt-4 border-t border-gray-200 dark:border-gray-800 pt-4">
                                                     <h5 className="text-md font-semibold text-gray-800 dark:text-gray-100 mb-3">Question List</h5>
                                                     {(session.questions?.length > 0) ? (
@@ -260,7 +260,7 @@ const CompanyTemplateManagement: React.FC = () => {
                                     ))
                                 ) : (
                                     <div className="py-8 text-center text-gray-600 dark:text-gray-400">
-                                        No company templates found matching the search criteria.
+                                        No templates found matching the search criteria.
                                     </div>
                                 )}
                             </div>
@@ -272,4 +272,4 @@ const CompanyTemplateManagement: React.FC = () => {
     );
 };
 
-export default CompanyTemplateManagement;
+export default AllTemplateManagement;

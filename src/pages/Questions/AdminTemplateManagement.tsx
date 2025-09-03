@@ -81,6 +81,8 @@ const AdminTemplateManagement: React.FC<{ onAddTemplate: (newSession: Session) =
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [confirmDelete, setConfirmDelete] = useState<{ sessionId: number; questionId: number } | null>(null);
+    const [confirmDeleteSession, setConfirmDeleteSession] = useState<number | null>(null);
+    const [confirmRestoreSession, setConfirmRestoreSession] = useState<number | null>(null);
     const [expandedSessionId, setExpandedSessionId] = useState<number | null>(null);
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [updateQuestionId, setUpdateQuestionId] = useState<number | null>(null);
@@ -99,7 +101,7 @@ const AdminTemplateManagement: React.FC<{ onAddTemplate: (newSession: Session) =
             setLoading(true);
             setError('');
             try {
-                const response = await templateService.getAdminInterviews();
+                const response = await templateService.getAllAdminInterviews();
                 console.log('getAdminInterviews response:', response.data);
                 const normalizedSessions = response.data.data.map((session: Session) => ({
                     ...session,
@@ -170,6 +172,58 @@ const AdminTemplateManagement: React.FC<{ onAddTemplate: (newSession: Session) =
             setError('Error removing question');
         }
         setConfirmDelete(null);
+    };
+
+    const handleRemoveSession = async () => {
+        if (!confirmDeleteSession) return;
+        try {
+            await templateService.deleteSession(confirmDeleteSession);
+            console.log('Removed session:', confirmDeleteSession);
+            setSessions((prev) =>
+                prev.map((session) =>
+                    session.interviewSessionId === confirmDeleteSession
+                        ? { ...session, isDeleted: true }
+                        : session
+                )
+            );
+            setFilteredSessions((prev) =>
+                prev.map((session) =>
+                    session.interviewSessionId === confirmDeleteSession
+                        ? { ...session, isDeleted: true }
+                        : session
+                )
+            );
+        } catch (err) {
+            console.error('Failed to remove session:', err);
+            setError('Error removing session');
+        }
+        setConfirmDeleteSession(null);
+    };
+
+    const handleRestoreSession = async () => {
+        if (!confirmRestoreSession) return;
+        try {
+            await templateService.restoreSession(confirmRestoreSession);
+            console.log('Restored session:', confirmRestoreSession);
+            setSessions((prev) =>
+                prev.map((session) =>
+                    session.interviewSessionId === confirmRestoreSession
+                        ? { ...session, isDeleted: false }
+                        : session
+                )
+            );
+            setFilteredSessions((prev) =>
+                prev.map((session) =>
+                    session.interviewSessionId === confirmRestoreSession
+                        ? { ...session, isDeleted: false }
+                        : session
+                )
+            );
+        } catch (err) {
+            console.error('Failed to restore session:', err);
+            setError('Error restoring session');
+        }
+        setConfirmRestoreSession(null);
     };
 
     const handleOpenUpdateModal = async (questionId: number) => {
@@ -318,7 +372,7 @@ const AdminTemplateManagement: React.FC<{ onAddTemplate: (newSession: Session) =
                                     filteredSessions.map((session) => (
                                         <div
                                             key={session.interviewSessionId}
-                                            className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                                            className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 relative group"
                                             onClick={() => handleViewAdminTemplate(session.interviewSessionId)}
                                         >
                                             <div className="flex items-start justify-between gap-4">
@@ -360,8 +414,40 @@ const AdminTemplateManagement: React.FC<{ onAddTemplate: (newSession: Session) =
                                                             {session.updateAt && (
                                                                 <span className="text-xs text-gray-500 dark:text-gray-400">• Updated: {new Date(session.updateAt).toLocaleDateString()}</span>
                                                             )}
+                                                            {session.isDeleted && (
+                                                                <span className="text-xs text-red-500 dark:text-red-400">• Deleted</span>
+                                                            )}
                                                         </div>
                                                     </div>
+                                                </div>
+                                                <div className="absolute top-5 right-5 flex items-center gap-2">
+                                                    {!session.isDeleted ? (
+                                                        <button
+                                                            className="opacity-50 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity duration-150"
+                                                            title="Delete template"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setConfirmDeleteSession(session.interviewSessionId);
+                                                            }}
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            className="opacity-50 group-hover:opacity-100 text-gray-400 hover:text-green-500 transition-opacity duration-150"
+                                                            title="Restore template"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setConfirmRestoreSession(session.interviewSessionId);
+                                                            }}
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 12h16m-7-7l7 7-7 7" />
+                                                            </svg>
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                             {expandedSessionId === session.interviewSessionId && (
@@ -472,6 +558,80 @@ const AdminTemplateManagement: React.FC<{ onAddTemplate: (newSession: Session) =
                         </Button>
                         <Button variant="danger" onClick={handleRemoveQuestion}>
                             Delete
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={!!confirmDeleteSession}
+                onClose={() => setConfirmDeleteSession(null)}
+                className="max-w-md"
+            >
+                <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900 text-center">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-16 w-16 mx-auto text-red-500 mb-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                    </svg>
+                    <h3 className="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-100">
+                        Confirm Delete Template
+                    </h3>
+                    <p className="mb-6 text-gray-600 dark:text-gray-400">
+                        Are you sure you want to delete this template? This action can be undone by restoring the template.
+                    </p>
+                    <div className="flex justify-center gap-3">
+                        <Button variant="outline" onClick={() => setConfirmDeleteSession(null)}>
+                            Cancel
+                        </Button>
+                        <Button variant="danger" onClick={handleRemoveSession}>
+                            Delete
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            <Modal
+                isOpen={!!confirmRestoreSession}
+                onClose={() => setConfirmRestoreSession(null)}
+                className="max-w-md"
+            >
+                <div className="no-scrollbar relative w-full overflow-y-auto rounded-2xl bg-white p-6 dark:bg-gray-900 text-center">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-16 w-16 mx-auto text-green-500 mb-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                        />
+                    </svg>
+                    <h3 className="mb-2 text-xl font-semibold text-gray-800 dark:text-gray-100">
+                        Confirm Restore Template
+                    </h3>
+                    <p className="mb-6 text-gray-600 dark:text-gray-400">
+                        Are you sure you want to restore this template?
+                    </p>
+                    <div className="flex justify-center gap-3">
+                        <Button variant="outline" onClick={() => setConfirmRestoreSession(null)}>
+                            Cancel
+                        </Button>
+                        <Button variant="primary" onClick={handleRestoreSession}>
+                            Restore
                         </Button>
                     </div>
                 </div>

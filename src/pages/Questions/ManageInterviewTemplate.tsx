@@ -3,6 +3,7 @@ import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 import PageMeta from '../../components/common/PageMeta';
 import AdminTemplateManagement from './AdminTemplateManagement';
 import CompanyTemplateManagement from './CompanyTemplateManagement';
+// import AllTemplateManagement from './AllTemplateManagement';
 
 const ManageInterviewTemplate: React.FC = () => {
     return (
@@ -11,6 +12,7 @@ const ManageInterviewTemplate: React.FC = () => {
             <PageBreadcrumb pageTitle="Interview Template" />
             <AdminTemplateManagement onAddTemplate={() => { }} />
             <CompanyTemplateManagement />
+            {/* <AllTemplateManagement /> */}
         </>
     );
 };

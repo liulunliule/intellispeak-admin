@@ -110,3 +110,21 @@ export const getAvailableQuestionsForSession = async (sessionId: number) => {
     throw new Error(`Failed to fetch available questions for session ID ${sessionId}: ${error}`);
   }
 };
+
+// Delete an interview session (template)
+export const deleteSession = async (sessionId: number) => {
+  try {
+    return await api.delete(`/interview-sessions/delete/${sessionId}`);
+  } catch (error) {
+    throw new Error(`Failed to delete interview session for ID ${sessionId}: ${error}`);
+  }
+};
+
+// Restore a deleted interview session (template)
+export const restoreSession = async (sessionId: number) => {
+  try {
+    return await api.put(`/interview-sessions/restore/${sessionId}`);
+  } catch (error) {
+    throw new Error(`Failed to restore interview session for ID ${sessionId}: ${error}`);
+  }
+};
