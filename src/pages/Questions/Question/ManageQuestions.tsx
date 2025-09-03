@@ -8,6 +8,7 @@ import CreateQuestionModal from "./CreateQuestionModal";
 import * as questionService from "../../../services/question";
 import * as topicService from "../../../services/topic";
 import * as templateService from "../../../services/template";
+import { Modal } from "../../../components/ui/modal";
 
 interface Tag {
     tagId: number;
@@ -98,7 +99,6 @@ export default function ManageQuestions() {
         setLoadingQuestions(true);
         setErrorQuestions("");
         try {
-            // const response = await questionService.importQuestionsFromCsv();
             const response = await questionService.getQuestions();
             const convertedSets = response.data.map((q: Question) => ({
                 id: q.questionId,
@@ -450,78 +450,80 @@ export default function ManageQuestions() {
                 templateService={templateService}
             />
 
-            <div className={isDetailModalOpen ? "modal show" : "modal"}>
-                <div className="modal-content rounded-2xl bg-white p-6 dark:bg-gray-900 max-w-2xl">
-                    {loadingDetail && (
-                        <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-                            Loading question details...
-                        </div>
-                    )}
-                    {errorDetail && (
-                        <div className="py-8 text-center text-red-500 dark:text-red-400">
-                            {errorDetail}
-                        </div>
-                    )}
-                    {questionDetail && !loadingDetail && !errorDetail && (
-                        <>
-                            <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
-                                Question Details
-                            </h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
-                                    <p className="mt-1 text-gray-800 dark:text-white/90">
-                                        {questionDetail.title}
-                                    </p>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Content</label>
-                                    <p className="mt-1 text-gray-800 dark:text-white/90">
-                                        {questionDetail.content}
-                                    </p>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty</label>
-                                    <p className="mt-1 text-gray-800 dark:text-white/90 capitalize">
-                                        {questionDetail.difficulty.toLowerCase()}
-                                    </p>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
-                                    <div className="mt-1 flex flex-wrap gap-2">
-                                        {questionDetail.tags.map((tag) => (
-                                            <span
-                                                key={tag.tagId}
-                                                className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                                            >
-                                                {tag.title}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable Answer 1</label>
-                                    <p className="mt-1 text-gray-800 dark:text-white/90">
-                                        {questionDetail.suitableAnswer1}
-                                    </p>
-                                </div>
-                                {questionDetail.suitableAnswer2 && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable Answer 2</label>
-                                        <p className="mt-1 text-gray-800 dark:text-white/90">
-                                            {questionDetail.suitableAnswer2}
-                                        </p>
-                                    </div>
-                                )}
-                                {questionDetail.source && (
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Source</label>
-                                        <p className="mt-1 text-gray-800 dark:text-white/90">
-                                            {questionDetail.source}
-                                        </p>
-                                    </div>
-                                )}
+            <Modal
+                isOpen={isDetailModalOpen}
+                onClose={() => setIsDetailModalOpen(false)}
+                className="max-w-2xl p-6"
+            >
+                {loadingDetail && (
+                    <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+                        Loading question details...
+                    </div>
+                )}
+                {errorDetail && (
+                    <div className="py-8 text-center text-red-500 dark:text-red-400">
+                        {errorDetail}
+                    </div>
+                )}
+                {questionDetail && !loadingDetail && !errorDetail && (
+                    <>
+                        <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
+                            Question Details
+                        </h3>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
+                                <p className="mt-1 text-gray-800 dark:text-white/90">
+                                    {questionDetail.title}
+                                </p>
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Content</label>
+                                <p className="mt-1 text-gray-800 dark:text-white/90">
+                                    {questionDetail.content}
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty</label>
+                                <p className="mt-1 text-gray-800 dark:text-white/90 capitalize">
+                                    {questionDetail.difficulty.toLowerCase()}
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tags</label>
+                                <div className="mt-1 flex flex-wrap gap-2">
+                                    {questionDetail.tags.map((tag) => (
+                                        <span
+                                            key={tag.tagId}
+                                            className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                        >
+                                            {tag.title}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable Answer 1</label>
+                                <p className="mt-1 text-gray-800 dark:text-white/90">
+                                    {questionDetail.suitableAnswer1}
+                                </p>
+                            </div>
+                            {questionDetail.suitableAnswer2 && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable Answer 2</label>
+                                    <p className="mt-1 text-gray-800 dark:text-white/90">
+                                        {questionDetail.suitableAnswer2}
+                                    </p>
+                                </div>
+                            )}
+                            {questionDetail.source && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Source</label>
+                                    <p className="mt-1 text-gray-800 dark:text-white/90">
+                                        {questionDetail.source}
+                                    </p>
+                                </div>
+                            )}
                             <div className="mt-6 flex justify-end">
                                 <button
                                     className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
@@ -530,180 +532,186 @@ export default function ManageQuestions() {
                                     Close
                                 </button>
                             </div>
-                        </>
-                    )}
-                </div>
-            </div>
+                        </div>
+                    </>
+                )}
+            </Modal>
 
-            <div className={isUpdateModalOpen ? "modal show" : "modal"}>
-                <div className="modal-content rounded-2xl bg-white p-6 dark:bg-gray-900 max-w-2xl">
-                    <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
-                        Update Question
-                    </h3>
-                    {loadingUpdate && (
-                        <div className="py-4 text-center text-gray-500 dark:text-gray-400">
-                            Loading question data...
-                        </div>
-                    )}
-                    {errorUpdate && (
-                        <div className="py-4 text-center text-red-500 dark:text-red-400">
-                            {errorUpdate}
-                        </div>
-                    )}
-                    {!loadingUpdate && (
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Question title</label>
-                                <input
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                    value={updateTitle}
-                                    onChange={(e) => setUpdateTitle(e.target.value)}
-                                    placeholder="Enter question title"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Question content</label>
-                                <textarea
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
-                                    rows={4}
-                                    value={updateContent}
-                                    onChange={(e) => setUpdateContent(e.target.value)}
-                                    placeholder="Enter detailed question content"
-                                />
-                            </div>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty</label>
-                                    <select
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                        value={updateDifficulty}
-                                        onChange={(e) => setUpdateDifficulty(e.target.value)}
-                                    >
-                                        <option value="">-- Select difficulty --</option>
-                                        <option value="EASY">Easy</option>
-                                        <option value="MEDIUM">Medium</option>
-                                        <option value="HARD">Hard</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Source (optional)</label>
-                                    <input
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                        value={updateSource}
-                                        onChange={(e) => setUpdateSource(e.target.value)}
-                                        placeholder="Enter source"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable answer 1</label>
-                                <textarea
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
-                                    rows={2}
-                                    value={updateSuitableAnswer1}
-                                    onChange={(e) => setUpdateSuitableAnswer1(e.target.value)}
-                                    placeholder="Enter sample answer"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable answer 2</label>
-                                <textarea
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700"
-                                    rows={2}
-                                    value={updateSuitableAnswer2}
-                                    onChange={(e) => setUpdateSuitableAnswer2(e.target.value)}
-                                    placeholder="Enter second sample answer"
-                                />
-                            </div>
-                            <div className="flex justify-end gap-3 pt-4">
-                                <button
-                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-                                    onClick={() => setIsUpdateModalOpen(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                                    onClick={handleUpdateQuestion}
-                                    disabled={!updateTitle || !updateContent || !updateDifficulty || !updateSuitableAnswer1}
-                                >
-                                    Update Question
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <div className={isAddTagModalOpen ? "modal show" : "modal"}>
-                <div className="modal-content rounded-2xl bg-white p-6 dark:bg-gray-900 max-w-md">
-                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
-                        Add Tag to Question
-                    </h3>
+            <Modal
+                isOpen={isUpdateModalOpen}
+                onClose={() => setIsUpdateModalOpen(false)}
+                className="max-w-2xl p-6"
+            >
+                <h3 className="mb-4 text-xl font-semibold text-gray-800 dark:text-white/90">
+                    Update Question
+                </h3>
+                {loadingUpdate && (
+                    <div className="py-4 text-center text-gray-500 dark:text-gray-400">
+                        Loading question data...
+                    </div>
+                )}
+                {errorUpdate && (
+                    <div className="py-4 text-center text-red-500 dark:text-red-400">
+                        {errorUpdate}
+                    </div>
+                )}
+                {!loadingUpdate && (
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Select tag</label>
-                            {loadingTags ? (
-                                <div className="py-2 text-gray-500">Loading tags...</div>
-                            ) : (
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Question title</label>
+                            <input
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                value={updateTitle}
+                                onChange={(e) => setUpdateTitle(e.target.value)}
+                                placeholder="Enter question title"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Question content</label>
+                            <textarea
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                rows={4}
+                                value={updateContent}
+                                onChange={(e) => setUpdateContent(e.target.value)}
+                                placeholder="Enter detailed question content"
+                            />
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Difficulty</label>
                                 <select
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                                    value={selectedAddTag || ""}
-                                    onChange={(e) => setSelectedAddTag(e.target.value)}
+                                    value={updateDifficulty}
+                                    onChange={(e) => setUpdateDifficulty(e.target.value)}
                                 >
-                                    <option value="">-- Select tag --</option>
-                                    {tags.map((tag) => (
-                                        <option key={tag.tagId} value={tag.title}>
-                                            {tag.title}
-                                        </option>
-                                    ))}
+                                    <option value="">-- Select difficulty --</option>
+                                    <option value="EASY">Easy</option>
+                                    <option value="MEDIUM">Medium</option>
+                                    <option value="HARD">Hard</option>
                                 </select>
-                            )}
-                            {errorTags && <p className="text-red-500">{errorTags}</p>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Source (optional)</label>
+                                <input
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                    value={updateSource}
+                                    onChange={(e) => setUpdateSource(e.target.value)}
+                                    placeholder="Enter source"
+                                />
+                            </div>
                         </div>
-                        <div className="flex justify-end gap-3">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable answer 1</label>
+                            <textarea
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                rows={2}
+                                value={updateSuitableAnswer1}
+                                onChange={(e) => setUpdateSuitableAnswer1(e.target.value)}
+                                placeholder="Enter sample answer"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Suitable answer 2</label>
+                            <textarea
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                rows={2}
+                                value={updateSuitableAnswer2}
+                                onChange={(e) => setUpdateSuitableAnswer2(e.target.value)}
+                                placeholder="Enter second sample answer"
+                            />
+                        </div>
+                        <div className="flex justify-end gap-3 pt-4">
                             <button
                                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-                                onClick={() => setIsAddTagModalOpen(false)}
+                                onClick={() => setIsUpdateModalOpen(false)}
                             >
                                 Cancel
                             </button>
                             <button
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                                onClick={handleAddTagToQuestion}
-                                disabled={!selectedAddTag}
+                                onClick={handleUpdateQuestion}
+                                disabled={!updateTitle || !updateContent || !updateDifficulty || !updateSuitableAnswer1}
                             >
-                                Add
+                                Update Question
                             </button>
                         </div>
                     </div>
-                </div>
-            </div>
+                )}
+            </Modal>
 
-            <div className={isDeleteTagModalOpen ? "modal show" : "modal"}>
-                <div className="modal-content rounded-2xl bg-white p-6 dark:bg-gray-900 max-w-md">
-                    <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
-                        Remove Tag from Question
-                    </h3>
-                    <p className="mb-6 text-gray-600 dark:text-gray-400">
-                        Are you sure you want to remove this tag from the question? This action cannot be undone.
-                    </p>
+            <Modal
+                isOpen={isAddTagModalOpen}
+                onClose={() => setIsAddTagModalOpen(false)}
+                className="max-w-md p-6"
+            >
+                <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
+                    Add Tag to Question
+                </h3>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Select tag</label>
+                        {loadingTags ? (
+                            <div className="py-2 text-gray-500">Loading tags...</div>
+                        ) : (
+                            <select
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                                value={selectedAddTag || ""}
+                                onChange={(e) => setSelectedAddTag(e.target.value)}
+                            >
+                                <option value="">-- Select tag --</option>
+                                {tags.map((tag) => (
+                                    <option key={tag.tagId} value={tag.title}>
+                                        {tag.title}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                        {errorTags && <p className="text-red-500">{errorTags}</p>}
+                    </div>
                     <div className="flex justify-end gap-3">
                         <button
                             className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
-                            onClick={() => setIsDeleteTagModalOpen(false)}
+                            onClick={() => setIsAddTagModalOpen(false)}
                         >
                             Cancel
                         </button>
                         <button
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                            onClick={handleDeleteTagFromQuestion}
+                            onClick={handleAddTagToQuestion}
+                            disabled={!selectedAddTag}
                         >
-                            Remove
+                            Add
                         </button>
                     </div>
                 </div>
-            </div>
+            </Modal>
+
+            <Modal
+                isOpen={isDeleteTagModalOpen}
+                onClose={() => setIsDeleteTagModalOpen(false)}
+                className="max-w-md p-6"
+            >
+                <h3 className="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
+                    Remove Tag from Question
+                </h3>
+                <p className="mb-6 text-gray-600 dark:text-gray-400">
+                    Are you sure you want to remove this tag from the question? This action cannot be undone.
+                </p>
+                <div className="flex justify-end gap-3">
+                    <button
+                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600"
+                        onClick={() => setIsDeleteTagModalOpen(false)}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                        onClick={handleDeleteTagFromQuestion}
+                    >
+                        Remove
+                    </button>
+                </div>
+            </Modal>
         </>
     );
 }
