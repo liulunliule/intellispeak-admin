@@ -12,6 +12,8 @@ import { MoreDotIcon } from "../../../icons";
 
 interface User {
     userId: string;
+    firstName: string;
+    lastName: string;
     userName: string;
     email: string;
     role: string;
@@ -125,7 +127,7 @@ const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
                         <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                             <TableRow>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Avatar</TableCell>
-                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Username</TableCell>
+                                <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Full name</TableCell>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Email</TableCell>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Role</TableCell>
                                 <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Created At</TableCell>
@@ -142,7 +144,11 @@ const TableAllUser = ({ onShowDetail, refreshKey }: TableAllUserProps) => {
                                             </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell className="px-4 py-3 text-gray-800 text-theme-sm dark:text-white/90">{user.userName}</TableCell>
+                                    <TableCell className="px-4 py-3 text-gray-800 text-theme-sm dark:text-white/90">
+                                        {user.firstName && user.lastName
+                                            ? `${user.firstName} ${user.lastName}`
+                                            : user.userName}
+                                    </TableCell>
                                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">{user.email}</TableCell>
                                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                                         {user.isDeleted ? (

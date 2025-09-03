@@ -9,6 +9,7 @@ import ConfirmationDialog from "../../../components/questions/ConfirmationDialog
 import MyQuestions from "./MyQuestions";
 import Button from "../../../components/ui/button/Button";
 import * as questionService from "../../../services/question";
+import * as topicService from "../../../services/topic";
 import TextArea from "../../../components/form/input/TextArea";
 
 interface Tag {
@@ -66,7 +67,7 @@ export default function ManageQuestions() {
     const [currentTag, setCurrentTag] = useState("");
     const [currentDifficulty, setCurrentDifficulty] = useState("");
     const [currentSort, setCurrentSort] = useState("title");
-    const [searchTerm, setSearchTerm] = useState(""); // New state for search term
+    const [searchTerm, setSearchTerm] = useState("");
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [createStep, setCreateStep] = useState(1);
     const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -118,44 +119,62 @@ export default function ManageQuestions() {
     const fetchQuestions = async () => {
         setLoadingQuestions(true);
         setErrorQuestions("");
-        const response = await questionService.getQuestions();
-        const convertedSets = response.data.map((q: Question) => ({
-            id: q.questionId,
-            title: q.title,
-            content: q.content,
-            tags: q.tags,
-            difficulty: convertDifficulty(q.difficulty),
-            sampleAnswer: q.suitableAnswer1,
-        }));
-        setQuestionSets(convertedSets);
-        setFilteredSets(convertedSets);
-        setLoadingQuestions(false);
+        try {
+            const response = await questionService.getQuestions();
+            const convertedSets = response.data.map((q: Question) => ({
+                id: q.questionId,
+                title: q.title,
+                content: q.content,
+                tags: q.tags,
+                difficulty: convertDifficulty(q.difficulty),
+                sampleAnswer: q.suitableAnswer1,
+            }));
+            setQuestionSets(convertedSets);
+            setFilteredSets(convertedSets);
+        } catch (error) {
+            setErrorQuestions("Failed to load questions");
+            console.error("Error fetching questions:", error);
+        } finally {
+            setLoadingQuestions(false);
+        }
     };
 
     const fetchMyQuestions = async () => {
         setLoadingMyQuestions(true);
         setErrorMyQuestions("");
-        const response = await questionService.getMyQuestions();
-        const convertedSets = response.data.data.map((q: Question) => ({
-            id: q.questionId,
-            title: q.title,
-            content: q.content,
-            tags: q.tags,
-            difficulty: convertDifficulty(q.difficulty),
-            sampleAnswer: q.suitableAnswer1,
-        }));
-        setMyQuestionSets(convertedSets);
-        setFilteredMySets(convertedSets);
-        setLoadingMyQuestions(false);
+        try {
+            const response = await questionService.getMyQuestions();
+            const convertedSets = response.data.data.map((q: Question) => ({
+                id: q.questionId,
+                title: q.title,
+                content: q.content,
+                tags: q.tags,
+                difficulty: convertDifficulty(q.difficulty),
+                sampleAnswer: q.suitableAnswer1,
+            }));
+            setMyQuestionSets(convertedSets);
+            setFilteredMySets(convertedSets);
+        } catch (error) {
+            setErrorMyQuestions("Failed to load my questions");
+            console.error("Error fetching my questions:", error);
+        } finally {
+            setLoadingMyQuestions(false);
+        }
     };
 
     const fetchQuestionDetail = async (questionId: number) => {
         setLoadingDetail(true);
         setErrorDetail("");
-        const response = await questionService.getQuestionDetail(questionId);
-        setQuestionDetail(response.data);
-        setIsDetailModalOpen(true);
-        setLoadingDetail(false);
+        try {
+            const response = await questionService.getQuestionDetail(questionId);
+            setQuestionDetail(response.data);
+            setIsDetailModalOpen(true);
+        } catch (error) {
+            setErrorDetail("Failed to load question details");
+            console.error("Error fetching question details:", error);
+        } finally {
+            setLoadingDetail(false);
+        }
     };
 
     const handleViewDetails = (questionId: number) => {
@@ -165,17 +184,23 @@ export default function ManageQuestions() {
     const handleOpenUpdateModal = async (questionId: number) => {
         setLoadingUpdate(true);
         setErrorUpdate("");
-        const response = await questionService.getQuestionDetail(questionId);
-        const question = response.data;
-        setUpdateQuestionId(questionId);
-        setUpdateTitle(question.title);
-        setUpdateContent(question.content);
-        setUpdateDifficulty(question.difficulty);
-        setUpdateSuitableAnswer1(question.suitableAnswer1);
-        setUpdateSuitableAnswer2(question.suitableAnswer2 || "");
-        setUpdateSource(question.source || "");
-        setIsUpdateModalOpen(true);
-        setLoadingUpdate(false);
+        try {
+            const response = await questionService.getQuestionDetail(questionId);
+            const question = response.data;
+            setUpdateQuestionId(questionId);
+            setUpdateTitle(question.title);
+            setUpdateContent(question.content);
+            setUpdateDifficulty(question.difficulty);
+            setUpdateSuitableAnswer1(question.suitableAnswer1);
+            setUpdateSuitableAnswer2(question.suitableAnswer2 || "");
+            setUpdateSource(question.source || "");
+            setIsUpdateModalOpen(true);
+        } catch (error) {
+            setErrorUpdate("Failed to load question details");
+            console.error("Error fetching question details:", error);
+        } finally {
+            setLoadingUpdate(false);
+        }
     };
 
     const handleUpdateQuestion = async () => {
@@ -183,20 +208,25 @@ export default function ManageQuestions() {
 
         setLoadingUpdate(true);
         setErrorUpdate("");
-        await questionService.updateQuestion(updateQuestionId, {
-            title: updateTitle,
-            content: updateContent,
-            suitableAnswer1: updateSuitableAnswer1,
-            suitableAnswer2: updateSuitableAnswer2,
-            difficulty: updateDifficulty,
-            source: updateSource
-        });
-
-        await fetchQuestions();
-        await fetchMyQuestions();
-        setIsUpdateModalOpen(false);
-        setUpdateQuestionId(null);
-        setLoadingUpdate(false);
+        try {
+            await questionService.updateQuestion(updateQuestionId, {
+                title: updateTitle,
+                content: updateContent,
+                suitableAnswer1: updateSuitableAnswer1,
+                suitableAnswer2: updateSuitableAnswer2,
+                difficulty: updateDifficulty,
+                source: updateSource
+            });
+            await fetchQuestions();
+            await fetchMyQuestions();
+            setIsUpdateModalOpen(false);
+            setUpdateQuestionId(null);
+        } catch (error) {
+            setErrorUpdate("Failed to update question");
+            console.error("Error updating question:", error);
+        } finally {
+            setLoadingUpdate(false);
+        }
     };
 
     const handleDeleteQuestion = (questionId: number) => {
@@ -206,11 +236,15 @@ export default function ManageQuestions() {
 
     const confirmDeleteQuestion = async () => {
         if (!deleteQuestionId) return;
-        await questionService.deleteQuestion(deleteQuestionId);
-        await fetchQuestions();
-        await fetchMyQuestions();
-        setIsDeleteModalOpen(false);
-        setDeleteQuestionId(null);
+        try {
+            await questionService.deleteQuestion(deleteQuestionId);
+            await fetchQuestions();
+            await fetchMyQuestions();
+            setIsDeleteModalOpen(false);
+            setDeleteQuestionId(null);
+        } catch (error) {
+            console.error("Error deleting question:", error);
+        }
     };
 
     const convertDifficulty = (difficulty: string): "Easy" | "Medium" | "Hard" => {
@@ -225,9 +259,14 @@ export default function ManageQuestions() {
     useEffect(() => {
         if (isCreateModalOpen || isAddTagModalOpen || isDeleteTagModalOpen || isUpdateModalOpen) {
             fetchTopics();
-            fetchTags();
         }
     }, [isCreateModalOpen, isAddTagModalOpen, isDeleteTagModalOpen, isUpdateModalOpen]);
+
+    useEffect(() => {
+        if (isCreateModalOpen && selectedTopicId) {
+            fetchTags();
+        }
+    }, [isCreateModalOpen, selectedTopicId]);
 
     const fetchTopics = async () => {
         setLoadingTags(true);
@@ -246,9 +285,20 @@ export default function ManageQuestions() {
     const fetchTags = async () => {
         setLoadingTags(true);
         setErrorTags("");
-        const response = await questionService.getTags();
-        setTags(response.data.data || []);
-        setLoadingTags(false);
+        try {
+            if (selectedTopicId) {
+                const response = await topicService.getTopicsWithTags();
+                const selectedTopic = response.find((topic: any) => topic.topicId === selectedTopicId);
+                setTags(selectedTopic?.tags || []);
+            } else {
+                setTags([]);
+            }
+        } catch (error) {
+            setErrorTags("Failed to load tags");
+            console.error("Error fetching tags:", error);
+        } finally {
+            setLoadingTags(false);
+        }
     };
 
     const connectTagToTopic = async (topicId: number, tagId: number) => {
@@ -279,17 +329,19 @@ export default function ManageQuestions() {
     };
 
     const handleAddTag = async () => {
-        if (!newTag || !newTagDesc) return;
+        if (!newTag || !newTagDesc || !selectedTopicId) return;
         try {
-            await questionService.createTagForQuestion({
+            const response = await questionService.createTagForQuestion({
                 title: newTag,
                 description: newTagDesc,
             });
-            await fetchTags();
+            const newTagId = response.data.id;
+            await connectTagToTopic(selectedTopicId, newTagId);
             setSelectedTag(newTag);
             setNewTag("");
             setNewTagDesc("");
             setCreateStep(3);
+            await fetchTags();
         } catch (error) {
             console.error("Error adding tag:", error);
         }
@@ -311,10 +363,10 @@ export default function ManageQuestions() {
                 difficulty: questionDifficulty,
                 suitableAnswer1,
                 suitableAnswer2,
-                tagIds: selectedTagObj ? [selectedTagObj.id] : [],
+                tagIds: [selectedTagObj.tagId],
             });
 
-            await connectTagToTopic(selectedTopicId, selectedTagObj.id);
+            await connectTagToTopic(selectedTopicId, selectedTagObj.tagId);
 
             await fetchQuestions();
             await fetchMyQuestions();
@@ -330,7 +382,7 @@ export default function ManageQuestions() {
         try {
             const selectedTagObj = tags.find((tag) => tag.title === selectedAddTag);
             if (selectedTagObj) {
-                await questionService.addTagToQuestion(selectedQuestionId, selectedTagObj.id);
+                await questionService.addTagToQuestion(selectedQuestionId, selectedTagObj.tagId);
                 await fetchQuestions();
                 await fetchMyQuestions();
                 setIsAddTagModalOpen(false);
@@ -374,6 +426,7 @@ export default function ManageQuestions() {
         setQuestionDifficulty("");
         setSuitableAnswer1("");
         setSuitableAnswer2("");
+        setTags([]);
     };
 
     useEffect(() => {
@@ -392,7 +445,6 @@ export default function ManageQuestions() {
         let filtered = [...questionSets];
         let filteredMy = [...myQuestionSets];
 
-        // Apply search filter
         if (searchTerm) {
             filtered = filtered.filter((set) =>
                 set.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -736,7 +788,7 @@ export default function ManageQuestions() {
                                 >
                                     <option value="">-- Select tag --</option>
                                     {tags.map((tag) => (
-                                        <option key={tag.id} value={tag.title}>
+                                        <option key={tag.tagId} value={tag.title}>
                                             {tag.title}
                                         </option>
                                     ))}
@@ -814,7 +866,10 @@ export default function ManageQuestions() {
                                                         const selected = topics.find(t => t.title === e.target.value);
                                                         setSelectedTopic(e.target.value);
                                                         setSelectedTopicId(selected?.topicId || null);
-                                                        if (e.target.value) setCreateStep(2);
+                                                        if (e.target.value) {
+                                                            setCreateStep(2);
+                                                            fetchTags();
+                                                        }
                                                     }}
                                                 >
                                                     <option value="" className="text-gray-900 bg-white dark:bg-gray-800 dark:text-white">-- Select available topic --</option>
@@ -877,7 +932,7 @@ export default function ManageQuestions() {
                                                 >
                                                     <option value="">-- Select available tag --</option>
                                                     {tags.map((tag) => (
-                                                        <option key={tag.id} value={tag.title}>
+                                                        <option key={tag.tagId} value={tag.title}>
                                                             {tag.title}
                                                         </option>
                                                     ))}
@@ -1067,7 +1122,7 @@ export default function ManageQuestions() {
                                                         }
                                                         setCsvImporting(true);
                                                         try {
-                                                            await questionService.importCsvQuestions(selectedTagObj.id, csvFile);
+                                                            await questionService.importCsvQuestions(selectedTagObj.tagId, csvFile);
                                                             setCsvImportSuccess("CSV imported successfully.");
                                                             await fetchQuestions();
                                                             await fetchMyQuestions();

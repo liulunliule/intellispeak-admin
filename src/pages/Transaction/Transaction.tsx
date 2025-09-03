@@ -119,7 +119,7 @@ export default function ManageTransaction() {
                                 <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
                                     <TableRow>
                                         <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
-                                            User Name
+                                            Full Name
                                         </TableCell>
                                         <TableCell isHeader className="py-3 font-medium text-gray-500 text-start text-xs dark:text-gray-400">
                                             Amount
@@ -143,7 +143,9 @@ export default function ManageTransaction() {
                                                     className="font-medium text-blue-600 text-sm dark:text-blue-400 cursor-pointer hover:underline"
                                                     onClick={() => handleViewDetails(transaction)}
                                                 >
-                                                    {transaction.user.firstName ? transaction.user.firstName : transaction.user.userName}
+                                                    {transaction.user.firstName && transaction.user.lastName
+                                                        ? `${transaction.user.firstName} ${transaction.user.lastName}`
+                                                        : transaction.user.userName}
                                                 </p>
                                             </TableCell>
                                             <TableCell className="py-3 text-gray-500 text-sm dark:text-gray-400">
