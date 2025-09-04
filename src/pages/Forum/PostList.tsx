@@ -80,9 +80,9 @@ const PostList: React.FC<PostListProps> = ({
                             Manage Forum Post
                         </h3>
                     </div>
-                    <div className="flex gap-2">
+                    {/* <div className="flex gap-2">
                         <Button>Add New Post</Button>
-                    </div>
+                    </div> */}
                 </div>
 
                 {isPostsExpanded && (
