@@ -72,8 +72,8 @@ export default function ManageCompany() {
             name: company.name,
             shortName: company.shortName || '',
             description: company.description || '',
-            logoUrl: company.logoUrl,
-            website: company.website,
+            logoUrl: company.logoUrl || '',
+            website: company.website || '',
         });
         setLogoFile(null);
         setLogoPreview(company.logoUrl || null);
@@ -107,6 +107,7 @@ export default function ManageCompany() {
     };
 
     const isValidUrl = (url: string) => {
+        if (!url.trim()) return true; // Allow empty strings
         const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-./?%&=]*)?$/i;
         return urlPattern.test(url);
     };
@@ -116,13 +117,12 @@ export default function ManageCompany() {
         setEditError(null);
         setIsSaving(true);
         try {
-            if (!isValidUrl(editForm.logoUrl)) {
+            if (editForm.logoUrl.trim() && !isValidUrl(editForm.logoUrl)) {
                 throw new Error("Invalid logo URL format");
             }
-            if (!isValidUrl(editForm.website)) {
+            if (editForm.website.trim() && !isValidUrl(editForm.website)) {
                 throw new Error("Invalid website URL format");
             }
-
             let updatedLogoUrl = editForm.logoUrl;
             if (logoFile) {
                 const uploadedUrl = await uploadImage(logoFile);
@@ -187,16 +187,14 @@ export default function ManageCompany() {
             editForm.name !== selectedCompany.name ||
             editForm.shortName !== (selectedCompany.shortName || '') ||
             editForm.description !== (selectedCompany.description || '') ||
-            editForm.logoUrl !== selectedCompany.logoUrl ||
-            editForm.website !== selectedCompany.website ||
+            editForm.logoUrl !== (selectedCompany.logoUrl || '') ||
+            editForm.website !== (selectedCompany.website || '') ||
             logoFile !== null;
 
         const isValid =
             editForm.name.trim() !== '' &&
-            editForm.logoUrl.trim() !== '' &&
-            editForm.website.trim() !== '' &&
-            isValidUrl(editForm.logoUrl) &&
-            isValidUrl(editForm.website);
+            (editForm.logoUrl.trim() === '' || isValidUrl(editForm.logoUrl)) &&
+            (editForm.website.trim() === '' || isValidUrl(editForm.website));
 
         setIsSaveDisabled(!hasChanges || !isValid);
     }, [editForm, logoFile, selectedCompany]);
@@ -275,7 +273,7 @@ export default function ManageCompany() {
                                                     <TableCell className="py-3">
                                                         <div className="flex items-center space-x-3">
                                                             <img
-                                                                src={company.logoUrl}
+                                                                src={company.logoUrl || 'https://via.placeholder.com/32'}
                                                                 alt={`${company.name} logo`}
                                                                 className="h-8 w-8 object-contain"
                                                             />
@@ -371,7 +369,7 @@ export default function ManageCompany() {
                                     <div>
                                         <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Logo</h4>
                                         <img
-                                            src={selectedCompany.logoUrl}
+                                            src={selectedCompany.logoUrl || 'https://via.placeholder.com/80'}
                                             alt={`${selectedCompany.name} logo`}
                                             className="h-20 w-20 object-contain rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
                                         />
@@ -424,14 +422,18 @@ export default function ManageCompany() {
                                         </svg>
                                         <div>
                                             <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Website</h4>
-                                            <a
-                                                href={selectedCompany.website}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 dark:text-blue-400 hover:underline"
-                                            >
-                                                {selectedCompany.website}
-                                            </a>
+                                            {selectedCompany.website ? (
+                                                <a
+                                                    href={selectedCompany.website}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                                                >
+                                                    {selectedCompany.website}
+                                                </a>
+                                            ) : (
+                                                <p className="text-gray-700 dark:text-gray-300">N/A</p>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -514,7 +516,7 @@ export default function ManageCompany() {
                     <div className="space-y-6">
                         <div>
                             <label className="block text-base font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                Logo <span className="text-red-500">*</span> {logoFile ? `(${logoFile.name})` : "(Current Logo)"}
+                                Logo {logoFile ? `(${logoFile.name})` : "(Optional)"}
                             </label>
                             {logoPreview ? (
                                 <img
@@ -563,16 +565,15 @@ export default function ManageCompany() {
                                 value={editForm.name}
                                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                                 className="w-full p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 hover:border-gray-300 dark:hover:border-gray-600"
-
                             />
                         </div>
                         <div>
                             <label className="block text-base font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                Short Name
+                                Short Name (Optional)
                             </label>
                             <Input
                                 type="text"
-                                placeholder="Enter short name (optional)"
+                                placeholder="Enter short name"
                                 value={editForm.shortName}
                                 onChange={(e) => setEditForm({ ...editForm, shortName: e.target.value })}
                                 className="w-full p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 hover:border-gray-300 dark:hover:border-gray-600"
@@ -580,20 +581,19 @@ export default function ManageCompany() {
                         </div>
                         <div>
                             <label className="block text-base font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                Description
+                                Description (Optional)
                             </label>
                             <textarea
-                                placeholder="Enter company description (optional)"
+                                placeholder="Enter company description"
                                 value={editForm.description}
                                 onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                                 className="w-full p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 hover:border-gray-300 dark:hover:border-gray-600"
                                 rows={4}
                             />
                         </div>
-
                         <div>
                             <label className="block text-base font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                Website <span className="text-red-500">*</span>
+                                Website (Optional)
                             </label>
                             <Input
                                 type="text"
@@ -602,6 +602,9 @@ export default function ManageCompany() {
                                 onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
                                 className="w-full p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 hover:border-gray-300 dark:hover:border-gray-600"
                             />
+                            {editForm.website && !isValidUrl(editForm.website) && (
+                                <p className="mt-1 text-sm text-red-500">Please enter a valid URL (e.g., https://example.com).</p>
+                            )}
                         </div>
                         <div className="flex justify-end gap-4 pt-4">
                             <Button
